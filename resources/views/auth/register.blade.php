@@ -24,7 +24,7 @@
                 <div class="w-20 h-20 mx-auto bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4 transform hover:rotate-12 transition-transform cursor-pointer shadow-lg">
                     <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
                 </div>
-                <h2 class="text-3xl font-black outfit text-white tracking-tight">Join TotersLeb!</h2>
+                <h2 class="text-3xl font-black outfit text-white tracking-tight">Join AnsarEats!</h2>
                 <p class="text-emerald-100 font-medium mt-2">Create your account &amp; start selling</p>
             </div>
 

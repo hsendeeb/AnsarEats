@@ -92,11 +92,11 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20">
                 <div class="flex items-center">
-                    <a href="{{ url('/') }}" class="flex items-center gap-3 group">
-                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-400 shadow-lg shadow-emerald-500/40 flex items-center justify-center transform group-hover:scale-105 group-hover:-rotate-6 transition-all duration-300">
-                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    <a href="{{ url('/') }}" class="flex items-center  group">
+                        <div class="w-24 h-24 flex items-center justify-center transform group-hover:scale-110 transition-all duration-300">
+                            <dotlottie-player src="https://lottie.host/87132d2c-ba34-4710-a301-28e49f292ac0/zItpws4UYi.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
                         </div>
-                        <span class="font-extrabold text-3xl outfit text-gray-900 group-hover:text-emerald-500 tracking-tight transition-colors">TotersLeb</span>
+                        <span class="font-extrabold text-2xl outfit text-gray-900 group-hover:text-emerald-500 tracking-tight transition-colors">AnsarEats</span>
                     </a>
                 </div>
                 
@@ -277,10 +277,10 @@
                     <!-- Header -->
                     <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-br from-gray-50 to-white">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            <div class="w-12 h-12 flex items-center justify-center">
+                                <dotlottie-player src="https://lottie.host/a52b1c0b-6390-42ee-ad5c-fca5db1b7dfa/hcsHrorguN.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
                             </div>
-                            <span class="font-black text-2xl outfit text-gray-900">TotersLeb</span>
+                            <span class="font-black text-2xl outfit text-gray-900">AnsarEats</span>
                         </div>
                         <button @click="mobileMenuOpen = false" class="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-900 transition-colors">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -479,7 +479,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
             <div class="flex items-center gap-2 mb-6 grayscale opacity-40">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                <span class="font-extrabold text-2xl outfit">TotersLeb</span>
+                <span class="font-extrabold text-2xl outfit">AnsarEats</span>
             </div>
             <p class="text-gray-400 font-medium text-sm text-center max-w-sm mb-6">Enjoy playful animations and seamless transitions. Built for showcase purposes.</p>
             <div class="flex gap-6 text-sm font-bold text-gray-400">

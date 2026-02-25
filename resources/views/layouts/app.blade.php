@@ -14,10 +14,13 @@
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <!-- Swup for Page Transitions -->
     <script src="https://unpkg.com/swup@4"></script>
     <script src="https://unpkg.com/@swup/scripts-plugin@2"></script>
-    <script src="https://unpkg.com/@swup/a11y-plugin@3"></script>
+    <script src="https://unpkg.com/@swup/a11y-plugin@4"></script>
     
     <!-- Lottie Player -->
     <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
@@ -213,7 +216,7 @@
                     </div>
 
                     <!-- Cart Button -->
-                    <div x-data="navCart()" x-init="init()" @cart-updated.window="updateFromEvent($event)">
+                    <div x-data="navCart" @cart-updated.window="updateFromEvent($event)">
                         <button @click="$dispatch('toggle-cart')" class="relative font-semibold text-gray-600 hover:text-emerald-500 transition-colors p-2 rounded-xl hover:bg-emerald-50 h-11 w-11 flex items-center justify-center">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                             <span x-show="count > 0" x-transition
@@ -385,7 +388,7 @@
                         </div>
                     </div>
                     <div class="flex-1 overflow-y-auto p-6 space-y-2">
-                        <a href="{{ url('/') }}" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
+                        <a href="{{ url('/') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
                             <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                             </div>
@@ -393,20 +396,20 @@
                         </a>
                         
                         @guest
-                            <a href="{{ route('login') }}" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
+                            <a href="{{ route('login') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
                                 <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
                                 </div>
                                 Log In
                             </a>
-                            <a href="{{ route('register') }}" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
+                            <a href="{{ route('register') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
                                 <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
                                 </div>
                                 Partner with us
                             </a>
                         @else
-                            <a href="{{ route('owner.dashboard') }}" class="flex items-center gap-4 p-4 rounded-2xl font-bold  hover:bg-indigo-100 transition-all group">
+                            <a href="{{ route('owner.dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold  hover:bg-indigo-100 transition-all group">
                                 <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-indigo-600 shadow-sm">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                                 </div>
@@ -438,115 +441,11 @@
                 </div>
             </div>
         </template>
+        @include('layouts.partials.cart-drawer')
+        @include('layouts.partials.toast-notification')
     </nav>
 
-    <!-- Cart Sidebar Drawer -->
-    <div x-data="cartDrawer()" x-init="init()" @toggle-cart.window="open = !open" @cart-updated.window="updateFromEvent($event)" x-cloak>
-        <!-- Overlay -->
-        <div x-show="open" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="open = false" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]"></div>
-        
-        <!-- Drawer -->
-        <div x-show="open" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full" class="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl z-[70] flex flex-col">
-            
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-emerald-500 to-teal-500 p-6 text-white flex-shrink-0">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-black outfit">Your Cart</h3>
-                            <p class="text-emerald-100 text-sm font-medium" x-text="cart.restaurant_name ? 'From ' + cart.restaurant_name : 'Empty cart'"></p>
-                        </div>
-                    </div>
-                    <button @click="open = false" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                </div>
-            </div>
 
-            <!-- Cart Items -->
-            <div class="flex-1 overflow-y-auto p-6">
-                <template x-if="Object.keys(cart.items || {}).length === 0">
-                    <div class="flex flex-col items-center justify-center h-full text-center py-16">
-                        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-                            <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                        </div>
-                        <h4 class="text-xl font-black outfit text-gray-900 mb-2">Cart is empty</h4>
-                        <p class="text-gray-500 font-medium">Add items from a restaurant to get started!</p>
-                    </div>
-                </template>
-
-                <template x-if="Object.keys(cart.items || {}).length > 0">
-                    <div class="space-y-4">
-                        <template x-for="(item, key) in cart.items" :key="key">
-                            <div class="flex items-center gap-4 bg-gray-50 rounded-2xl p-4 border border-gray-100 group hover:shadow-sm transition-shadow">
-                                <!-- Image -->
-                                <div class="w-16 h-16 bg-gray-200 rounded-xl flex-shrink-0 overflow-hidden">
-                                    <template x-if="item.image">
-                                        <img :src="'/storage/' + item.image" class="w-full h-full object-cover">
-                                    </template>
-                                    <template x-if="!item.image">
-                                        <div class="w-full h-full flex items-center justify-center text-gray-400">
-                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                        </div>
-                                    </template>
-                                </div>
-                                
-                                <!-- Details -->
-                                <div class="flex-1 min-w-0">
-                                    <h5 class="font-bold text-gray-900 truncate" x-text="item.name"></h5>
-                                    <p class="text-sm font-black text-emerald-500">$<span x-text="(item.price * item.quantity).toFixed(2)"></span></p>
-                                </div>
-
-                                <!-- Quantity Controls -->
-                                <div class="flex items-center gap-1 flex-shrink-0">
-                                    <button @click="updateQuantity(item.id, item.quantity - 1)" class="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-red-50 hover:border-red-200 hover:text-red-500 text-gray-500 transition-colors">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"></path></svg>
-                                    </button>
-                                    <span class="w-7 text-center font-bold text-sm" x-text="item.quantity"></span>
-                                    <button @click="updateQuantity(item.id, item.quantity + 1)" class="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-500 text-gray-500 transition-colors">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </template>
-
-                        <!-- Clear Cart -->
-                        <button @click="clearCart()" class="w-full text-center text-sm font-bold text-red-500 hover:text-red-600 py-2 hover:bg-red-50 rounded-xl transition-colors mt-4">
-                            Clear entire cart
-                        </button>
-                    </div>
-                </template>
-            </div>
-
-            <!-- Footer -->
-            <template x-if="Object.keys(cart.items || {}).length > 0">
-                <div class="flex-shrink-0 border-t border-gray-100 p-6 bg-white">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-gray-500 font-bold">Total</span>
-                        <span class="text-2xl font-black outfit text-gray-900">$<span x-text="cart.total.toFixed(2)"></span></span>
-                    </div>
-                    <a href="{{ route('checkout') }}" class="block w-full text-center py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] text-lg">
-                        Checkout →
-                    </a>
-                </div>
-            </template>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div x-data="toastManager()" @cart-updated.window="showToast($event)" class="fixed top-24 right-4 z-[80]" x-cloak>
-        <template x-if="visible">
-            <div x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0 opacity-100" x-transition:leave-end="translate-x-full opacity-0" class="bg-white border border-gray-100 rounded-2xl shadow-2xl p-4 flex items-center gap-3 min-w-[280px]">
-                <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <p class="font-bold text-gray-900 text-sm" x-text="message"></p>
-            </div>
-        </template>
-    </div>
 
     <!-- Main Content wrapper for Swup -->
     <main id="swup" class="transition-fade flex-grow relative z-10">
@@ -592,9 +491,14 @@
     </footer>
     
     <script>
-        // Nav cart badge
-        function navCart() {
-            return {
+        // Global helper for Swup + Alpine
+        window.initAlpineComponents = function() {
+            if (!window.Alpine) return;
+
+            // Only register if not already done (avoids console warnings)
+            // But actually Alpine.data doesn't mind re-registration as much as it minds missing them
+            
+            Alpine.data('navCart', () => ({
                 count: 0,
                 async init() {
                     try {
@@ -606,12 +510,9 @@
                 updateFromEvent(event) {
                     this.count = event.detail.count || 0;
                 }
-            };
-        }
+            }));
 
-        // Cart drawer
-        function cartDrawer() {
-            return {
+            Alpine.data('cartDrawer', () => ({
                 open: false,
                 cart: { items: {}, count: 0, total: 0, restaurant_id: null, restaurant_name: null },
                 
@@ -625,7 +526,7 @@
                 },
 
                 updateFromEvent(event) {
-                    this.cart = event.detail;
+                    this.cart = event.detail || { items: {}, count: 0, total: 0 };
                     this.cart.count = this.cart.count || 0;
                     this.cart.total = this.cart.total || 0;
                 },
@@ -660,20 +561,25 @@
                         }
                     } catch(e) {}
                 }
-            };
-        }
-
-        // Toast manager
-        function toastManager() {
-            return {
+            }));
+            Alpine.data('toastManager', () => ({
                 visible: false,
                 message: '',
                 timeout: null,
                 showToast(event) {
-                    // Only show toast from add-to-cart events that have a message detail
-                    // We'll use a separate custom event for this
+                    this.message = event.detail.message || 'Cart updated!';
+                    this.visible = true;
+                    if (this.timeout) clearTimeout(this.timeout);
+                    this.timeout = setTimeout(() => { this.visible = false; }, 3000);
                 },
-            };
+            }));
+        };
+
+        // Initialize on start
+        if (window.Alpine) {
+            window.initAlpineComponents();
+        } else {
+            document.addEventListener('alpine:init', window.initAlpineComponents);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -685,6 +591,34 @@
             const swup = new Swup({
                 plugins: [new SwupScriptsPlugin(), new SwupA11yPlugin()]
             });
+
+            // Re-init Alpine components inside the Swup container after navigation
+            // Using multiple hooks to be safe with different Swup versions/states
+            const reinitAlpine = () => {
+                console.log('Swup navigation detected, discovering Alpine components...');
+                if (window.Alpine) {
+                    const swupContainer = document.querySelector('#swup');
+                    if (swupContainer) {
+                        window.Alpine.discover(swupContainer);
+                    }
+                }
+                
+                // If the dashboard script exists, re-run its chart init
+                if (typeof window.initDashboard === 'function') {
+                    window.initDashboard();
+                }
+            };
+
+            swup.hooks.on('content:replace', reinitAlpine);
+            swup.hooks.on('page:view', reinitAlpine);
+        });
+
+        // Debug helper for event dispatching
+        window.addEventListener('toggle-cart', () => {
+            console.log('GLOBAL: toggle-cart event received');
+        });
+        window.addEventListener('cart-updated', (e) => {
+            console.log('GLOBAL: cart-updated event received', e.detail);
         });
     </script>
     @stack('scripts')

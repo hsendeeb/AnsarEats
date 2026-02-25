@@ -11,7 +11,7 @@
     // ========== GSAP Animation Helpers ==========
 
     window.getCartTargetPos = function() {
-        const navCartBtn = document.querySelector('[x-data="navCart()"] button');
+        const navCartBtn = document.querySelector('[x-data="navCart"] button');
         const floatingBtn = document.getElementById('floating-cart-btn');
         
         if (navCartBtn) {
@@ -156,7 +156,7 @@
             onComplete: () => {
                 spawnParticles(target.x, target.y, 12);
                 spawnRipple(target.x, target.y);
-                const navCartBtn = document.querySelector('[x-data="navCart()"] button');
+                const navCartBtn = document.querySelector('[x-data="navCart"] button');
                 if (navCartBtn) {
                     gsap.timeline()
                         .to(navCartBtn, { scale: 1.4, duration: 0.15, ease: 'power2.out' })
@@ -185,24 +185,42 @@
 
     // ========== Alpine Components ==========
 
-    window.restaurantPage = function() {
-        return {
+    window.initRestaurantAlpine = function() {
+        if (!window.Alpine) return;
+
+        if (!Alpine.store('restaurantState')) {
+            Alpine.store('restaurantState', {
+                addingItem: null
+            });
+        }
+
+        Alpine.data('restaurantPage', () => ({
             activeCategory: '{{ $restaurant->menuCategories->first()->id ?? "" }}',
             cart: { items: {}, count: 0, total: 0, restaurant_id: null },
-            addingItem: null,
+            
+            async init() {
+                await this.loadCart();
+                console.log('restaurantPage initialized');
+            },
+            
             async loadCart() {
                 try {
                     const res = await fetch('{{ route("cart.index") }}');
                     const data = await res.json();
                     this.cart = data || { items: {}, count: 0, total: 0 };
-                } catch(e) {}
+                } catch(e) {
+                    console.error('Failed to load cart', e);
+                }
             },
+            
             getItemQty(itemId) {
                 if (!this.cart || !this.cart.items) return 0;
                 return this.cart.items[itemId] ? this.cart.items[itemId].quantity : 0;
             },
+            
             async addToCart(itemId, btnEvent) {
-                this.addingItem = itemId;
+                Alpine.store('restaurantState').addingItem = itemId;
+                console.log('Adding to cart:', itemId);
                 if (window.animateAddToCart) animateAddToCart(itemId, btnEvent);
                 try {
                     const res = await fetch('{{ route("cart.add") }}', {
@@ -216,9 +234,12 @@
                         if (window.showGsapToast) showGsapToast(data.message);
                         window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
                     }
-                } catch(e) {}
-                this.addingItem = null;
+                } catch(e) {
+                    console.error('Add to cart failed', e);
+                }
+                Alpine.store('restaurantState').addingItem = null;
             },
+            
             async updateQty(itemId, qty) {
                 try {
                     const res = await fetch('{{ route("cart.update") }}', {
@@ -233,28 +254,42 @@
                     }
                 } catch(e) {}
             }
-        };
-    };
+        }));
 
-    window.floatingCart = function() {
-        return {
+        Alpine.data('floatingCart', () => ({
             cart: { items: {}, count: 0, total: 0 },
+            
+            init() {
+                this.loadCart();
+                window.addEventListener('cart-updated', (e) => {
+                    this.cart = e.detail;
+                });
+            },
+
             async loadCart() {
                 try {
                     const res = await fetch('{{ route("cart.index") }}');
                     this.cart = await res.json();
                 } catch(e) {}
-                window.addEventListener('cart-updated', (e) => {
-                    this.cart = e.detail;
-                });
+            },
+
+            toggleCart() {
+                console.log('Toggling cart from floating button');
+                window.dispatchEvent(new CustomEvent('toggle-cart'));
             }
-        };
+        }));
     };
+
+    if (window.Alpine) {
+        window.initRestaurantAlpine();
+    } else {
+        document.addEventListener('alpine:init', window.initRestaurantAlpine);
+    }
 </script>
 
 <div class="relative bg-white overflow-hidden">
     <!-- Cover Layer -->
-    <div class="h-64 sm:h-80 lg:h-96 relative w-full overflow-hidden">
+    <div class="h-[500px] sm:h-80 lg:h-96 relative w-full">
         @if($restaurant->cover_image)
             <img src="{{ Storage::url($restaurant->cover_image) }}" alt="Cover" class="w-full h-full object-cover">
         @else
@@ -262,8 +297,8 @@
         @endif
         <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 to-transparent"></div>
         
-        <div class="absolute bottom-0 left-0 w-full px-4 sm:px-6 lg:px-8 pb-8 max-w-7xl mx-auto flex flex-col md:flex-row md:items-end gap-6">
-            <div class="flex-shrink-0 relative w-32 h-32 md:w-40 md:h-40 bg-white rounded-3xl p-2 shadow-2xl transform translate-y-4 md:translate-y-8 z-10 border-4 border-white">
+        <div class="absolute bottom-0 left-0 w-full px-4 sm:px-6 lg:px-8 pb-6 md:pb-8 max-w-7xl mx-auto flex flex-col md:flex-row md:items-end gap-4 md:gap-6">
+            <div class="flex-shrink-0 relative w-32 h-32 md:w-40 md:h-40 bg-white rounded-3xl p-2 shadow-2xl transform translate-y-6 md:translate-y-8 z-10 border-4 border-white">
                 @if($restaurant->logo)
                     <img src="{{ Storage::url($restaurant->logo) }}" alt="Logo" class="w-full h-full object-cover rounded-2xl">
                 @else
@@ -371,10 +406,10 @@
                                                     <button 
                                                         id="add-btn-{{ $item->id }}"
                                                         @click="addToCart({{ $item->id }}, $event)"
-                                                        :disabled="addingItem === {{ $item->id }}"
+                                                        :disabled="$store.restaurantState.addingItem === {{ $item->id }}"
                                                         class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 shadow-sm hover:shadow-lg hover:shadow-emerald-500/30">
-                                                        <svg x-show="addingItem !== {{ $item->id }}" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
-                                                        <svg x-show="addingItem === {{ $item->id }}" x-cloak class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                                        <svg x-show="$store.restaurantState.addingItem !== {{ $item->id }}" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
+                                                        <svg x-show="$store.restaurantState.addingItem === {{ $item->id }}" x-cloak class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                                                     </button>
                                                 </template>
                                                 <template x-if="getItemQty({{ $item->id }}) > 0">
@@ -421,11 +456,11 @@
 </div>
 
 <!-- Floating Cart Button -->
-<div id="floating-cart-btn" x-data="floatingCart()" x-init="loadCart()" class="fixed bottom-6 right-6 z-50" x-cloak>
+<div id="floating-cart-btn" x-data="floatingCart()" class="sticky bottom-6 right-6 px-2 w-full  z-50" x-cloak>
     <template x-if="cart.count > 0">
         <button 
-            @click="$dispatch('toggle-cart')"
-            class="bg-emerald-500 hover:bg-emerald-400 text-white px-6 py-4 rounded-full shadow-2xl shadow-emerald-500/40 font-bold flex items-center gap-3 transition-all transform hover:scale-105 hover:-translate-y-1 active:scale-95">
+            @click="toggleCart()"
+            class="bg-emerald-500 hover:bg-emerald-400 text-white px-6 py-4 rounded-md shadow-2xl shadow-emerald-500/40 font-bold flex items-center gap-3 transition-all transform   active:scale-95 w-full">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
             <span x-text="cart.count + ' item' + (cart.count !== 1 ? 's' : '')"></span>
             <span class="bg-white/20 px-2 py-0.5 rounded-full text-sm">$<span x-text="cart.total.toFixed(2)"></span></span>

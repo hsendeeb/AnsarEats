@@ -648,11 +648,12 @@
             // Re-init Alpine components inside the Swup container after navigation
             // Using multiple hooks to be safe with different Swup versions/states
             const reinitAlpine = () => {
-                console.log('Swup navigation detected, discovering Alpine components...');
+                console.log('Swup navigation detected, initializing Alpine components...');
                 if (window.Alpine) {
                     const swupContainer = document.querySelector('#swup');
                     if (swupContainer) {
-                        window.Alpine.discover(swupContainer);
+                        // In Alpine v3, initTree is the correct method to use
+                        window.Alpine.initTree(swupContainer);
                     }
                 }
                 

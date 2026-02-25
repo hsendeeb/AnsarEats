@@ -298,7 +298,7 @@
         <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 to-transparent"></div>
         
         <div class="absolute bottom-0 left-0 w-full px-4 sm:px-6 lg:px-8 pb-6 md:pb-8 max-w-7xl mx-auto flex flex-col md:flex-row md:items-end gap-4 md:gap-6">
-            <div class="flex-shrink-0 relative w-32 h-32 md:w-40 md:h-40 bg-white rounded-3xl p-2 shadow-2xl transform translate-y-6 md:translate-y-8 z-10 border-4 border-white">
+            <div class="flex-shrink-0 relative w-32 h-32 md:w-40 md:h-40 bg-white rounded-3xl p-2 shadow-2xl transform translate-y-6 md:translate-y-8 z-10 border-4 border-white mb-8">
                 @if($restaurant->logo)
                     <img src="{{ Storage::url($restaurant->logo) }}" alt="Logo" class="w-full h-full object-cover rounded-2xl">
                 @else

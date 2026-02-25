@@ -1,0 +1,108 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="min-h-[80vh] flex items-center justify-center py-16 px-4 relative">
+    <!-- Decorative -->
+    <div class="absolute top-20 right-20 w-24 h-24 bg-emerald-200 rounded-full opacity-25 animate-bounce" style="animation-duration: 4s;"></div>
+    <div class="absolute bottom-20 left-20 w-16 h-16 bg-teal-200 rounded-xl opacity-20 animate-bounce" style="animation-duration: 6s;"></div>
+    <div class="absolute top-1/3 left-1/4 w-10 h-10 bg-emerald-300 rounded-full opacity-15 animate-ping" style="animation-duration: 3s;"></div>
+
+    <div class="w-full max-w-2xl relative z-10" x-data="{ show: false }" x-init="setTimeout(() => show = true, 100)">
+        <div 
+            x-show="show"
+            x-transition:enter="transition ease-out duration-700"
+            x-transition:enter-start="opacity-0 translate-y-8 scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            class="bg-white rounded-[2rem] shadow-2xl shadow-gray-200/60 border border-gray-100 overflow-hidden"
+        >
+            <!-- Header -->
+            <div class="bg-gradient-to-br from-emerald-500 to-teal-500 p-10 text-center relative overflow-hidden">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-white/10 rounded-full"></div>
+                <div class="absolute -bottom-8 -left-8 w-36 h-36 bg-white/10 rounded-full"></div>
+                
+                <div class="w-24 h-24 mx-auto bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-6 animate-bounce" style="animation-duration: 2s;">
+                    <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <h2 class="text-3xl font-black outfit text-white tracking-tight">Order Placed! 🎉</h2>
+                <p class="text-emerald-100 font-medium mt-2 text-lg">Your food is on its way</p>
+            </div>
+
+            <!-- Order Details -->
+            <div class="p-8">
+                <!-- Order Info -->
+                <div class="flex items-center justify-between bg-gray-50 rounded-2xl p-4 mb-6">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Order #</p>
+                        <p class="text-2xl font-black outfit text-gray-900">{{ $order->id }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Status</p>
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-700 font-bold text-sm">
+                            <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                            {{ ucfirst($order->status) }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Restaurant -->
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-500 font-bold outfit">
+                        {{ substr($order->restaurant->name, 0, 1) }}
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-900">{{ $order->restaurant->name }}</p>
+                        <p class="text-sm text-gray-500 font-medium">{{ $order->restaurant->address }}</p>
+                    </div>
+                </div>
+
+                <!-- Items -->
+                <div class="space-y-3 mb-6">
+                    @foreach($order->orderItems as $item)
+                        <div class="flex items-center justify-between py-2 {{ !$loop->last ? 'border-b border-gray-100' : '' }}">
+                            <div class="flex items-center gap-3">
+                                <span class="w-7 h-7 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center font-bold text-xs">{{ $item->quantity }}×</span>
+                                <span class="font-medium text-gray-800">{{ $item->name }}</span>
+                            </div>
+                            <span class="font-bold text-gray-900">${{ number_format($item->price * $item->quantity, 2) }}</span>
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- Total -->
+                <div class="border-t-2 border-dashed border-gray-200 pt-4 mb-6">
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-black outfit text-gray-900">Total Paid</span>
+                        <span class="text-2xl font-black outfit text-emerald-500">${{ number_format($order->total, 2) }}</span>
+                    </div>
+                </div>
+
+                <!-- Delivery Info -->
+                <div class="bg-gray-50 rounded-2xl p-4 space-y-2">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <span class="text-sm font-medium text-gray-700">{{ $order->delivery_address }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                        <span class="text-sm font-medium text-gray-700">{{ $order->phone }}</span>
+                    </div>
+                    @if($order->notes)
+                        <div class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
+                            <span class="text-sm font-medium text-gray-700">{{ $order->notes }}</span>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- CTA -->
+                <div class="mt-8 text-center">
+                    <a href="{{ route('home') }}" class="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 hover:bg-emerald-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl hover:shadow-emerald-500/30 transition-all transform hover:-translate-y-0.5 active:scale-95 text-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

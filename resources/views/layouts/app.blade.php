@@ -22,6 +22,17 @@
     <!-- Lottie Player -->
     <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
 
+    <!-- Animation & Alpine Plugins -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
+    <script>
+        // Ensure GSAP plugins are ready
+        if (window.gsap && window.MotionPathPlugin) {
+            gsap.registerPlugin(MotionPathPlugin);
+        }
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <style>
@@ -113,7 +124,7 @@
                             }
                          }" 
                          @click.away="expanded = false; show = false"
-                         class="relative flex items-center">
+                         class="relative hidden md:flex items-center">
                         
                         <div class="flex items-center bg-gray-100 rounded-2xl transition-all duration-500 ease-in-out overflow-hidden h-11"
                              :class="expanded ? 'w-40 sm:w-64 px-4 ring-2 ring-emerald-500/20' : 'w-11 justify-center cursor-pointer hover:bg-emerald-50 hover:text-emerald-500'"
@@ -273,7 +284,106 @@
                         </button>
                     </div>
 
-                    <!-- Links -->
+                    <!-- Mobile Search -->
+                    <div class="px-6 py-4 border-b border-gray-100" 
+                         x-data="{ 
+                            query: '', 
+                            results: { restaurants: [], meals: [] }, 
+                            show: false, 
+                            loading: false,
+                            async fetchSuggestions() {
+                                if (this.query.length < 2) {
+                                    this.results = { restaurants: [], meals: [] };
+                                    this.show = false;
+                                    return;
+                                }
+                                this.loading = true;
+                                try {
+                                    const response = await fetch(`/search/suggestions?q=${encodeURIComponent(this.query)}`);
+                                    this.results = await response.json();
+                                    this.show = true;
+                                } catch (e) {
+                                    console.error('Search error:', e);
+                                } finally {
+                                    this.loading = false;
+                                }
+                            }
+                         }"
+                         @click.away="show = false">
+                        
+                        <div class="relative">
+                            <div class="flex items-center bg-gray-100 rounded-2xl px-4 h-12 border border-transparent focus-within:border-emerald-500/20 focus-within:ring-4 focus-within:ring-emerald-500/10 transition-all">
+                                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <input x-model="query"
+                                       @input.debounce.300ms="fetchSuggestions()"
+                                       @focus="if(query.length >= 2) show = true"
+                                       type="text"
+                                       placeholder="Search for food..."
+                                       class="bg-transparent border-none focus:ring-0 text-sm font-bold text-gray-900 w-full placeholder-gray-400 ml-2 py-0">
+                                
+                                <div x-show="loading">
+                                    <svg class="animate-spin h-4 w-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <!-- Mobile Dropdown Results -->
+                            <div x-show="show && (results.restaurants.length > 0 || results.meals.length > 0)"
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                 class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-[110] max-h-[300px] overflow-y-auto"
+                                 x-cloak>
+                                
+                                <template x-if="results.restaurants.length > 0">
+                                    <div class="p-2">
+                                        <div class="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Restaurants</div>
+                                        <template x-for="r in results.restaurants" :key="r.id">
+                                            <a :href="r.url" @click="mobileMenuOpen = false" class="flex items-center gap-3 p-2 rounded-xl hover:bg-emerald-50 transition-colors group">
+                                                <div class="w-8 h-8 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                                    <template x-if="r.logo">
+                                                        <img :src="r.logo" class="w-full h-full object-cover">
+                                                    </template>
+                                                    <template x-if="!r.logo">
+                                                        <span class="text-xs font-black text-gray-400" x-text="r.name.charAt(0)"></span>
+                                                    </template>
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="font-bold text-xs text-gray-900 truncate" x-text="r.name"></div>
+                                                </div>
+                                            </a>
+                                        </template>
+                                    </div>
+                                </template>
+
+                                <template x-if="results.meals.length > 0">
+                                    <div class="p-2 border-t border-gray-50">
+                                        <div class="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Meals</div>
+                                        <template x-for="m in results.meals" :key="m.id">
+                                            <a :href="m.url" @click="mobileMenuOpen = false" class="flex items-center gap-3 p-2 rounded-xl hover:bg-emerald-50 transition-colors group">
+                                                <div class="w-8 h-8 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                                    <template x-if="m.image">
+                                                        <img :src="m.image" class="w-full h-full object-cover">
+                                                    </template>
+                                                    <template x-if="!m.image">
+                                                        <div class="bg-emerald-100 w-full h-full flex items-center justify-center text-emerald-500">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="font-bold text-xs text-gray-900 truncate" x-text="m.name"></div>
+                                                    <div class="text-[10px] text-gray-500 font-bold uppercase truncate" x-text="m.restaurant_name"></div>
+                                                </div>
+                                            </a>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
                     <div class="flex-1 overflow-y-auto p-6 space-y-2">
                         <a href="{{ url('/') }}" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
                             <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
@@ -296,7 +406,7 @@
                                 Partner with us
                             </a>
                         @else
-                            <a href="{{ route('owner.dashboard') }}" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all group">
+                            <a href="{{ route('owner.dashboard') }}" class="flex items-center gap-4 p-4 rounded-2xl font-bold  hover:bg-indigo-100 transition-all group">
                                 <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-indigo-600 shadow-sm">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                                 </div>
@@ -567,6 +677,11 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Register GSAP plugins
+            if (window.gsap && window.MotionPathPlugin) {
+                gsap.registerPlugin(MotionPathPlugin);
+            }
+
             const swup = new Swup({
                 plugins: [new SwupScriptsPlugin(), new SwupA11yPlugin()]
             });

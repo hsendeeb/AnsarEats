@@ -1,256 +1,255 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Page Scripts -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
-
-<script>
-    (function() {
+<!-- Page Logic -->
+<script data-swup-reload-script>
+    // Ensure GSAP plugins are registered (safe to call multiple times)
+    if (window.gsap && window.MotionPathPlugin) {
         gsap.registerPlugin(MotionPathPlugin);
+    }
 
-        // ========== GSAP Animation Helpers ==========
+    // ========== GSAP Animation Helpers ==========
 
-        window.getCartTargetPos = function() {
-            const navCartBtn = document.querySelector('[x-data="navCart()"] button');
-            const floatingBtn = document.getElementById('floating-cart-btn');
+    window.getCartTargetPos = function() {
+        const navCartBtn = document.querySelector('[x-data="navCart()"] button');
+        const floatingBtn = document.getElementById('floating-cart-btn');
+        
+        if (navCartBtn) {
+            const rect = navCartBtn.getBoundingClientRect();
+            return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        }
+        if (floatingBtn) {
+            const rect = floatingBtn.getBoundingClientRect();
+            return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        }
+        return { x: window.innerWidth - 60, y: 40 };
+    };
+
+    window.createFlyingClone = function(sourceEl) {
+        const rect = sourceEl.getBoundingClientRect();
+        const clone = document.createElement('div');
+        clone.classList.add('flying-clone');
+        clone.style.width = rect.width + 'px';
+        clone.style.height = rect.height + 'px';
+        clone.style.left = rect.left + 'px';
+        clone.style.top = rect.top + 'px';
+        clone.innerHTML = sourceEl.innerHTML;
+        document.body.appendChild(clone);
+        return clone;
+    };
+
+    window.spawnParticles = function(x, y, count = 8) {
+        const container = document.getElementById('particle-container');
+        const colors = ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#fbbf24', '#f59e0b'];
+        const particles = [];
+
+        for (let i = 0; i < count; i++) {
+            const p = document.createElement('div');
+            p.classList.add('gsap-particle');
+            const size = gsap.utils.random(6, 14);
+            p.style.width = size + 'px';
+            p.style.height = size + 'px';
+            p.style.left = x + 'px';
+            p.style.top = y + 'px';
+            p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            container.appendChild(p);
+            particles.push(p);
+        }
+
+        particles.forEach((p, i) => {
+            const angle = (i / count) * Math.PI * 2;
+            const distance = gsap.utils.random(40, 100);
             
-            if (navCartBtn) {
-                const rect = navCartBtn.getBoundingClientRect();
-                return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-            }
-            if (floatingBtn) {
-                const rect = floatingBtn.getBoundingClientRect();
-                return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-            }
-            return { x: window.innerWidth - 60, y: 40 };
-        };
-
-        window.createFlyingClone = function(sourceEl) {
-            const rect = sourceEl.getBoundingClientRect();
-            const clone = document.createElement('div');
-            clone.classList.add('flying-clone');
-            clone.style.width = rect.width + 'px';
-            clone.style.height = rect.height + 'px';
-            clone.style.left = rect.left + 'px';
-            clone.style.top = rect.top + 'px';
-            clone.innerHTML = sourceEl.innerHTML;
-            document.body.appendChild(clone);
-            return clone;
-        };
-
-        window.spawnParticles = function(x, y, count = 8) {
-            const container = document.getElementById('particle-container');
-            const colors = ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#fbbf24', '#f59e0b'];
-            const particles = [];
-
-            for (let i = 0; i < count; i++) {
-                const p = document.createElement('div');
-                p.classList.add('gsap-particle');
-                const size = gsap.utils.random(6, 14);
-                p.style.width = size + 'px';
-                p.style.height = size + 'px';
-                p.style.left = x + 'px';
-                p.style.top = y + 'px';
-                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                container.appendChild(p);
-                particles.push(p);
-            }
-
-            particles.forEach((p, i) => {
-                const angle = (i / count) * Math.PI * 2;
-                const distance = gsap.utils.random(40, 100);
-                
-                gsap.to(p, {
-                    x: Math.cos(angle) * distance,
-                    y: Math.sin(angle) * distance,
-                    opacity: 0,
-                    scale: 0,
-                    duration: gsap.utils.random(0.6, 1.0),
-                    ease: 'power3.out',
-                    onComplete: () => p.remove()
-                });
-            });
-        };
-
-        window.spawnRipple = function(x, y) {
-            const ripple = document.createElement('div');
-            ripple.classList.add('cart-ripple');
-            ripple.style.left = (x - 20) + 'px';
-            ripple.style.top = (y - 20) + 'px';
-            ripple.style.width = '40px';
-            ripple.style.height = '40px';
-            document.body.appendChild(ripple);
-
-            gsap.to(ripple, {
-                scale: 3,
+            gsap.to(p, {
+                x: Math.cos(angle) * distance,
+                y: Math.sin(angle) * distance,
                 opacity: 0,
-                duration: 0.7,
-                ease: 'power2.out',
-                onComplete: () => ripple.remove()
+                scale: 0,
+                duration: gsap.utils.random(0.6, 1.0),
+                ease: 'power3.out',
+                onComplete: () => p.remove()
             });
-        };
+        });
+    };
 
-        window.spawnPriceFly = function(x, y, price) {
-            const el = document.createElement('div');
-            el.classList.add('price-fly');
-            el.style.left = x + 'px';
-            el.style.top = y + 'px';
-            el.style.fontSize = '18px';
-            el.textContent = '+$' + price;
-            document.body.appendChild(el);
+    window.spawnRipple = function(x, y) {
+        const ripple = document.createElement('div');
+        ripple.classList.add('cart-ripple');
+        ripple.style.left = (x - 20) + 'px';
+        ripple.style.top = (y - 20) + 'px';
+        ripple.style.width = '40px';
+        ripple.style.height = '40px';
+        document.body.appendChild(ripple);
 
-            gsap.fromTo(el, 
-                { opacity: 1, y: 0, scale: 1 },
-                { 
-                    opacity: 0, y: -60, scale: 1.5,
-                    duration: 1.2, ease: 'power2.out',
-                    onComplete: () => el.remove()
-                }
-            );
-        };
+        gsap.to(ripple, {
+            scale: 3,
+            opacity: 0,
+            duration: 0.7,
+            ease: 'power2.out',
+            onComplete: () => ripple.remove()
+        });
+    };
 
-        window.animateAddToCart = function(itemId, btnEvent) {
-            const imgEl = document.getElementById('item-img-' + itemId);
-            const cardEl = document.getElementById('item-card-' + itemId);
-            if (!imgEl) return;
+    window.spawnPriceFly = function(x, y, price) {
+        const el = document.createElement('div');
+        el.classList.add('price-fly');
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+        el.style.fontSize = '18px';
+        el.textContent = '+$' + price;
+        document.body.appendChild(el);
 
-            const target = getCartTargetPos();
-            const imgRect = imgEl.getBoundingClientRect();
-            const startX = imgRect.left;
-            const startY = imgRect.top;
-
-            gsap.timeline()
-                .to(cardEl, { scale: 0.95, duration: 0.1, ease: 'power2.in' })
-                .to(cardEl, { scale: 1, duration: 0.4, ease: 'elastic.out(1, 0.4)' });
-
-            const clone = createFlyingClone(imgEl);
-            gsap.fromTo(clone, { scale: 1, rotation: 0 }, { scale: 1.2, duration: 0.15, ease: 'power2.out', yoyo: true, repeat: 1 });
-            spawnParticles(startX + imgRect.width / 2, startY + imgRect.height / 2, 10);
-
-            if (btnEvent) {
-                const btnRect = btnEvent.currentTarget?.getBoundingClientRect();
-                if (btnRect) {
-                    const priceEl = cardEl?.querySelector('.text-emerald-500');
-                    const priceText = priceEl?.textContent?.replace('$', '') || '';
-                    spawnPriceFly(btnRect.left - 30, btnRect.top - 10, priceText);
-                }
+        gsap.fromTo(el, 
+            { opacity: 1, y: 0, scale: 1 },
+            { 
+                opacity: 0, y: -60, scale: 1.5,
+                duration: 1.2, ease: 'power2.out',
+                onComplete: () => el.remove()
             }
+        );
+    };
 
-            const midX = (startX + target.x) / 2;
-            const midY = Math.min(startY, target.y) - 120;
+    window.animateAddToCart = function(itemId, btnEvent) {
+        const imgEl = document.getElementById('item-img-' + itemId);
+        const cardEl = document.getElementById('item-card-' + itemId);
+        if (!imgEl) return;
 
-            gsap.to(clone, {
-                duration: 0.75,
-                ease: 'power2.inOut',
-                motionPath: {
-                    path: [
-                        { x: 0, y: 0 },
-                        { x: midX - startX, y: midY - startY },
-                        { x: target.x - startX, y: target.y - startY }
-                    ],
-                    curviness: 1.5
-                },
-                scale: 0.3,
-                rotation: 360,
-                opacity: 0.8,
-                onComplete: () => {
-                    spawnParticles(target.x, target.y, 12);
-                    spawnRipple(target.x, target.y);
-                    const navCartBtn = document.querySelector('[x-data="navCart()"] button');
-                    if (navCartBtn) {
-                        gsap.timeline()
-                            .to(navCartBtn, { scale: 1.4, duration: 0.15, ease: 'power2.out' })
-                            .to(navCartBtn, { scale: 1, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
-                    }
-                    const floatingBtn = document.querySelector('#floating-cart-btn button');
-                    if (floatingBtn) {
-                        gsap.timeline()
-                            .to(floatingBtn, { scale: 1.15, duration: 0.15, ease: 'power2.out' })
-                            .to(floatingBtn, { scale: 1, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
-                    }
-                    gsap.to(clone, { scale: 0, opacity: 0, duration: 0.2, onComplete: () => clone.remove() });
+        const target = getCartTargetPos();
+        const imgRect = imgEl.getBoundingClientRect();
+        const startX = imgRect.left;
+        const startY = imgRect.top;
+
+        gsap.timeline()
+            .to(cardEl, { scale: 0.95, duration: 0.1, ease: 'power2.in' })
+            .to(cardEl, { scale: 1, duration: 0.4, ease: 'elastic.out(1, 0.4)' });
+
+        const clone = createFlyingClone(imgEl);
+        gsap.fromTo(clone, { scale: 1, rotation: 0 }, { scale: 1.2, duration: 0.15, ease: 'power2.out', yoyo: true, repeat: 1 });
+        spawnParticles(startX + imgRect.width / 2, startY + imgRect.height / 2, 10);
+
+        if (btnEvent) {
+            const btnRect = btnEvent.currentTarget?.getBoundingClientRect();
+            if (btnRect) {
+                const priceEl = cardEl?.querySelector('.text-emerald-500');
+                const priceText = priceEl?.textContent?.replace('$', '') || '';
+                spawnPriceFly(btnRect.left - 30, btnRect.top - 10, priceText);
+            }
+        }
+
+        const midX = (startX + target.x) / 2;
+        const midY = Math.min(startY, target.y) - 120;
+
+        gsap.to(clone, {
+            duration: 0.75,
+            ease: 'power2.inOut',
+            motionPath: {
+                path: [
+                    { x: 0, y: 0 },
+                    { x: midX - startX, y: midY - startY },
+                    { x: target.x - startX, y: target.y - startY }
+                ],
+                curviness: 1.5
+            },
+            scale: 0.3,
+            rotation: 360,
+            opacity: 0.8,
+            onComplete: () => {
+                spawnParticles(target.x, target.y, 12);
+                spawnRipple(target.x, target.y);
+                const navCartBtn = document.querySelector('[x-data="navCart()"] button');
+                if (navCartBtn) {
+                    gsap.timeline()
+                        .to(navCartBtn, { scale: 1.4, duration: 0.15, ease: 'power2.out' })
+                        .to(navCartBtn, { scale: 1, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
                 }
-            });
-        };
-
-        window.showGsapToast = function(message) {
-            const toast = document.getElementById('gsap-toast');
-            const msgEl = document.getElementById('gsap-toast-msg');
-            if (!toast || !msgEl) return;
-            msgEl.textContent = message;
-            gsap.killTweensOf(toast);
-            gsap.fromTo(toast, { opacity: 0, y: -20, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(2)' });
-            gsap.to(toast, { opacity: 0, y: -20, scale: 0.8, duration: 0.3, ease: 'power2.in', delay: 2.2 });
-        };
-
-        // ========== Alpine Components ==========
-
-        window.restaurantPage = function() {
-            return {
-                activeCategory: '{{ $restaurant->menuCategories->first()->id ?? "" }}',
-                cart: { items: {}, count: 0, total: 0, restaurant_id: null },
-                addingItem: null,
-                async loadCart() {
-                    try {
-                        const res = await fetch('{{ route("cart.index") }}');
-                        this.cart = await res.json();
-                    } catch(e) {}
-                },
-                getItemQty(itemId) {
-                    return this.cart.items && this.cart.items[itemId] ? this.cart.items[itemId].quantity : 0;
-                },
-                async addToCart(itemId, btnEvent) {
-                    this.addingItem = itemId;
-                    animateAddToCart(itemId, btnEvent);
-                    try {
-                        const res = await fetch('{{ route("cart.add") }}', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                            body: JSON.stringify({ menu_item_id: itemId, quantity: 1 })
-                        });
-                        const data = await res.json();
-                        if (res.ok) {
-                            this.cart = data.cart;
-                            showGsapToast(data.message);
-                            window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
-                        }
-                    } catch(e) {}
-                    this.addingItem = null;
-                },
-                async updateQty(itemId, qty) {
-                    try {
-                        const res = await fetch('{{ route("cart.update") }}', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                            body: JSON.stringify({ menu_item_id: itemId, quantity: qty })
-                        });
-                        const data = await res.json();
-                        if (res.ok) {
-                            this.cart = data.cart;
-                            window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
-                        }
-                    } catch(e) {}
+                const floatingBtn = document.querySelector('#floating-cart-btn button');
+                if (floatingBtn) {
+                    gsap.timeline()
+                        .to(floatingBtn, { scale: 1.15, duration: 0.15, ease: 'power2.out' })
+                        .to(floatingBtn, { scale: 1, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
                 }
-            };
-        };
+                gsap.to(clone, { scale: 0, opacity: 0, duration: 0.2, onComplete: () => clone.remove() });
+            }
+        });
+    };
 
-        window.floatingCart = function() {
-            return {
-                cart: { items: {}, count: 0, total: 0 },
-                async loadCart() {
-                    try {
-                        const res = await fetch('{{ route("cart.index") }}');
-                        this.cart = await res.json();
-                    } catch(e) {}
-                    window.addEventListener('cart-updated', (e) => {
-                        this.cart = e.detail;
+    window.showGsapToast = function(message) {
+        const toast = document.getElementById('gsap-toast');
+        const msgEl = document.getElementById('gsap-toast-msg');
+        if (!toast || !msgEl) return;
+        msgEl.textContent = message;
+        gsap.killTweensOf(toast);
+        gsap.fromTo(toast, { opacity: 0, y: -20, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(2)' });
+        gsap.to(toast, { opacity: 0, y: -20, scale: 0.8, duration: 0.3, ease: 'power2.in', delay: 2.2 });
+    };
+
+    // ========== Alpine Components ==========
+
+    window.restaurantPage = function() {
+        return {
+            activeCategory: '{{ $restaurant->menuCategories->first()->id ?? "" }}',
+            cart: { items: {}, count: 0, total: 0, restaurant_id: null },
+            addingItem: null,
+            async loadCart() {
+                try {
+                    const res = await fetch('{{ route("cart.index") }}');
+                    const data = await res.json();
+                    this.cart = data || { items: {}, count: 0, total: 0 };
+                } catch(e) {}
+            },
+            getItemQty(itemId) {
+                if (!this.cart || !this.cart.items) return 0;
+                return this.cart.items[itemId] ? this.cart.items[itemId].quantity : 0;
+            },
+            async addToCart(itemId, btnEvent) {
+                this.addingItem = itemId;
+                if (window.animateAddToCart) animateAddToCart(itemId, btnEvent);
+                try {
+                    const res = await fetch('{{ route("cart.add") }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                        body: JSON.stringify({ menu_item_id: itemId, quantity: 1 })
                     });
-                }
-            };
+                    const data = await res.json();
+                    if (res.ok) {
+                        this.cart = data.cart;
+                        if (window.showGsapToast) showGsapToast(data.message);
+                        window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+                    }
+                } catch(e) {}
+                this.addingItem = null;
+            },
+            async updateQty(itemId, qty) {
+                try {
+                    const res = await fetch('{{ route("cart.update") }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                        body: JSON.stringify({ menu_item_id: itemId, quantity: qty })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        this.cart = data.cart;
+                        window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+                    }
+                } catch(e) {}
+            }
         };
-    })();
+    };
+
+    window.floatingCart = function() {
+        return {
+            cart: { items: {}, count: 0, total: 0 },
+            async loadCart() {
+                try {
+                    const res = await fetch('{{ route("cart.index") }}');
+                    this.cart = await res.json();
+                } catch(e) {}
+                window.addEventListener('cart-updated', (e) => {
+                    this.cart = e.detail;
+                });
+            }
+        };
+    };
 </script>
 
 <div class="relative bg-white overflow-hidden">

@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
@@ -12,7 +13,8 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
+
     {
         $user = Auth::user();
         $restaurant = $user->restaurant;
@@ -67,9 +69,47 @@ class DashboardController extends Controller
                 ->orderByDesc('total_quantity')
                 ->limit(5)
                 ->get();
+
+            // Fetch Orders with Filters
+            $ordersQuery = \App\Models\Order::with(['user', 'orderItems'])
+                ->where('restaurant_id', $restaurant->id);
+
+            if ($request->has('filter')) {
+                if ($request->filter === 'day') {
+                    $ordersQuery->whereDate('created_at', Carbon::today());
+                } elseif ($request->filter === 'week') {
+                    $ordersQuery->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                }
+            }
+
+            if ($request->has('status')) {
+                if (in_array($request->status, ['pending', 'accepted', 'delivered', 'cancelled'])) {
+                    $ordersQuery->where('status', $request->status);
+                }
+            }
+
+            if ($request->has('sort') && $request->sort === 'total') {
+                $ordersQuery->orderByDesc('total');
+            } else {
+                $ordersQuery->orderByDesc('created_at');
+            }
+
+            $orders = $ordersQuery->get();
+        } else {
+            $orders = collect();
         }
 
-        return view('owner.dashboard', compact('restaurant', 'stats'));
+        return view('owner.dashboard', compact('restaurant', 'stats', 'orders'));
+    }
+
+    public function acceptOrder(\App\Models\Order $order)
+    {
+        if ($order->restaurant->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $order->update(['status' => 'accepted']);
+        return back()->with('success', 'Order #' . $order->id . ' has been accepted!');
     }
 
     public function storeOrUpdate(Request $request)

@@ -98,6 +98,10 @@
                         </div>
                         <span class="font-extrabold text-2xl outfit text-gray-900 group-hover:text-emerald-500 tracking-tight transition-colors">AnsarEats</span>
                     </a>
+
+                    <div class="hidden lg:flex items-center ml-10 space-x-8">
+                        <a href="{{ route('restaurants.index') }}" class="text-sm font-bold text-gray-600 hover:text-emerald-500 transition-colors uppercase tracking-widest">Explore</a>
+                    </div>
                 </div>
                 
                 <div class="flex items-center space-x-2 md:space-x-4">
@@ -231,13 +235,55 @@
                             <a href="{{ route('login') }}" class="font-semibold text-gray-600 hover:text-emerald-500 transition-colors">Log In</a>
                             <a href="{{ route('register') }}" class="font-bold px-6 py-2.5 rounded-full bg-emerald-500 text-white hover:bg-emerald-400 hover:shadow-xl hover:shadow-emerald-500/40 transition-all transform hover:-translate-y-0.5 active:scale-95">Partner with us</a>
                         @else
-                            <div class="flex items-center space-x-3">
-                                <a href="{{ route('owner.dashboard') }}" class="font-bold px-5 py-2.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-100 transition-all shadow-sm">Dashboard</a>
-                                
-                                <form method="POST" action="{{ route('logout') }}" class="inline">
-                                    @csrf
-                                    <button type="submit" class="font-bold px-4 py-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-all">Log Out</button>
-                                </form>
+                            <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                                <button @click="open = !open" 
+                                        class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-100 transition-all group">
+                                    <div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-black">
+                                        {{ substr(auth()->user()->name, 0, 1) }}
+                                    </div>
+                                    <span class="font-bold text-gray-700 group-hover:text-emerald-600 transition-colors">{{ auth()->user()->name }}</span>
+                                    <svg class="w-4 h-4 text-gray-400 group-hover:text-emerald-500 transition-all" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+
+                                <!-- Dropdown Menu -->
+                                <div x-show="open" 
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                     x-transition:leave="transition ease-in duration-150"
+                                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                     x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                                     class="absolute right-0 mt-3 w-56 bg-white rounded-[2rem] shadow-2xl border border-gray-100 p-2 z-[100]"
+                                     x-cloak>
+                                    
+                                    <a href="{{ route('profile.show') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
+                                        <div class="w-8 h-8 rounded-xl bg-gray-50 group-hover:bg-emerald-100 flex items-center justify-center text-gray-400 group-hover:text-emerald-600 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                        </div>
+                                        My Profile
+                                    </a>
+
+                                    @if(auth()->user()->restaurant)
+                                    <a href="{{ route('owner.dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 transition-all group">
+                                        <div class="w-8 h-8 rounded-xl bg-gray-50 group-hover:bg-indigo-100 flex items-center justify-center text-gray-400 group-hover:text-indigo-600 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                                        </div>
+                                        Dashboard
+                                    </a>
+                                    @endif
+
+                                    <hr class="my-2 border-gray-50">
+
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all group">
+                                            <div class="w-8 h-8 rounded-xl bg-red-100/50 group-hover:bg-red-100 flex items-center justify-center text-red-400 group-hover:text-red-600 transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                                            </div>
+                                            Log Out
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         @endguest
                     </div>
@@ -278,7 +324,7 @@
                     <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-br from-gray-50 to-white">
                         <div class="flex items-center gap-3">
                             <div class="w-12 h-12 flex items-center justify-center">
-                                <dotlottie-player src="https://lottie.host/a52b1c0b-6390-42ee-ad5c-fca5db1b7dfa/hcsHrorguN.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
+                                <dotlottie-player src="https://lottie.host/87132d2c-ba34-4710-a301-28e49f292ac0/zItpws4UYi.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
                             </div>
                             <span class="font-black text-2xl outfit text-gray-900">AnsarEats</span>
                         </div>
@@ -409,6 +455,13 @@
                                 Partner with us
                             </a>
                         @else
+                            <a href="{{ route('profile.show') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                </div>
+                                Profile
+                            </a>
+
                             <a href="{{ route('owner.dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold  hover:bg-indigo-100 transition-all group">
                                 <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-indigo-600 shadow-sm">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>

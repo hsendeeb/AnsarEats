@@ -8,22 +8,22 @@
 
     <div class="max-w-4xl mx-auto relative z-10">
         <!-- Header -->
-        <div class="mb-10">
-            <a href="javascript:history.back()" class="inline-flex items-center gap-2 text-gray-500 hover:text-emerald-600 font-bold transition-colors mb-4">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        <div class="mb-8">
+            <a href="javascript:history.back()" class="inline-flex items-center gap-2 text-gray-500 hover:text-emerald-600 font-bold transition-colors mb-3">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                 Back
             </a>
-            <h1 class="text-4xl md:text-5xl font-black outfit text-gray-900 tracking-tight">Checkout</h1>
-            <p class="text-gray-500 font-medium mt-2 text-lg">Review your order and place it</p>
+            <h1 class="text-3xl md:text-4xl font-black outfit text-gray-900 tracking-tight">Checkout</h1>
+            <p class="text-gray-400 font-medium mt-1 text-base">Review your order and place it</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
             <!-- LEFT: Delivery Form -->
             <div class="lg:col-span-3">
-                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
-                    <h2 class="text-2xl font-black outfit text-gray-900 mb-6 flex items-center gap-3">
-                        <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-500">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+                    <h2 class="text-xl font-black outfit text-gray-900 mb-5 flex items-center gap-3">
+                        <div class="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
                         Delivery Details
                     </h2>

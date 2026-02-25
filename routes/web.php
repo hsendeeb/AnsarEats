@@ -8,8 +8,10 @@ use App\Http\Controllers\Owner\DashboardController;
 use App\Http\Controllers\Owner\MenuItemController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/restaurants', [RestaurantController::class, 'index'])->name('restaurants.index');
 Route::get('/restaurant/{restaurant}', [RestaurantController::class, 'show'])->name('restaurant.show');
 Route::get('/search/suggestions', [SearchController::class, 'suggestions'])->name('search.suggestions');
 
@@ -44,5 +46,12 @@ Route::middleware('auth')->group(function () {
         Route::put('/menu-item/{menuItem}', [MenuItemController::class, 'update'])->name('menu-item.update');
         Route::post('/menu-item/{menuItem}/toggle', [MenuItemController::class, 'toggleAvailability'])->name('menu-item.toggle');
         Route::delete('/menu-item/{menuItem}', [MenuItemController::class, 'destroy'])->name('menu-item.destroy');
+        Route::post('/order/{order}/accept', [DashboardController::class, 'acceptOrder'])->name('order.accept');
     });
+
+    // Profile & Orders
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/orders', [ProfileController::class, 'orders'])->name('profile.orders');
+    Route::post('/orders/clear', [ProfileController::class, 'clearHistory'])->name('profile.clear');
 });

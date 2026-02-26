@@ -194,90 +194,96 @@
             });
         }
 
-        Alpine.data('restaurantPage', () => ({
-            activeCategory: '{{ $restaurant->menuCategories->first()->id ?? "" }}',
-            cart: { items: {}, count: 0, total: 0, restaurant_id: null },
-            
-            async init() {
-                await this.loadCart();
-                console.log('restaurantPage initialized');
-            },
-            
-            async loadCart() {
-                try {
-                    const res = await fetch('{{ route("cart.index") }}');
-                    const data = await res.json();
-                    this.cart = data || { items: {}, count: 0, total: 0 };
-                } catch(e) {
-                    console.error('Failed to load cart', e);
-                }
-            },
-            
-            getItemQty(itemId) {
-                if (!this.cart || !this.cart.items) return 0;
-                return this.cart.items[itemId] ? this.cart.items[itemId].quantity : 0;
-            },
-            
-            async addToCart(itemId, btnEvent) {
-                Alpine.store('restaurantState').addingItem = itemId;
-                console.log('Adding to cart:', itemId);
-                if (window.animateAddToCart) animateAddToCart(itemId, btnEvent);
-                try {
-                    const res = await fetch('{{ route("cart.add") }}', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                        body: JSON.stringify({ menu_item_id: itemId, quantity: 1 })
-                    });
-                    const data = await res.json();
-                    if (res.ok) {
-                        this.cart = data.cart;
-                        if (window.showGsapToast) showGsapToast(data.message);
-                        window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+        if (!Alpine.data('restaurantPage')) {
+            Alpine.data('restaurantPage', () => ({
+                activeCategory: '{{ $restaurant->menuCategories->first()->id ?? "" }}',
+                cart: { items: {}, count: 0, total: 0, restaurant_id: null },
+                
+                async init() {
+                    console.log('restaurantPage init starting...');
+                    await this.loadCart();
+                    console.log('restaurantPage initialized');
+                },
+                
+                async loadCart() {
+                    try {
+                        const res = await fetch('{{ route("cart.index") }}');
+                        const data = await res.json();
+                        this.cart = data || { items: {}, count: 0, total: 0 };
+                    } catch(e) {
+                        console.error('Failed to load cart', e);
                     }
-                } catch(e) {
-                    console.error('Add to cart failed', e);
-                }
-                Alpine.store('restaurantState').addingItem = null;
-            },
-            
-            async updateQty(itemId, qty) {
-                try {
-                    const res = await fetch('{{ route("cart.update") }}', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                        body: JSON.stringify({ menu_item_id: itemId, quantity: qty })
-                    });
-                    const data = await res.json();
-                    if (res.ok) {
-                        this.cart = data.cart;
-                        window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+                },
+                
+                getItemQty(itemId) {
+                    if (!this.cart || !this.cart.items) return 0;
+                    return this.cart.items[itemId] ? this.cart.items[itemId].quantity : 0;
+                },
+                
+                async addToCart(itemId, btnEvent) {
+                    Alpine.store('restaurantState').addingItem = itemId;
+                    console.log('Adding to cart:', itemId);
+                    if (window.animateAddToCart) animateAddToCart(itemId, btnEvent);
+                    try {
+                        const res = await fetch('{{ route("cart.add") }}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                            body: JSON.stringify({ menu_item_id: itemId, quantity: 1 })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            this.cart = data.cart;
+                            if (window.showGsapToast) showGsapToast(data.message);
+                            window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+                        }
+                    } catch(e) {
+                        console.error('Add to cart failed', e);
                     }
-                } catch(e) {}
-            }
-        }));
+                    Alpine.store('restaurantState').addingItem = null;
+                },
+                
+                async updateQty(itemId, qty) {
+                    try {
+                        const res = await fetch('{{ route("cart.update") }}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                            body: JSON.stringify({ menu_item_id: itemId, quantity: qty })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            this.cart = data.cart;
+                            window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+                        }
+                    } catch(e) {}
+                }
+            }));
+        }
 
-        Alpine.data('floatingCart', () => ({
-            cart: { items: {}, count: 0, total: 0 },
-            
-            init() {
-                this.loadCart();
-                window.addEventListener('cart-updated', (e) => {
-                    this.cart = e.detail;
-                });
-            },
+        if (!Alpine.data('floatingCart')) {
+            Alpine.data('floatingCart', () => ({
+                cart: { items: {}, count: 0, total: 0 },
+                
+                init() {
+                    this.loadCart();
+                    window.addEventListener('cart-updated', (e) => {
+                        this.cart = e.detail;
+                    });
+                },
 
-            async loadCart() {
-                try {
-                    const res = await fetch('{{ route("cart.index") }}');
-                    this.cart = await res.json();
-                } catch(e) {}
-            },
+                async loadCart() {
+                    try {
+                        const res = await fetch('{{ route("cart.index") }}');
+                        this.cart = await res.json();
+                    } catch(e) {}
+                },
 
-            toggleCart() {
-                console.log('Toggling cart from floating button');
-                window.dispatchEvent(new CustomEvent('toggle-cart'));
-            }
-        }));
+                toggleCart() {
+                    console.log('Toggling cart from floating button');
+                    window.dispatchEvent(new CustomEvent('toggle-cart'));
+                }
+            }));
+        }
+        console.log('initRestaurantAlpine completed successfully');
     };
 
     if (window.Alpine) {
@@ -298,7 +304,7 @@
         <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 to-transparent"></div>
         
         <div class="absolute bottom-0 left-0 w-full px-4 sm:px-6 lg:px-8 pb-6 md:pb-8 max-w-7xl mx-auto flex flex-col md:flex-row md:items-end gap-4 md:gap-6">
-            <div class="flex-shrink-0 relative w-32 h-32 md:w-40 md:h-40 bg-white rounded-3xl p-2 shadow-2xl transform translate-y-6 md:translate-y-8 z-10 border-4 border-white mb-8">
+            <div class="flex-shrink-0 relative w-32 h-32 md:w-40 md:h-40 bg-white rounded-3xl p-2 shadow-2xl transform translate-y-12 md:translate-y-16 z-20 border-4 border-white mb-4">
                 @if($restaurant->logo)
                     <img src="{{ Storage::url($restaurant->logo) }}" alt="Logo" class="w-full h-full object-cover rounded-2xl">
                 @else
@@ -321,7 +327,7 @@
         </div>
     </div>
     
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 pb-24 relative z-0" x-data="restaurantPage()" x-init="loadCart()">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-24 pb-24 relative z-0" x-data="restaurantPage" x-cloak>
 
         {{-- GSAP Toast --}}
         <div id="gsap-toast" class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] pointer-events-none" style="opacity:0; transform: translateX(-50%) translateY(-20px);">
@@ -360,8 +366,175 @@
                 </div>
             </div>
             
-            <!-- Menu Sections -->
-            <div class="w-full lg:w-3/4">
+            <!-- Main Content -->
+            <div class="w-full lg:w-3/4 space-y-10">
+                {{-- Rating & Reviews --}}
+                <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm"
+                     x-data="{
+                        rating: {{ $userRating->rating ?? 0 }},
+                        comment: @json($userRating->comment ?? ''),
+                        submitting: false,
+                        message: '',
+                        error: '',
+                        setRating(value) { this.rating = value; },
+                        async submitRating() {
+                            this.message = '';
+                            this.error = '';
+                            if (!this.rating) {
+                                this.error = 'Please select a star rating.';
+                                return;
+                            }
+                            this.submitting = true;
+                            try {
+                                const res = await fetch('{{ route('restaurant.rate', $restaurant) }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Accept': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        rating: this.rating,
+                                        comment: this.comment,
+                                    }),
+                                });
+                                const data = await res.json();
+                                if (res.ok) {
+                                    this.message = data.message || 'Rating submitted successfully!';
+                                    this.error = '';
+                                } else {
+                                    this.error = data.message || 'Unable to submit rating.';
+                                }
+                            } catch (e) {
+                                this.error = 'Something went wrong while submitting your rating.';
+                            } finally {
+                                this.submitting = false;
+                            }
+                        }
+                     }">
+                    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-black outfit text-gray-900 mb-1">Customer ratings</h2>
+                            <p class="text-sm text-gray-500 font-medium mb-3">See what people think about this place.</p>
+                            <div>
+                                @include('layouts.partials.star-rating', [
+                                    'rating' => round($restaurant->ratings_avg_rating ?? 0, 1),
+                                    'count' => $restaurant->ratings_count ?? 0,
+                                    'size' => 'lg',
+                                    'showText' => true,
+                                ])
+                            </div>
+                        </div>
+                        <div class="mt-2 md:mt-0">
+                            @auth
+                                @if(auth()->id() === $restaurant->user_id)
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border border-amber-100">
+                                        You are the owner · Ratings disabled
+                                    </span>
+                                @else
+                                    <span class="text-xs font-semibold text-gray-500">
+                                        @if($userRating)
+                                            You rated this restaurant {{ $userRating->rating }} ★
+                                        @else
+                                            Be the first to rate this restaurant!
+                                        @endif
+                                    </span>
+                                @endif
+                            @else
+                                <a href="{{ route('login') }}" class="inline-flex items-center gap-2 text-xs font-bold text-emerald-600 hover:text-emerald-500">
+                                    <span>Sign in to leave a rating</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                                </a>
+                            @endauth
+                        </div>
+                    </div>
+
+                    @auth
+                        @if(auth()->id() !== $restaurant->user_id)
+                            <div class="mt-4 border-t border-dashed border-gray-200 pt-4">
+                                <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Your rating</p>
+                                <div class="flex items-center gap-2 mb-3">
+                                    <template x-for="star in [1,2,3,4,5]" :key="star">
+                                        <button type="button"
+                                                @click="setRating(star)"
+                                                class="focus:outline-none">
+                                            <svg class="w-6 h-6"
+                                                 :class="rating >= star ? 'text-amber-400' : 'text-gray-200'"
+                                                 fill="currentColor"
+                                                 viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                            </svg>
+                                        </button>
+                                    </template>
+                                    <span class="text-xs font-semibold text-gray-500" x-text="rating ? rating + ' / 5' : 'Tap to rate'"></span>
+                                </div>
+                                <textarea
+                                    x-model="comment"
+                                    rows="2"
+                                    maxlength="500"
+                                    class="w-full text-sm border border-gray-200 rounded-2xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-emerald-500"
+                                    placeholder="Share a quick comment (optional)"></textarea>
+                                <div class="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                    <button
+                                        type="button"
+                                        @click="submitRating()"
+                                        :disabled="submitting"
+                                        class="inline-flex items-center justify-center px-4 py-2 rounded-2xl text-sm font-bold text-white bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed transition-colors">
+                                        <svg x-show="submitting" class="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                        </svg>
+                                        <span x-text="submitting ? 'Submitting...' : 'Submit rating'"></span>
+                                    </button>
+                                    <div class="text-xs font-medium">
+                                        <span x-show="message" x-text="message" class="text-emerald-600"></span>
+                                        <span x-show="error" x-text="error" class="text-red-500"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    @endauth
+
+                    @if($restaurant->ratings->isNotEmpty())
+                        <div class="mt-6 border-t border-dashed border-gray-200 pt-4">
+                            <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Recent reviews</p>
+                            <div class="space-y-4 max-h-72 overflow-y-auto pr-1">
+                                @foreach($restaurant->ratings as $rating)
+                                    <div class="flex gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-[11px] font-black text-emerald-700 outfit flex-shrink-0">
+                                            {{ strtoupper(substr($rating->user->name ?? 'G', 0, 1)) }}
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <p class="text-sm font-semibold text-gray-900">
+                                                    {{ $rating->user->name ?? 'Guest' }}
+                                                </p>
+                                                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                                                    {{ $rating->created_at->diffForHumans() }}
+                                                </span>
+                                            </div>
+                                            <div class="mt-1">
+                                                @include('layouts.partials.star-rating', [
+                                                    'rating' => $rating->rating,
+                                                    'count' => 1,
+                                                    'size' => 'sm',
+                                                    'showText' => false,
+                                                ])
+                                            </div>
+                                            @if($rating->comment)
+                                                <p class="mt-1 text-sm text-gray-600">
+                                                    {{ $rating->comment }}
+                                                </p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Menu Sections -->
                 @forelse($restaurant->menuCategories as $category)
                     <div id="category-{{ $category->id }}" class="mb-16 scroll-mt-28" x-intersect.margin.-200px.0.0.0="activeCategory = '{{ $category->id }}'">
                         <h2 class="text-3xl font-black outfit text-gray-900 mb-8 pb-4 border-b-2 border-dashed border-gray-200">
@@ -456,7 +629,7 @@
 </div>
 
 <!-- Floating Cart Button -->
-<div id="floating-cart-btn" x-data="floatingCart()" class="sticky bottom-6 right-6 px-2 w-full  z-50" x-cloak>
+<div id="floating-cart-btn" x-data="floatingCart" class="fixed bottom-6 right-6 left-6 md:left-auto md:w-80 z-50" x-cloak>
     <template x-if="cart.count > 0">
         <button 
             @click="toggleCart()"

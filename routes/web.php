@@ -9,6 +9,7 @@ use App\Http\Controllers\Owner\MenuItemController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RatingController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/restaurants', [RestaurantController::class, 'index'])->name('restaurants.index');
@@ -34,6 +35,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
     Route::post('/checkout', [CartController::class, 'placeOrder'])->name('checkout.place');
     Route::get('/order/{order}/confirmation', [CartController::class, 'confirmation'])->name('order.confirmation');
+
+    // Rating
+    Route::post('/restaurant/{restaurant}/rate', [RatingController::class, 'store'])->name('restaurant.rate');
 
     // Owner routes
     Route::prefix('owner')->name('owner.')->group(function () {

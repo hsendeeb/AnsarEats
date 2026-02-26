@@ -32,11 +32,24 @@
         <div class="mb-12 flex flex-col md:flex-row items-center justify-between gap-6">
             <div class="flex items-center gap-4 px-6 py-3 bg-white rounded-2xl border border-gray-100 shadow-sm">
                 <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Sort By</span>
-                <select class="bg-transparent border-none focus:ring-0 text-sm font-bold text-gray-900 cursor-pointer">
-                    <option>Recommended</option>
-                    <option>Most Popular</option>
-                    <option>Fastest Delivery</option>
-                </select>
+                <form method="GET" action="{{ route('restaurants.index') }}">
+                    @if(request('location'))
+                        <input type="hidden" name="location" value="{{ request('location') }}">
+                    @endif
+                    <select name="sort"
+                            class="bg-transparent border-none focus:ring-0 text-sm font-bold text-gray-900 cursor-pointer"
+                            onchange="this.form.submit()">
+                        <option value="recommended" {{ ($currentSort ?? request('sort', 'recommended')) === 'recommended' ? 'selected' : '' }}>
+                            Recommended
+                        </option>
+                        <option value="rating_desc" {{ ($currentSort ?? request('sort')) === 'rating_desc' ? 'selected' : '' }}>
+                            Highest Rated
+                        </option>
+                        <option value="rating_asc" {{ ($currentSort ?? request('sort')) === 'rating_asc' ? 'selected' : '' }}>
+                            Lowest Rated
+                        </option>
+                    </select>
+                </form>
             </div>
 
             <div class="flex items-center gap-4" x-data="{ open: false }">
@@ -100,7 +113,12 @@
 
                             <div class="p-6 flex-1 flex flex-col">
                                 <h3 class="text-xl font-black outfit text-gray-900 group-hover:text-emerald-500 transition-colors mb-2">{{ $restaurant->name }}</h3>
-                                <p class="text-sm text-gray-500 font-medium mb-6 line-clamp-2">{{ $restaurant->description ?? 'Amazing food, cooked with perfection and delivered straight to you.' }}</p>
+                                <p class="text-sm text-gray-500 font-medium mb-4 line-clamp-2">{{ $restaurant->description ?? 'Amazing food, cooked with perfection and delivered straight to you.' }}</p>
+                                
+                                {{-- Star Rating --}}
+                                <div class="mb-4">
+                                    @include('layouts.partials.star-rating', ['rating' => round($restaurant->ratings_avg_rating ?? 0, 1), 'count' => $restaurant->ratings_count ?? 0, 'size' => 'sm'])
+                                </div>
                                 
                                 <div class="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between">
                                     <div class="flex items-center gap-4">

@@ -6,21 +6,19 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Laravel') }}</title>
     
+    <!-- Alpine.js Plugins (MUST be before core) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+   
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Swup for Page Transitions -->
-    <script src="https://unpkg.com/swup@4"></script>
-    <script src="https://unpkg.com/@swup/scripts-plugin@2"></script>
-    <script src="https://unpkg.com/@swup/a11y-plugin@4"></script>
     
     <!-- Lottie Player -->
     <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
@@ -34,29 +32,14 @@
             gsap.registerPlugin(MotionPathPlugin);
         }
     </script>
-    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
+   
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
-    <style>
+     <style>
         body { font-family: 'Inter', sans-serif; }
         h1, h2, h3, h4, h5, h6, .outfit { font-family: 'Outfit', sans-serif; }
         
-        /* Playful Swup Transitions */
         html { scroll-behavior: smooth; }
-        
-        /* Swup default classes fade & zoom */
-        .transition-fade {
-            transition: 400ms opacity cubic-bezier(0.4, 0, 0.2, 1), 
-                        400ms transform cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-        
-        html.is-animating .transition-fade {
-            opacity: 0;
-            transform: translateY(15px) scale(0.98);
-        }
         
         /* Blob animations for background */
         @keyframes blob {
@@ -76,15 +59,32 @@
         }
 
         [x-cloak] { display: none !important; }
+
+        /* Global page loader overlay */
+        #page-loader {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 200ms ease;
+        }
+
+        body.page-loading #page-loader {
+            opacity: 1;
+            pointer-events: all;
+        }
     </style>
 </head>
-<body class="h-full flex flex-col text-gray-800 bg-gray-50 overflow-x-hidden relative">
+<body class="h-full flex flex-col text-gray-800 bg-gray-50 overflow-x-hidden relative page-loading">
 
     <!-- Decorative background blobs -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div class="absolute top-0 -left-4 w-72 h-72 bg-emerald-300 rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob"></div>
         <div class="absolute top-0 -right-4 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob animation-delay-2000"></div>
         <div class="absolute -bottom-8 left-20 w-72 h-72 bg-emerald-400 rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob animation-delay-4000"></div>
+    </div>
+
+    <!-- Global Page Loader -->
+    <div id="page-loader" class="fixed inset-0 flex items-center justify-center bg-emerald-50/80 backdrop-blur-sm z-[120]">
+        <div class="w-14 h-14 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin shadow-lg shadow-emerald-500/40"></div>
     </div>
     
     <!-- Navigation -->
@@ -500,8 +500,8 @@
 
 
 
-    <!-- Main Content wrapper for Swup -->
-    <main id="swup" class="transition-fade flex-grow relative z-10">
+    <!-- Main Content -->
+    <main class="flex-grow relative z-10">
         @if(session('success'))
             <div class="bg-emerald-100 border-b border-emerald-200">
                 <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-center">
@@ -544,88 +544,95 @@
     </footer>
     
     <script>
-        // Global helper for Swup + Alpine
+        // Global helper for Alpine + shared components
         window.initAlpineComponents = function() {
             if (!window.Alpine) return;
 
             // Only register if not already done (avoids console warnings)
             // But actually Alpine.data doesn't mind re-registration as much as it minds missing them
             
-            Alpine.data('navCart', () => ({
-                count: 0,
-                async init() {
-                    try {
-                        const res = await fetch('/cart');
-                        const data = await res.json();
-                        this.count = data.count || 0;
-                    } catch(e) {}
-                },
-                updateFromEvent(event) {
-                    this.count = event.detail.count || 0;
-                }
-            }));
+            if (!Alpine.data('navCart')) {
+                Alpine.data('navCart', () => ({
+                    count: 0,
+                    async init() {
+                        try {
+                            const res = await fetch('/cart');
+                            const data = await res.json();
+                            this.count = data.count || 0;
+                        } catch(e) {}
+                    },
+                    updateFromEvent(event) {
+                        this.count = event.detail.count || 0;
+                    }
+                }));
+            }
 
-            Alpine.data('cartDrawer', () => ({
-                open: false,
-                cart: { items: {}, count: 0, total: 0, restaurant_id: null, restaurant_name: null },
-                
-                async init() {
-                    try {
-                        const res = await fetch('/cart');
-                        this.cart = await res.json();
+            if (!Alpine.data('cartDrawer')) {
+                Alpine.data('cartDrawer', () => ({
+                    open: false,
+                    cart: { items: {}, count: 0, total: 0, restaurant_id: null, restaurant_name: null },
+                    
+                    async init() {
+                        try {
+                            const res = await fetch('/cart');
+                            this.cart = await res.json();
+                            this.cart.count = this.cart.count || 0;
+                            this.cart.total = this.cart.total || 0;
+                        } catch(e) {}
+                    },
+
+                    updateFromEvent(event) {
+                        this.cart = event.detail || { items: {}, count: 0, total: 0 };
                         this.cart.count = this.cart.count || 0;
                         this.cart.total = this.cart.total || 0;
-                    } catch(e) {}
-                },
+                    },
 
-                updateFromEvent(event) {
-                    this.cart = event.detail || { items: {}, count: 0, total: 0 };
-                    this.cart.count = this.cart.count || 0;
-                    this.cart.total = this.cart.total || 0;
-                },
+                    async updateQuantity(itemId, qty) {
+                        const token = document.querySelector('meta[name="csrf-token"]')?.content;
+                        try {
+                            const res = await fetch('/cart/update', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
+                                body: JSON.stringify({ menu_item_id: itemId, quantity: qty })
+                            });
+                            const data = await res.json();
+                            if (res.ok) {
+                                this.cart = data.cart;
+                                window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+                            }
+                        } catch(e) {}
+                    },
 
-                async updateQuantity(itemId, qty) {
-                    const token = document.querySelector('meta[name="csrf-token"]')?.content;
-                    try {
-                        const res = await fetch('/cart/update', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
-                            body: JSON.stringify({ menu_item_id: itemId, quantity: qty })
-                        });
-                        const data = await res.json();
-                        if (res.ok) {
-                            this.cart = data.cart;
-                            window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
-                        }
-                    } catch(e) {}
-                },
+                    async clearCart() {
+                        const token = document.querySelector('meta[name="csrf-token"]')?.content;
+                        try {
+                            const res = await fetch('/cart/clear', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
+                            });
+                            const data = await res.json();
+                            if (res.ok) {
+                                this.cart = data.cart;
+                                window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+                            }
+                        } catch(e) {}
+                    }
+                }));
+            }
 
-                async clearCart() {
-                    const token = document.querySelector('meta[name="csrf-token"]')?.content;
-                    try {
-                        const res = await fetch('/cart/clear', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
-                        });
-                        const data = await res.json();
-                        if (res.ok) {
-                            this.cart = data.cart;
-                            window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
-                        }
-                    } catch(e) {}
-                }
-            }));
-            Alpine.data('toastManager', () => ({
-                visible: false,
-                message: '',
-                timeout: null,
-                showToast(event) {
-                    this.message = event.detail.message || 'Cart updated!';
-                    this.visible = true;
-                    if (this.timeout) clearTimeout(this.timeout);
-                    this.timeout = setTimeout(() => { this.visible = false; }, 3000);
-                },
-            }));
+            if (!Alpine.data('toastManager')) {
+                Alpine.data('toastManager', () => ({
+                    visible: false,
+                    message: '',
+                    timeout: null,
+                    showToast(event) {
+                        this.message = event.detail.message || 'Cart updated!';
+                        this.visible = true;
+                        if (this.timeout) clearTimeout(this.timeout);
+                        this.timeout = setTimeout(() => { this.visible = false; }, 3000);
+                    },
+                }));
+            }
         };
 
         // Initialize on start
@@ -634,45 +641,34 @@
         } else {
             document.addEventListener('alpine:init', window.initAlpineComponents);
         }
+        
+        // Simple global page loading spinner
+        window.showPageLoader = function() {
+            document.body.classList.add('page-loading');
+        };
+
+        window.hidePageLoader = function() {
+            document.body.classList.remove('page-loading');
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Register GSAP plugins
             if (window.gsap && window.MotionPathPlugin) {
                 gsap.registerPlugin(MotionPathPlugin);
             }
 
-            const swup = new Swup({
-                plugins: [new SwupScriptsPlugin(), new SwupA11yPlugin()]
+            if (typeof window.initDashboard === 'function') {
+                window.initDashboard();
+            }
+
+            // Hide initial loader shortly after content is ready
+            setTimeout(() => {
+                window.hidePageLoader();
+            }, 150);
+
+            // Show loader when navigating away
+            window.addEventListener('beforeunload', () => {
+                window.showPageLoader();
             });
-
-            // Re-init Alpine components inside the Swup container after navigation
-            // Using multiple hooks to be safe with different Swup versions/states
-            const reinitAlpine = () => {
-                console.log('Swup navigation detected, initializing Alpine components...');
-                if (window.Alpine) {
-                    const swupContainer = document.querySelector('#swup');
-                    if (swupContainer) {
-                        // In Alpine v3, initTree is the correct method to use
-                        window.Alpine.initTree(swupContainer);
-                    }
-                }
-                
-                // If the dashboard script exists, re-run its chart init
-                if (typeof window.initDashboard === 'function') {
-                    window.initDashboard();
-                }
-            };
-
-            swup.hooks.on('content:replace', reinitAlpine);
-            swup.hooks.on('page:view', reinitAlpine);
-        });
-
-        // Debug helper for event dispatching
-        window.addEventListener('toggle-cart', () => {
-            console.log('GLOBAL: toggle-cart event received');
-        });
-        window.addEventListener('cart-updated', (e) => {
-            console.log('GLOBAL: cart-updated event received', e.detail);
         });
     </script>
     @stack('scripts')

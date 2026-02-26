@@ -1,19 +1,27 @@
 <template x-teleport="body">
     <div x-data="cartDrawer" @toggle-cart.window="console.log('DRAWER: received toggle-cart event! current open:', open); open = !open; console.log('DRAWER: new open state:', open)" @cart-updated.window="updateFromEvent($event)">
         <!-- Overlay -->
-        <div x-show="open" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="open = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"></div>
+        <div x-show="open" 
+             x-transition:enter="transition ease-out duration-300" 
+             x-transition:enter-start="opacity-0" 
+             x-transition:enter-end="opacity-100" 
+             x-transition:leave="transition ease-in duration-200" 
+             x-transition:leave-start="opacity-100" 
+             x-transition:leave-end="opacity-0" 
+             @click="open = false" 
+             class="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[10000]"
+             x-cloak></div>
         
         <!-- Drawer -->
         <div x-show="open" 
-             style="display: none;" 
-             :style="open ? 'display: flex !important;' : 'display: none !important;'"
              x-transition:enter="transition ease-out duration-300" 
              x-transition:enter-start="translate-x-full" 
              x-transition:enter-end="translate-x-0" 
              x-transition:leave="transition ease-in duration-200" 
              x-transition:leave-start="translate-x-0" 
              x-transition:leave-end="translate-x-full" 
-             class="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl z-[9999] flex flex-col">
+             class="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.1)] z-[10001] flex flex-col"
+             x-cloak>
             
             <!-- Header -->
             <div class="bg-gradient-to-r from-emerald-500 to-teal-500 p-6 text-white flex-shrink-0">

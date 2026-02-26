@@ -9,7 +9,7 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $query = Restaurant::withCount('menuCategories')->where('is_open', true);
+        $query = Restaurant::withCount('menuCategories')->withAvg('ratings', 'rating')->withCount('ratings')->where('is_open', true);
 
         if (auth()->check()) {
             $query->where('user_id', '!=', auth()->id());

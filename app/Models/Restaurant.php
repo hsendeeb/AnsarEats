@@ -20,4 +20,14 @@ class Restaurant extends Model
     {
         return $this->hasMany(MenuCategory::class)->orderBy('sort_order');
     }
+
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class);
+    }
+
+    public function averageRating()
+    {
+        return $this->ratings()->avg('rating') ?: 0;
+    }
 }

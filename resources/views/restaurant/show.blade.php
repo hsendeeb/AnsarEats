@@ -2,7 +2,7 @@
 
 @section('content')
 <!-- Page Logic -->
-<script data-swup-reload-script>
+<script>
     // Ensure GSAP plugins are registered (safe to call multiple times)
     if (window.gsap && window.MotionPathPlugin) {
         gsap.registerPlugin(MotionPathPlugin);
@@ -184,6 +184,53 @@
     };
 
     // ========== Alpine Components ==========
+
+    window.createRatingComponent = function(initialRating, initialComment, postUrl, csrfToken) {
+        return {
+            rating: initialRating || 0,
+            comment: initialComment || '',
+            submitting: false,
+            message: '',
+            error: '',
+            setRating(value) {
+                this.rating = value;
+            },
+            async submitRating() {
+                this.message = '';
+                this.error = '';
+                if (!this.rating) {
+                    this.error = 'Please select a star rating.';
+                    return;
+                }
+                this.submitting = true;
+                try {
+                    const res = await fetch(postUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            rating: this.rating,
+                            comment: this.comment,
+                        }),
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        this.message = data.message || 'Rating submitted successfully!';
+                        this.error = '';
+                    } else {
+                        this.error = data.message || 'Unable to submit rating.';
+                    }
+                } catch (e) {
+                    this.error = 'Something went wrong while submitting your rating.';
+                } finally {
+                    this.submitting = false;
+                }
+            }
+        };
+    };
 
     window.initRestaurantAlpine = function() {
         if (!window.Alpine) return;
@@ -368,50 +415,99 @@
             
             <!-- Main Content -->
             <div class="w-full lg:w-3/4 space-y-10">
+                <!-- Menu Sections -->
+                @forelse($restaurant->menuCategories as $category)
+                    <div id="category-{{ $category->id }}" class="mb-16 scroll-mt-28" x-intersect.margin.-200px.0.0.0="activeCategory = '{{ $category->id }}'">
+                        <h2 class="text-3xl font-black outfit text-gray-900 mb-8 pb-4 border-b-2 border-dashed border-gray-200">
+                            {{ $category->name }}
+                        </h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            @foreach($category->menuItems as $item)
+                                <div id="item-card-{{ $item->id }}" class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow group {{ !$item->is_available ? 'opacity-60 grayscale' : '' }}">
+                                    <!-- Item Image -->
+                                    <div id="item-img-{{ $item->id }}" class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative">
+                                        @if($item->image)
+                                            <img src="{{ Storage::url($item->image) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center text-gray-300">
+                                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            </div>
+                                        @endif
+                                        
+                                        @if(!$item->is_available)
+                                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
+                                                <span class="text-white text-xs font-bold px-2 py-1 bg-gray-900/80 rounded border border-gray-700">Sold out</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    
+                                    <div class="flex-1 flex flex-col justify-between">
+                                        <div>
+                                            <div class="flex justify-between items-start">
+                                                <h4 class="font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight">{{ $item->name }}</h4>
+                                                <span class="font-black text-emerald-500 whitespace-nowrap ml-2">${{ number_format($item->price, 2) }}</span>
+                                            </div>
+                                            <p class="text-sm text-gray-500 mt-1 line-clamp-2 font-medium">{{ $item->description }}</p>
+                                        </div>
+                                        
+                                        @if($item->is_available)
+                                        <div class="flex justify-end mt-3">
+                                            @if(Auth::id() === $restaurant->user_id)
+                                                <span class="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">Own Restaurant</span>
+                                            @else
+                                                <template x-if="getItemQty({{ $item->id }}) === 0">
+                                                    <button 
+                                                        id="add-btn-{{ $item->id }}"
+                                                        @click="addToCart({{ $item->id }}, $event)"
+                                                        :disabled="$store.restaurantState.addingItem === {{ $item->id }}"
+                                                        class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 shadow-sm hover:shadow-lg hover:shadow-emerald-500/30">
+                                                        <svg x-show="$store.restaurantState.addingItem !== {{ $item->id }}" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
+                                                        <svg x-show="$store.restaurantState.addingItem === {{ $item->id }}" x-cloak class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                                    </button>
+                                                </template>
+                                                <template x-if="getItemQty({{ $item->id }}) > 0">
+                                                    <div class="flex items-center gap-1">
+                                                        <button 
+                                                            @click="updateQty({{ $item->id }}, getItemQty({{ $item->id }}) - 1)"
+                                                            class="bg-red-50 hover:bg-red-100 text-red-500 w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"></path></svg>
+                                                        </button>
+                                                        <span class="w-8 text-center font-black text-gray-900" x-text="getItemQty({{ $item->id }})"></span>
+                                                        <button 
+                                                            @click="addToCart({{ $item->id }}, $event)"
+                                                            class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
+                                                        </button>
+                                                    </div>
+                                                </template>
+                                            @endif
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                            
+                            @if($category->menuItems->isEmpty())
+                                <div class="col-span-full py-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                    <p class="text-gray-500 font-medium">No items yet in this category.</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="py-20 text-center">
+                        <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gray-100 text-gray-400 mb-6">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        </div>
+                        <h3 class="text-2xl font-black outfit text-gray-900 mb-2">Menu goes here!</h3>
+                        <p class="text-gray-500 text-lg font-medium">This restaurant is still working on its tasty menu.</p>
+                    </div>
+                @endforelse
+
                 {{-- Rating & Reviews --}}
                 <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm"
-                     x-data="{
-                        rating: {{ $userRating->rating ?? 0 }},
-                        comment: @json($userRating->comment ?? ''),
-                        submitting: false,
-                        message: '',
-                        error: '',
-                        setRating(value) { this.rating = value; },
-                        async submitRating() {
-                            this.message = '';
-                            this.error = '';
-                            if (!this.rating) {
-                                this.error = 'Please select a star rating.';
-                                return;
-                            }
-                            this.submitting = true;
-                            try {
-                                const res = await fetch('{{ route('restaurant.rate', $restaurant) }}', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'Accept': 'application/json',
-                                    },
-                                    body: JSON.stringify({
-                                        rating: this.rating,
-                                        comment: this.comment,
-                                    }),
-                                });
-                                const data = await res.json();
-                                if (res.ok) {
-                                    this.message = data.message || 'Rating submitted successfully!';
-                                    this.error = '';
-                                } else {
-                                    this.error = data.message || 'Unable to submit rating.';
-                                }
-                            } catch (e) {
-                                this.error = 'Something went wrong while submitting your rating.';
-                            } finally {
-                                this.submitting = false;
-                            }
-                        }
-                     }">
+                     x-data='createRatingComponent({{ $userRating->rating ?? 0 }}, @json($userRating->comment ?? ""), "{{ route('restaurant.rate', $restaurant) }}", "{{ csrf_token() }}")'>
                     <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div>
                             <h2 class="text-2xl font-black outfit text-gray-900 mb-1">Customer ratings</h2>
@@ -533,96 +629,6 @@
                         </div>
                     @endif
                 </div>
-
-                <!-- Menu Sections -->
-                @forelse($restaurant->menuCategories as $category)
-                    <div id="category-{{ $category->id }}" class="mb-16 scroll-mt-28" x-intersect.margin.-200px.0.0.0="activeCategory = '{{ $category->id }}'">
-                        <h2 class="text-3xl font-black outfit text-gray-900 mb-8 pb-4 border-b-2 border-dashed border-gray-200">
-                            {{ $category->name }}
-                        </h2>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            @foreach($category->menuItems as $item)
-                                <div id="item-card-{{ $item->id }}" class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow group {{ !$item->is_available ? 'opacity-60 grayscale' : '' }}">
-                                    <!-- Item Image -->
-                                    <div id="item-img-{{ $item->id }}" class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative">
-                                        @if($item->image)
-                                            <img src="{{ Storage::url($item->image) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
-                                        @else
-                                            <div class="w-full h-full flex items-center justify-center text-gray-300">
-                                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                            </div>
-                                        @endif
-                                        
-                                        @if(!$item->is_available)
-                                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
-                                                <span class="text-white text-xs font-bold px-2 py-1 bg-gray-900/80 rounded border border-gray-700">Sold out</span>
-                                            </div>
-                                        @endif
-                                    </div>
-                                    
-                                    <div class="flex-1 flex flex-col justify-between">
-                                        <div>
-                                            <div class="flex justify-between items-start">
-                                                <h4 class="font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight">{{ $item->name }}</h4>
-                                                <span class="font-black text-emerald-500 whitespace-nowrap ml-2">${{ number_format($item->price, 2) }}</span>
-                                            </div>
-                                            <p class="text-sm text-gray-500 mt-1 line-clamp-2 font-medium">{{ $item->description }}</p>
-                                        </div>
-                                        
-                                        @if($item->is_available)
-                                        <div class="flex justify-end mt-3">
-                                            @if(Auth::id() === $restaurant->user_id)
-                                                <span class="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">Own Restaurant</span>
-                                            @else
-                                                <template x-if="getItemQty({{ $item->id }}) === 0">
-                                                    <button 
-                                                        id="add-btn-{{ $item->id }}"
-                                                        @click="addToCart({{ $item->id }}, $event)"
-                                                        :disabled="$store.restaurantState.addingItem === {{ $item->id }}"
-                                                        class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 shadow-sm hover:shadow-lg hover:shadow-emerald-500/30">
-                                                        <svg x-show="$store.restaurantState.addingItem !== {{ $item->id }}" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
-                                                        <svg x-show="$store.restaurantState.addingItem === {{ $item->id }}" x-cloak class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                                                    </button>
-                                                </template>
-                                                <template x-if="getItemQty({{ $item->id }}) > 0">
-                                                    <div class="flex items-center gap-1">
-                                                        <button 
-                                                            @click="updateQty({{ $item->id }}, getItemQty({{ $item->id }}) - 1)"
-                                                            class="bg-red-50 hover:bg-red-100 text-red-500 w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"></path></svg>
-                                                        </button>
-                                                        <span class="w-8 text-center font-black text-gray-900" x-text="getItemQty({{ $item->id }})"></span>
-                                                        <button 
-                                                            @click="addToCart({{ $item->id }}, $event)"
-                                                            class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
-                                                        </button>
-                                                    </div>
-                                                </template>
-                                            @endif
-                                        </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endforeach
-                            
-                            @if($category->menuItems->isEmpty())
-                                <div class="col-span-full py-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                                    <p class="text-gray-500 font-medium">No items yet in this category.</p>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                @empty
-                    <div class="py-20 text-center">
-                        <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gray-100 text-gray-400 mb-6">
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                        </div>
-                        <h3 class="text-2xl font-black outfit text-gray-900 mb-2">Menu goes here!</h3>
-                        <p class="text-gray-500 text-lg font-medium">This restaurant is still working on its tasty menu.</p>
-                    </div>
-                @endforelse
             </div>
         </div>
     </div>

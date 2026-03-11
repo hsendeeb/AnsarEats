@@ -400,7 +400,7 @@
         <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 to-transparent"></div>
         
         <div class="absolute bottom-0 left-0 w-full px-4 sm:px-6 lg:px-8 pb-6 md:pb-8 max-w-7xl mx-auto flex flex-col md:flex-row md:items-end gap-4 md:gap-6">
-            <div class="flex-shrink-0 relative w-32 h-32 md:w-40 md:h-40 bg-white rounded-3xl p-2 shadow-2xl transform translate-y-12 md:translate-y-16 z-20 border-4 border-white mb-4">
+            <div class="flex-shrink-0 relative w-32 h-32 md:w-40 md:h-40 bg-white rounded-3xl p-2 shadow-2xl transform translate-y-6 md:translate-y-8 z-20 border-4 border-white mb-4">
                 @if($restaurant->logo)
                     <img src="{{ Storage::url($restaurant->logo) }}" alt="Logo" class="w-full h-full object-cover rounded-2xl">
                 @else
@@ -506,25 +506,32 @@
                                                 expanded: false,
                                                 canExpand: false,
                                                 isSmall() { return window.matchMedia && window.matchMedia('(max-width: 767px)').matches; },
+                                                clampStyle(lines = 2) {
+                                                    return `display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:${lines};overflow:hidden;`;
+                                                },
                                                 check() {
-                                                    if (!this.isSmall()) { this.canExpand = false; this.expanded = false; return; }
+                                                    // Desktop/tablet: never clamp, never show button
+                                                    if (!this.isSmall()) { this.canExpand = false; this.expanded = true; return; }
+
                                                     this.$nextTick(() => {
                                                         const el = this.$refs.desc;
                                                         if (!el) return;
-                                                        // only show button if clamped text overflows
-                                                        const prev = this.expanded;
+
+                                                        // Force collapsed style for measurement
+                                                        const prevExpanded = this.expanded;
                                                         this.expanded = false;
+
                                                         this.$nextTick(() => {
                                                             this.canExpand = el.scrollHeight > el.clientHeight + 1;
-                                                            this.expanded = prev;
+                                                            this.expanded = prevExpanded;
                                                         });
                                                     });
                                                 }
                                             }"
                                             x-init="check(); window.addEventListener('resize', () => check())">
                                                 <p x-ref="desc"
-                                                   class="text-sm text-gray-500 font-medium md:line-clamp-none"
-                                                   :class="expanded ? 'line-clamp-none' : 'line-clamp-2'">{{ $item->description }}</p>
+                                                   class="text-sm text-gray-500 font-medium whitespace-normal break-words"
+                                                   :style="(!expanded && isSmall()) ? (clampStyle(2) + 'word-break:break-word;overflow-wrap:anywhere;') : 'word-break:break-word;overflow-wrap:anywhere;'">{{ $item->description }}</p>
                                                 <button type="button"
                                                         x-show="canExpand"
                                                         x-cloak

@@ -126,7 +126,7 @@
                         <div class="flex justify-between items-center">
                             <div class="flex items-center gap-2">
                                 <span class="w-6 h-6 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-[10px] font-black text-gray-500">{{ $item->quantity }}x</span>
-                                <span class="text-sm font-bold text-gray-700">{{ $item->menuItem->name }}</span>
+                                <span class="text-sm font-bold text-gray-700">{{ $item->name }}</span>
                             </div>
                             <span class="text-xs font-bold text-gray-500">${{ number_format($item->price * $item->quantity, 2) }}</span>
                         </div>

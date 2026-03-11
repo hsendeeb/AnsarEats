@@ -84,7 +84,7 @@
 
     <!-- Global Page Loader -->
     <div id="page-loader" class="fixed inset-0 flex items-center justify-center bg-emerald-50/80 backdrop-blur-sm z-[120]">
-        <div class="w-14 h-14 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin shadow-lg shadow-emerald-500/40"></div>
+        <div class="w-14 h-14 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin"></div>
     </div>
     
     <!-- Navigation -->
@@ -587,13 +587,13 @@
                         this.cart.total = this.cart.total || 0;
                     },
 
-                    async updateQuantity(itemId, qty) {
+                    async updateQuantity(itemKey, qty) {
                         const token = document.querySelector('meta[name="csrf-token"]')?.content;
                         try {
                             const res = await fetch('/cart/update', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
-                                body: JSON.stringify({ menu_item_id: itemId, quantity: qty })
+                                body: JSON.stringify({ item_key: itemKey, quantity: qty })
                             });
                             const data = await res.json();
                             if (res.ok) {

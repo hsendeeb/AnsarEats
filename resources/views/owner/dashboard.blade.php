@@ -129,11 +129,29 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
                 <!-- Bar Chart -->
                 <div class="lg:col-span-2 bg-white rounded-[2.5rem] border border-gray-100 shadow-xl p-8">
-                    <h3 class="text-xl font-black outfit text-gray-900 mb-6 flex items-center gap-2">
-                        <span class="w-2 h-8 bg-indigo-500 rounded-full"></span>
-                        Weekly Orders
-                    </h3>
-                    <div class="h-64">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                        <h3 class="text-xl font-black outfit text-gray-900 flex items-center gap-2">
+                            <span class="w-2 h-8 bg-indigo-500 rounded-full"></span>
+                            <span id="barChartTitle">{{ $stats['chart_data']['bar']['title'] ?? 'Weekly Orders' }}</span>
+                        </h3>
+
+                        <div class="inline-flex bg-gray-50 border border-gray-100 rounded-2xl p-1">
+                            <button type="button" data-period="day" class="chart-period-btn px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-gray-500 hover:text-emerald-600 hover:bg-white">
+                                Daily
+                            </button>
+                            <button type="button" data-period="week" class="chart-period-btn px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all bg-white text-emerald-600 shadow-sm">
+                                Weekly
+                            </button>
+                            <button type="button" data-period="month" class="chart-period-btn px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-gray-500 hover:text-emerald-600 hover:bg-white">
+                                Monthly
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="h-64 relative" data-chart-url="{{ route('owner.dashboard.chart-data') }}">
+                        <div id="barChartLoader" class="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-sm rounded-2xl opacity-0 pointer-events-none transition-opacity">
+                            <div class="w-10 h-10 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin shadow-lg shadow-emerald-500/30"></div>
+                        </div>
                         <canvas id="barChart"></canvas>
                     </div>
                 </div>
@@ -407,8 +425,8 @@
     {{-- ============================= --}}
     {{-- MODAL: Create / Edit Restaurant --}}
     {{-- ============================= --}}
-    <div x-show="showRestaurantModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" x-cloak>
-        <div @click.outside="showRestaurantModal = false" x-show="showRestaurantModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
+    <div x-show="showRestaurantModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 sm:pt-16 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
+        <div @click.outside="showRestaurantModal = false" x-show="showRestaurantModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">{{ $restaurant ? 'Edit Restaurant' : 'Create Restaurant' }}</h3>
@@ -516,8 +534,8 @@
     {{-- ============================= --}}
     {{-- MODAL: Add Category --}}
     {{-- ============================= --}}
-    <div x-show="showCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" x-cloak>
-        <div @click.outside="showCategoryModal = false" x-show="showCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div x-show="showCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 sm:pt-16 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
+        <div @click.outside="showCategoryModal = false" x-show="showCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-600 to-blue-600 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Add Category</h3>
@@ -543,8 +561,8 @@
     {{-- ============================= --}}
     {{-- MODAL: Add Menu Item --}}
     {{-- ============================= --}}
-    <div x-show="showMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" x-cloak>
-        <div @click.outside="showMenuItemModal = false" x-show="showMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
+    <div x-show="showMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 sm:pt-16 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
+        <div @click.outside="showMenuItemModal = false" x-show="showMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Add Menu Item</h3>
@@ -556,6 +574,8 @@
             
             <form method="POST" action="{{ route('owner.menu-item.store') }}" enctype="multipart/form-data" class="p-6 space-y-4" x-data="{
                 imagePreview: null,
+                hasVariants: false,
+                variants: [{ name: '', price: '' }],
                 handleFileSelect(event) {
                     const file = event.target.files[0];
                     if (file) {
@@ -577,6 +597,16 @@
                 removeImage() {
                     this.imagePreview = null;
                     this.$refs.imageInput.value = '';
+                },
+                addVariantRow() {
+                    this.variants.push({ name: '', price: '' });
+                },
+                removeVariantRow(index) {
+                    if (this.variants.length > 1) {
+                        this.variants.splice(index, 1);
+                    } else {
+                        this.variants[0] = { name: '', price: '' };
+                    }
                 }
             }">
                 @csrf
@@ -601,6 +631,65 @@
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Price ($)</label>
                     <input type="number" step="0.01" min="0" name="price" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 transition-all" placeholder="12.99">
+                </div>
+
+                <!-- Variants Toggle -->
+                <div class="pt-2 border-t border-gray-100 flex items-center justify-between gap-4">
+                    <div>
+                        <p class="text-sm font-bold text-gray-700">Variants</p>
+                        <p class="text-xs font-medium text-gray-400">Let customers choose options like size, each with its own price.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="has_variants" value="1" x-model="hasVariants" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/20 peer-checked:bg-emerald-500 transition-colors relative">
+                            <div class="absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
+                                 :class="hasVariants ? 'translate-x-5' : 'translate-x-0'"></div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Variant Configuration -->
+                <div x-show="hasVariants" x-transition class="space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
+                    <div>
+                        <label class="block text-xs font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Variant Type</label>
+                        <input type="text" name="variant_type" class="block w-full px-3 py-2.5 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all" placeholder="e.g. Size, Portion, Bread Type">
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-black text-emerald-700 uppercase tracking-widest">Variant Options</label>
+                            <button type="button"
+                                    @click="addVariantRow()"
+                                    class="text-[11px] font-bold text-emerald-600 hover:text-emerald-500">
+                                + Add option
+                            </button>
+                        </div>
+                        <template x-for="(variant, index) in variants" :key="index">
+                            <div class="flex items-center gap-2">
+                                <input type="text"
+                                       class="flex-1 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                       placeholder="e.g. Small"
+                                       x-model="variant.name"
+                                       :name="`variant_names[${index}]`">
+                                <input type="number"
+                                       step="0.01"
+                                       min="0"
+                                       class="w-28 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                       placeholder="$9.99"
+                                       x-model="variant.price"
+                                       :name="`variant_prices[${index}]`">
+                                <button type="button"
+                                        @click="removeVariantRow(index)"
+                                        class="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </template>
+                        <p class="mt-1 text-[11px] text-emerald-600 font-medium">
+                            Each option can have its own price. Customers will pick one when ordering.
+                        </p>
+                    </div>
                 </div>
 
                 <!-- Image Upload -->
@@ -650,8 +739,8 @@
     {{-- ============================= --}}
     {{-- MODAL: Edit Category --}}
     {{-- ============================= --}}
-    <div x-show="showEditCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" x-cloak>
-        <div @click.outside="showEditCategoryModal = false" x-show="showEditCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div x-show="showEditCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 sm:pt-16 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
+        <div @click.outside="showEditCategoryModal = false" x-show="showEditCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-700 to-blue-700 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Edit Category</h3>
@@ -678,8 +767,8 @@
     {{-- ============================= --}}
     {{-- MODAL: Edit Menu Item --}}
     {{-- ============================= --}}
-    <div x-show="showEditMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" x-cloak>
-        <div @click.outside="showEditMenuItemModal = false" x-show="showEditMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
+    <div x-show="showEditMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 sm:pt-16 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
+        <div @click.outside="showEditMenuItemModal = false" x-show="showEditMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-500 to-blue-500 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Edit Menu Item</h3>
@@ -767,7 +856,7 @@
                 const barCanvas = document.getElementById('barChart');
                 if (barCanvas) {
                     const barCtx = barCanvas.getContext('2d');
-                    new Chart(barCtx, {
+                    const barChart = new Chart(barCtx, {
                         type: 'bar',
                         data: {
                             labels: stats.chart_data.bar.labels,
@@ -794,6 +883,57 @@
                                 }
                             }
                         }
+                    });
+
+                    // Dynamic period filters
+                    const chartWrap = barCanvas.closest('[data-chart-url]');
+                    const chartUrl = chartWrap?.getAttribute('data-chart-url');
+                    const titleEl = document.getElementById('barChartTitle');
+                    const loaderEl = document.getElementById('barChartLoader');
+                    const buttons = Array.from(document.querySelectorAll('.chart-period-btn'));
+
+                    const setActiveBtn = (period) => {
+                        buttons.forEach((b) => {
+                            const isActive = b.getAttribute('data-period') === period;
+                            b.classList.toggle('bg-white', isActive);
+                            b.classList.toggle('text-emerald-600', isActive);
+                            b.classList.toggle('shadow-sm', isActive);
+                            b.classList.toggle('text-gray-500', !isActive);
+                        });
+                    };
+
+                    const setLoading = (isLoading) => {
+                        if (!loaderEl) return;
+                        loaderEl.classList.toggle('opacity-0', !isLoading);
+                        loaderEl.classList.toggle('pointer-events-none', !isLoading);
+                    };
+
+                    const updateBarChart = async (period) => {
+                        if (!chartUrl) return;
+                        setActiveBtn(period);
+                        setLoading(true);
+                        try {
+                            const res = await fetch(`${chartUrl}?period=${encodeURIComponent(period)}`, {
+                                headers: { 'Accept': 'application/json' }
+                            });
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data?.message || 'Failed to load chart data');
+
+                            if (titleEl && data.title) titleEl.textContent = data.title;
+                            barChart.data.labels = data.labels || [];
+                            barChart.data.datasets[0].data = data.data || [];
+                            barChart.update();
+                        } catch (e) {
+                            console.error('Chart update failed', e);
+                        } finally {
+                            setLoading(false);
+                        }
+                    };
+
+                    buttons.forEach((btn) => {
+                        btn.addEventListener('click', () => {
+                            updateBarChart(btn.getAttribute('data-period') || 'week');
+                        });
                     });
                 }
 

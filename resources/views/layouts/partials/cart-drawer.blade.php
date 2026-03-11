@@ -71,17 +71,17 @@
                                 
                                 <!-- Details -->
                                 <div class="flex-1 min-w-0">
-                                    <h5 class="font-bold text-gray-900 truncate" x-text="item.name"></h5>
+                                    <h5 class="font-bold text-gray-900 truncate" x-text="item.variant ? `${item.name} (${item.variant})` : item.name"></h5>
                                     <p class="text-sm font-black text-emerald-500">$<span x-text="(item.price * item.quantity).toFixed(2)"></span></p>
                                 </div>
 
                                 <!-- Quantity Controls -->
                                 <div class="flex items-center gap-1 flex-shrink-0">
-                                    <button @click="updateQuantity(item.id, item.quantity - 1)" class="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-red-50 hover:border-red-200 hover:text-red-500 text-gray-500 transition-colors">
+                                    <button @click="updateQuantity(key, item.quantity - 1)" class="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-red-50 hover:border-red-200 hover:text-red-500 text-gray-500 transition-colors">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"></path></svg>
                                     </button>
                                     <span class="w-7 text-center font-bold text-sm" x-text="item.quantity"></span>
-                                    <button @click="updateQuantity(item.id, item.quantity + 1)" class="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-500 text-gray-500 transition-colors">
+                                    <button @click="updateQuantity(key, item.quantity + 1)" class="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-500 text-gray-500 transition-colors">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
                                     </button>
                                 </div>

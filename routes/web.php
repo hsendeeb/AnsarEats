@@ -42,6 +42,7 @@ Route::middleware('auth')->group(function () {
     // Owner routes
     Route::prefix('owner')->name('owner.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/chart-data', [DashboardController::class, 'chartData'])->name('dashboard.chart-data');
         Route::post('/restaurant', [DashboardController::class, 'storeOrUpdate'])->name('restaurant.store');
         Route::post('/category', [DashboardController::class, 'storeCategory'])->name('category.store');
         Route::put('/category/{category}', [DashboardController::class, 'updateCategory'])->name('category.update');

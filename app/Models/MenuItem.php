@@ -11,6 +11,10 @@ class MenuItem extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'variants' => 'array',
+    ];
+
     public function menuCategory()
     {
         return $this->belongsTo(MenuCategory::class);

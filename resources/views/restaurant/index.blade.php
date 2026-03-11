@@ -33,6 +33,9 @@
             <div class="flex items-center gap-4 px-6 py-3 bg-white rounded-2xl border border-gray-100 shadow-sm">
                 <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Sort By</span>
                 <form method="GET" action="{{ route('restaurants.index') }}">
+                    @if(request('q'))
+                        <input type="hidden" name="q" value="{{ request('q') }}">
+                    @endif
                     @if(request('location'))
                         <input type="hidden" name="location" value="{{ request('location') }}">
                     @endif
@@ -72,11 +75,11 @@
                          class="absolute right-0 mt-3 w-64 bg-white rounded-3xl shadow-2xl border border-gray-100 p-2 z-50"
                          x-cloak>
                         
-                        <a href="{{ route('restaurants.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all {{ !request('location') ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-gray-500 hover:bg-emerald-50 hover:text-emerald-600' }}">
+                        <a href="{{ route('restaurants.index', array_filter(['q' => request('q'), 'sort' => request('sort')])) }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all {{ !request('location') ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-gray-500 hover:bg-emerald-50 hover:text-emerald-600' }}">
                             All Locations
                         </a>
                         @foreach($locations as $location)
-                            <a href="{{ route('restaurants.index', ['location' => $location]) }}" 
+                            <a href="{{ route('restaurants.index', array_filter(['location' => $location, 'q' => request('q'), 'sort' => request('sort')])) }}" 
                                class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all {{ request('location') == $location ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-gray-500 hover:bg-emerald-50 hover:text-emerald-600' }}">
                                 {{ $location }}
                             </a>

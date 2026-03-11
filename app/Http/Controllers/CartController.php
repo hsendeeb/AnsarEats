@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
+    private function cartItemKey(int $menuItemId, ?string $variantLabel, float $price): string
+    {
+        $label = trim((string) ($variantLabel ?? ''));
+        return $menuItemId . '|' . mb_strtolower($label) . '|' . number_format($price, 2, '.', '');
+    }
+
     /**
      * Get cart contents (JSON for Alpine.js)
      */
@@ -29,6 +35,8 @@ class CartController extends Controller
         $request->validate([
             'menu_item_id' => 'required|exists:menu_items,id',
             'quantity' => 'integer|min:1|max:20',
+            'variant_label' => 'nullable|string|max:255',
+            'variant_price' => 'nullable|numeric|min:0',
         ]);
 
         $menuItem = MenuItem::with('menuCategory.restaurant')->findOrFail($request->menu_item_id);
@@ -55,17 +63,23 @@ class CartController extends Controller
         $cart['restaurant_id'] = $restaurant->id;
         $cart['restaurant_name'] = $restaurant->name;
 
-        $itemId = (string) $menuItem->id;
+        $variantLabel = $request->input('variant_label');
+        $variantPrice = $request->input('variant_price');
+        $price = $variantPrice !== null ? (float) $variantPrice : (float) $menuItem->price;
 
-        if (isset($cart['items'][$itemId])) {
-            $cart['items'][$itemId]['quantity'] += $quantity;
+        $itemKey = $this->cartItemKey($menuItem->id, $variantLabel, $price);
+
+        if (isset($cart['items'][$itemKey])) {
+            $cart['items'][$itemKey]['quantity'] += $quantity;
         } else {
-            $cart['items'][$itemId] = [
+            $cart['items'][$itemKey] = [
+                'key' => $itemKey,
                 'id' => $menuItem->id,
                 'name' => $menuItem->name,
-                'price' => (float) $menuItem->price,
+                'price' => $price,
                 'image' => $menuItem->image,
                 'quantity' => $quantity,
+                'variant' => $variantLabel,
             ];
         }
 
@@ -86,17 +100,17 @@ class CartController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'menu_item_id' => 'required',
+            'item_key' => 'required|string',
             'quantity' => 'required|integer|min:0|max:20',
         ]);
 
         $cart = session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => []]);
-        $itemId = (string) $request->menu_item_id;
+        $itemKey = (string) $request->item_key;
 
         if ($request->quantity === 0) {
-            unset($cart['items'][$itemId]);
-        } elseif (isset($cart['items'][$itemId])) {
-            $cart['items'][$itemId]['quantity'] = $request->quantity;
+            unset($cart['items'][$itemKey]);
+        } elseif (isset($cart['items'][$itemKey])) {
+            $cart['items'][$itemKey]['quantity'] = $request->quantity;
         }
 
         // If cart is empty, reset restaurant info
@@ -118,10 +132,14 @@ class CartController extends Controller
      */
     public function remove(Request $request)
     {
-        $cart = session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => []]);
-        $itemId = (string) $request->menu_item_id;
+        $request->validate([
+            'item_key' => 'required|string',
+        ]);
 
-        unset($cart['items'][$itemId]);
+        $cart = session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => []]);
+        $itemKey = (string) $request->item_key;
+
+        unset($cart['items'][$itemKey]);
 
         if (empty($cart['items'])) {
             $cart['restaurant_id'] = null;
@@ -199,9 +217,14 @@ class CartController extends Controller
         ]);
 
         foreach ($cart['items'] as $item) {
+            $displayName = $item['name'];
+            if (!empty($item['variant'])) {
+                $displayName .= ' (' . $item['variant'] . ')';
+            }
+
             $order->orderItems()->create([
                 'menu_item_id' => $item['id'],
-                'name' => $item['name'],
+                'name' => $displayName,
                 'price' => $item['price'],
                 'quantity' => $item['quantity'],
             ]);

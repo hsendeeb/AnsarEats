@@ -4,12 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\Restaurant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class RestaurantController extends Controller
 {
     public function index(Request $request)
     {
         $query = Restaurant::query();
+
+        if ($request->filled('q')) {
+            $term = $request->get('q');
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', '%' . $term . '%')
+                  ->orWhereHas('menuCategories.menuItems', function ($mi) use ($term) {
+                      $mi->where('name', 'like', '%' . $term . '%');
+                  });
+            });
+        }
 
         if ($request->filled('location')) {
             $query->where('address', 'like', '%' . $request->location . '%');
@@ -76,8 +87,8 @@ class RestaurantController extends Controller
         }]);
 
         $userRating = null;
-        if (auth()->check()) {
-            $userRating = $restaurant->ratings()->where('user_id', auth()->id())->first();
+        if (Auth::check()) {
+            $userRating = $restaurant->ratings()->where('user_id', Auth::id())->first();
         }
 
         return view('restaurant.show', compact('restaurant', 'userRating'));

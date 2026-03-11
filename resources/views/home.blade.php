@@ -66,8 +66,10 @@
                         <div class="relative">
                             <input type="text" 
                                    x-model="query"
+                                   name="q"
                                    @input.debounce.300ms="fetchSuggestions()"
                                    @focus="if(query.length >= 2) show = true"
+                                   @keydown.enter.prevent="if(query && query.trim().length){ window.location.href='{{ route('restaurants.index') }}?q=' + encodeURIComponent(query.trim()); }"
                                    placeholder="What are you eating today?" 
                                    class="w-full pl-12 pr-12 py-5 bg-gray-100 border-none focus:ring-4 focus:ring-emerald-500/20 rounded-3xl font-bold text-gray-900 placeholder-gray-400 shadow-inner transition-all">
                             
@@ -146,7 +148,9 @@
                         </div>
                     </div>
 
-                    <button class="w-full sm:w-auto px-10 py-5 bg-gray-900 text-white font-black rounded-3xl hover:bg-emerald-500 transition-all hover:shadow-2xl hover:shadow-emerald-500/30 transform hover:-translate-y-1 active:scale-95">
+                    <button type="button"
+                            @click="if(query && query.trim().length){ window.location.href='{{ route('restaurants.index') }}?q=' + encodeURIComponent(query.trim()); }"
+                            class="w-full sm:w-auto px-10 py-5 bg-gray-900 text-white font-black rounded-3xl hover:bg-emerald-500 transition-all hover:shadow-2xl hover:shadow-emerald-500/30 transform hover:-translate-y-1 active:scale-95">
                         Find Food
                     </button>
                 </div>
@@ -254,17 +258,10 @@
                                     {{ $restaurant->description ?? 'Amazing food, cooked with perfection and delivered straight to you.' }}
                                 </p>
                                 
-                                <div class="flex items-center gap-4 text-sm font-bold text-gray-400 mt-auto pt-4 border-t border-gray-100">
-                                    <div class="flex items-center gap-1">
-                                        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        30-45 min
-                                    </div>
-                                    <div class="flex items-center gap-1">
-                                        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        $$-$$$
-                                    </div>
-                                </div>
+                                
+                            
                             </div>
+                            
                         </div>
                     </a>
                 </div>

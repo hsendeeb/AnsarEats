@@ -232,6 +232,34 @@
         };
     };
 
+    window.menuItemPricing = function(basePrice, variants) {
+        return {
+            basePrice: parseFloat(basePrice || 0),
+            variants: variants && variants.options ? variants.options : [],
+            variantType: variants && variants.type ? variants.type : null,
+            selectedIndex: 0,
+            get hasVariants() {
+                return this.variants && this.variants.length > 0;
+            },
+            get currentOption() {
+                if (!this.hasVariants) return null;
+                return this.variants[this.selectedIndex] || this.variants[0];
+            },
+            get currentPrice() {
+                if (this.currentOption && this.currentOption.price !== undefined && this.currentOption.price !== null) {
+                    return parseFloat(this.currentOption.price);
+                }
+                return this.basePrice;
+            },
+            get formattedPrice() {
+                return '$' + this.currentPrice.toFixed(2);
+            },
+            get currentLabel() {
+                return this.currentOption ? this.currentOption.label : null;
+            }
+        };
+    };
+
     window.initRestaurantAlpine = function() {
         if (!window.Alpine) return;
 
@@ -262,20 +290,41 @@
                     }
                 },
                 
-                getItemQty(itemId) {
+                makeItemKey(itemId, variantLabel, variantPrice) {
+                    const label = (variantLabel || '').toString().trim().toLowerCase();
+                    const price = (variantPrice !== undefined && variantPrice !== null)
+                        ? parseFloat(variantPrice).toFixed(2)
+                        : '0.00';
+                    return `${itemId}|${label}|${price}`;
+                },
+
+                getItemQty(itemId, variantLabel, variantPrice) {
                     if (!this.cart || !this.cart.items) return 0;
-                    return this.cart.items[itemId] ? this.cart.items[itemId].quantity : 0;
+                    const key = this.makeItemKey(itemId, variantLabel, variantPrice);
+                    return this.cart.items[key] ? this.cart.items[key].quantity : 0;
                 },
                 
                 async addToCart(itemId, btnEvent) {
                     Alpine.store('restaurantState').addingItem = itemId;
                     console.log('Adding to cart:', itemId);
                     if (window.animateAddToCart) animateAddToCart(itemId, btnEvent);
+
+                    const payload = { menu_item_id: itemId, quantity: 1 };
+                    if (btnEvent && btnEvent.currentTarget) {
+                        const el = btnEvent.currentTarget;
+                        const variantLabel = el.getAttribute('data-variant-label');
+                        const variantPrice = el.getAttribute('data-variant-price');
+                        if (variantLabel && variantPrice) {
+                            payload.variant_label = variantLabel;
+                            payload.variant_price = parseFloat(variantPrice);
+                        }
+                    }
+
                     try {
                         const res = await fetch('{{ route("cart.add") }}', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                            body: JSON.stringify({ menu_item_id: itemId, quantity: 1 })
+                            body: JSON.stringify(payload)
                         });
                         const data = await res.json();
                         if (res.ok) {
@@ -289,12 +338,12 @@
                     Alpine.store('restaurantState').addingItem = null;
                 },
                 
-                async updateQty(itemId, qty) {
+                async updateQty(itemKey, qty) {
                     try {
                         const res = await fetch('{{ route("cart.update") }}', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                            body: JSON.stringify({ menu_item_id: itemId, quantity: qty })
+                            body: JSON.stringify({ item_key: itemKey, quantity: qty })
                         });
                         const data = await res.json();
                         if (res.ok) {
@@ -424,7 +473,8 @@
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             @foreach($category->menuItems as $item)
-                                <div id="item-card-{{ $item->id }}" class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow group {{ !$item->is_available ? 'opacity-60 grayscale' : '' }}">
+                                <div id="item-card-{{ $item->id }}" class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow group {{ !$item->is_available ? 'opacity-60 grayscale' : '' }}"
+                                     x-data="menuItemPricing({{ $item->price }}, @js($item->variants))">
                                     <!-- Item Image -->
                                     <div id="item-img-{{ $item->id }}" class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative">
                                         @if($item->image)
@@ -442,41 +492,111 @@
                                         @endif
                                     </div>
                                     
-                                    <div class="flex-1 flex flex-col justify-between">
+                                    <div class="flex-1 min-w-0 flex flex-col justify-between">
                                         <div>
-                                            <div class="flex justify-between items-start">
-                                                <h4 class="font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight">{{ $item->name }}</h4>
-                                                <span class="font-black text-emerald-500 whitespace-nowrap ml-2">${{ number_format($item->price, 2) }}</span>
+                                            <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
+                                                <h4 class="min-w-0 flex-1 font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight break-words">
+                                                    {{ $item->name }}
+                                                </h4>
+                                                <span class="shrink-0 font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">
+                                                    ${{ number_format($item->price, 2) }}
+                                                </span>
                                             </div>
-                                            <p class="text-sm text-gray-500 mt-1 line-clamp-2 font-medium">{{ $item->description }}</p>
+                                            <div class="mt-1" x-data="{
+                                                expanded: false,
+                                                canExpand: false,
+                                                isSmall() { return window.matchMedia && window.matchMedia('(max-width: 767px)').matches; },
+                                                check() {
+                                                    if (!this.isSmall()) { this.canExpand = false; this.expanded = false; return; }
+                                                    this.$nextTick(() => {
+                                                        const el = this.$refs.desc;
+                                                        if (!el) return;
+                                                        // only show button if clamped text overflows
+                                                        const prev = this.expanded;
+                                                        this.expanded = false;
+                                                        this.$nextTick(() => {
+                                                            this.canExpand = el.scrollHeight > el.clientHeight + 1;
+                                                            this.expanded = prev;
+                                                        });
+                                                    });
+                                                }
+                                            }"
+                                            x-init="check(); window.addEventListener('resize', () => check())">
+                                                <p x-ref="desc"
+                                                   class="text-sm text-gray-500 font-medium md:line-clamp-none"
+                                                   :class="expanded ? 'line-clamp-none' : 'line-clamp-2'">{{ $item->description }}</p>
+                                                <button type="button"
+                                                        x-show="canExpand"
+                                                        x-cloak
+                                                        @click="expanded = !expanded"
+                                                        class="mt-1 text-xs font-black text-gray-500 hover:text-emerald-600 transition-colors">
+                                                    <span x-text="expanded ? 'See less' : 'See more'"></span>
+                                                </button>
+                                            </div>
+
+                                            @php
+                                                $variantData = $item->variants ?? null;
+                                                $variantOptions = is_array($variantData) && isset($variantData['options']) && is_array($variantData['options'])
+                                                    ? $variantData['options']
+                                                    : [];
+                                            @endphp
+                                            @if(!empty($variantOptions))
+                                                <div class="mt-2 flex flex-wrap gap-1.5">
+                                                    @foreach($variantOptions as $opt)
+                                                        <span class="inline-flex items-center px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-100">
+                                                            {{ $opt['label'] ?? 'Option' }} · ${{ isset($opt['price']) ? number_format($opt['price'], 2) : number_format($item->price, 2) }}
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            @endif
                                         </div>
                                         
                                         @if($item->is_available)
+                                        <div x-show="hasVariants" class="mt-3">
+                                            <p class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1" x-text="variantType ? variantType : 'Option'"></p>
+                                            <div class="flex flex-wrap gap-2">
+                                                <template x-for="(opt, idx) in variants" :key="idx">
+                                                    <button type="button"
+                                                            @click="selectedIndex = idx"
+                                                            class="px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all"
+                                                            :class="selectedIndex === idx 
+                                                                ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' 
+                                                                : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'">
+                                                        <span x-text="opt.label"></span>
+                                                        <span class="ml-1 opacity-80" x-text="'· $' + parseFloat(opt.price).toFixed(2)"></span>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
                                         <div class="flex justify-end mt-3">
                                             @if(Auth::id() === $restaurant->user_id)
                                                 <span class="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">Own Restaurant</span>
                                             @else
-                                                <template x-if="getItemQty({{ $item->id }}) === 0">
+                                                <template x-if="getItemQty({{ $item->id }}, currentLabel, currentPrice) === 0">
                                                     <button 
                                                         id="add-btn-{{ $item->id }}"
                                                         @click="addToCart({{ $item->id }}, $event)"
                                                         :disabled="$store.restaurantState.addingItem === {{ $item->id }}"
-                                                        class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 shadow-sm hover:shadow-lg hover:shadow-emerald-500/30">
+                                                        class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 shadow-sm hover:shadow-lg hover:shadow-emerald-500/30"
+                                                        :data-variant-label="currentLabel || null"
+                                                        :data-variant-price="currentPrice.toFixed(2)">
                                                         <svg x-show="$store.restaurantState.addingItem !== {{ $item->id }}" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
                                                         <svg x-show="$store.restaurantState.addingItem === {{ $item->id }}" x-cloak class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                                                     </button>
                                                 </template>
-                                                <template x-if="getItemQty({{ $item->id }}) > 0">
+                                                <template x-if="getItemQty({{ $item->id }}, currentLabel, currentPrice) > 0">
                                                     <div class="flex items-center gap-1">
                                                         <button 
-                                                            @click="updateQty({{ $item->id }}, getItemQty({{ $item->id }}) - 1)"
+                                                            @click="updateQty(makeItemKey({{ $item->id }}, currentLabel, currentPrice), getItemQty({{ $item->id }}, currentLabel, currentPrice) - 1)"
                                                             class="bg-red-50 hover:bg-red-100 text-red-500 w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"></path></svg>
                                                         </button>
-                                                        <span class="w-8 text-center font-black text-gray-900" x-text="getItemQty({{ $item->id }})"></span>
+                                                        <span class="w-8 text-center font-black text-gray-900" x-text="getItemQty({{ $item->id }}, currentLabel, currentPrice)"></span>
                                                         <button 
                                                             @click="addToCart({{ $item->id }}, $event)"
-                                                            class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90">
+                                                            class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90"
+                                                            :data-variant-label="currentLabel || null"
+                                                            :data-variant-price="currentPrice.toFixed(2)">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
                                                         </button>
                                                     </div>

@@ -122,7 +122,7 @@ class DashboardController extends Controller
             $stats['total_orders'] = $orders->count();
             $stats['total_revenue'] = $orders->where('status', '!=', 'cancelled')->sum('total');
             $stats['pending_orders'] = $orders->where('status', 'pending')->count();
-            $stats['completed_orders'] = $orders->where('status', 'delivered')->count();
+            $stats['completed_orders'] = $orders->whereIn('status', ['delivered'])->count();
             $stats['avg_order_value'] = $stats['total_orders'] > 0 ? $stats['total_revenue'] / $stats['total_orders'] : 0;
 
             // Bar Chart default: weekly (last 7 days)
@@ -170,9 +170,9 @@ class DashboardController extends Controller
                 $ordersQuery->orderByDesc('created_at');
             }
 
-            $orders = $ordersQuery->get();
+            $orders = $ordersQuery->paginate(10)->appends($request->query());
         } else {
-            $orders = collect();
+            $orders = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
         }
 
         return view('owner.dashboard', compact('restaurant', 'stats', 'orders'));
@@ -208,6 +208,20 @@ class DashboardController extends Controller
 
         $order->update(['status' => 'accepted']);
         return back()->with('success', 'Order #' . $order->id . ' has been accepted!');
+    }
+
+    public function deliverOrder(\App\Models\Order $order)
+    {
+        if ($order->restaurant->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if ($order->status !== 'accepted') {
+            return back()->with('error', 'Only accepted orders can be marked as delivered.');
+        }
+
+        $order->update(['status' => 'delivered']);
+        return back()->with('success', 'Order #' . $order->id . ' has been marked as delivered!');
     }
 
     public function storeOrUpdate(Request $request)

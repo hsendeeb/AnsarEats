@@ -541,21 +541,7 @@
                                                 </button>
                                             </div>
 
-                                            @php
-                                                $variantData = $item->variants ?? null;
-                                                $variantOptions = is_array($variantData) && isset($variantData['options']) && is_array($variantData['options'])
-                                                    ? $variantData['options']
-                                                    : [];
-                                            @endphp
-                                            @if(!empty($variantOptions))
-                                                <div class="mt-2 flex flex-wrap gap-1.5">
-                                                    @foreach($variantOptions as $opt)
-                                                        <span class="inline-flex items-center px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-100">
-                                                            {{ $opt['label'] ?? 'Option' }} · ${{ isset($opt['price']) ? number_format($opt['price'], 2) : number_format($item->price, 2) }}
-                                                        </span>
-                                                    @endforeach
-                                                </div>
-                                            @endif
+
                                         </div>
                                         
                                         @if($item->is_available)

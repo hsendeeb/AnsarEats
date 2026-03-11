@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/menu-item/{menuItem}/toggle', [MenuItemController::class, 'toggleAvailability'])->name('menu-item.toggle');
         Route::delete('/menu-item/{menuItem}', [MenuItemController::class, 'destroy'])->name('menu-item.destroy');
         Route::post('/order/{order}/accept', [DashboardController::class, 'acceptOrder'])->name('order.accept');
+        Route::post('/order/{order}/deliver', [DashboardController::class, 'deliverOrder'])->name('order.deliver');
     });
 
     // Profile & Orders

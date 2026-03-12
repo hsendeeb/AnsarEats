@@ -35,7 +35,7 @@ class BrowseController extends Controller
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
-                'items' => $items->map(function ($meal) {
+                'items' => collect($items->items())->map(function ($meal) {
                     return [
                         'id'              => $meal->id,
                         'menu_item_id'    => $meal->id,
@@ -57,7 +57,10 @@ class BrowseController extends Controller
                         'variants'        => $meal->variants ?? [],
                     ];
                 }),
-                'current_user_id' => auth()->id()
+                'current_user_id' => auth()->id(),
+                'next_page_url'   => $items->nextPageUrl(),
+                'has_more'        => $items->hasMorePages(),
+                'total'           => $items->total(),
             ]);
         }
 
@@ -75,6 +78,6 @@ class BrowseController extends Controller
             })->orWhere('name', 'like', '%' . $category . '%');
         }
 
-        return $query->take(24)->get();
+        return $query->paginate(20);
     }
 }

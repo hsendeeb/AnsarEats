@@ -154,6 +154,14 @@
             @endforelse
         </div>
 
+        <!-- Load More Button -->
+        <div id="load-more-container" class="mt-12 text-center {{ $items->hasMorePages() ? '' : 'hidden' }}">
+            <button id="load-more-btn" onclick="loadMoreItems()" class="inline-flex items-center gap-2 px-8 py-4 bg-emerald-50 text-emerald-600 font-black rounded-full hover:bg-emerald-500 hover:text-white transition-all shadow-sm hover:shadow-xl hover:shadow-emerald-500/30 group">
+                <span>Load More</span>
+                <svg class="w-5 h-5 group-hover:translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+        </div>
+
         <!-- Loading Skeleton -->
         <div id="loading-skeleton" class="hidden grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 animate-pulse"><div class="h-56 bg-gray-200"></div><div class="p-6 space-y-3"><div class="h-4 bg-gray-200 rounded-full w-1/3"></div><div class="h-6 bg-gray-200 rounded-full w-3/4"></div><div class="h-4 bg-gray-200 rounded-full w-full"></div></div></div>
@@ -397,6 +405,9 @@
     var activeCategory = '{{ $category }}';
 
     var CURRENT_USER_ID = {{ Auth::id() ?? 'null' }};
+    var NEXT_PAGE_URL = '{{ $items->nextPageUrl() }}';
+    var HAS_MORE = {{ $items->hasMorePages() ? 'true' : 'false' }};
+    var TOTAL_ITEMS = {{ $items->total() }};
     
     function selectCategory(slug) {
         if (slug === activeCategory) return;
@@ -432,7 +443,12 @@
             headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
         })
         .then(function(res) { return res.json(); })
-        .then(function(data) { renderItems(data.items); })
+        .then(function(data) { 
+            NEXT_PAGE_URL = data.next_page_url;
+            HAS_MORE = data.has_more;
+            TOTAL_ITEMS = data.total;
+            renderItems(data.items, false); 
+        })
         .catch(function() {
             skeleton.classList.add('hidden');
             skeleton.classList.remove('grid');
@@ -441,25 +457,71 @@
         });
     }
 
-    function renderItems(items) {
+    function loadMoreItems() {
+            if (!NEXT_PAGE_URL) return;
+
+            var btn = document.getElementById('load-more-btn');
+            var originalText = btn.innerHTML;
+            btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> <span>Loading...</span>';
+            btn.disabled = true;
+
+            fetch(NEXT_PAGE_URL, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                NEXT_PAGE_URL = data.next_page_url;
+                HAS_MORE = data.has_more;
+                TOTAL_ITEMS = data.total;
+                
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                
+                renderItems(data.items, true);
+            })
+            .catch(function() {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+    }
+
+    function renderItems(items, append) {
         var grid     = document.getElementById('items-grid');
         var skeleton = document.getElementById('loading-skeleton');
         var countEl  = document.getElementById('results-count');
+        var loadMoreContainer = document.getElementById('load-more-container');
 
         skeleton.classList.add('hidden');
         skeleton.classList.remove('grid');
 
-        if (items.length === 0) {
-            grid.innerHTML = '<div class="col-span-3 py-24 text-center">' +
-                '<div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 text-gray-300 mb-5">' +
-                '<span class="text-4xl">\ud83c\udf7d\ufe0f</span></div>' +
-                '<h3 class="text-2xl font-black text-gray-900 mb-2">No items found</h3>' +
-                '<p class="text-gray-500 font-medium">Try a different category!</p></div>';
+        if (!append) {
+            if (items.length === 0) {
+                grid.innerHTML = '<div class="col-span-3 py-24 text-center">' +
+                    '<div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 text-gray-300 mb-5">' +
+                    '<span class="text-4xl">\ud83c\udf7d\ufe0f</span></div>' +
+                    '<h3 class="text-2xl font-black text-gray-900 mb-2">No items found</h3>' +
+                    '<p class="text-gray-500 font-medium">Try a different category!</p></div>';
+            } else {
+                grid.innerHTML = items.map(function(meal) { return buildCard(meal); }).join('');
+            }
         } else {
-            grid.innerHTML = items.map(function(meal) { return buildCard(meal); }).join('');
+            // Append mode: we need to use a temporary container to extract elements so x-data initializes correctly
+            // if we just concatenate innerHTML, we break existing Alpine states.
+            var temp = document.createElement('div');
+            temp.innerHTML = items.map(function(meal) { return buildCard(meal); }).join('');
+            while(temp.firstChild) {
+                grid.appendChild(temp.firstChild);
+            }
         }
 
-        countEl.textContent = items.length;
+        // We only use TOTAL_ITEMS for the accurate results count
+        if (countEl && TOTAL_ITEMS !== undefined) {
+             countEl.textContent = TOTAL_ITEMS;
+        }
+
+        if (loadMoreContainer) {
+             loadMoreContainer.classList.toggle('hidden', !HAS_MORE);
+        }
 
         requestAnimationFrame(function() {
             grid.style.transition = 'opacity 0.3s ease';

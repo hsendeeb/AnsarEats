@@ -64,6 +64,13 @@ class LoginController extends Controller
             'role' => 'customer',
         ]);
 
+        // Send Welcome Email
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\WelcomeUserMail($user));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send welcome email: ' . $e->getMessage());
+        }
+
         Auth::login($user);
 
         return redirect('/owner/dashboard');

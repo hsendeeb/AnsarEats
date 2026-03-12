@@ -279,8 +279,15 @@ class DashboardController extends Controller
         if ($restaurant) {
             $restaurant->update($data);
         } else {
-            $user->restaurant()->create($data);
+            $restaurant = $user->restaurant()->create($data);
             $user->update(['role' => 'owner']);
+
+            // Send Restaurant Created Email
+            try {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\RestaurantCreatedMail($user, $restaurant));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to send restaurant created email: ' . $e->getMessage());
+            }
         }
 
         return back()->with('success', 'Restaurant saved successfully!');

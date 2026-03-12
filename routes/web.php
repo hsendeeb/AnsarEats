@@ -29,6 +29,7 @@ Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+Route::post('/cart/promo', [CartController::class, 'applyPromo'])->name('cart.promo');
 
 // Checkout (auth required)
 Route::middleware('auth')->group(function () {
@@ -44,15 +45,26 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/dashboard/chart-data', [DashboardController::class, 'chartData'])->name('dashboard.chart-data');
         Route::post('/restaurant', [DashboardController::class, 'storeOrUpdate'])->name('restaurant.store');
+        Route::post('/restaurant/toggle-status', [DashboardController::class, 'toggleRestaurantStatus'])->name('restaurant.toggle-status');
+        
         Route::post('/category', [DashboardController::class, 'storeCategory'])->name('category.store');
         Route::put('/category/{category}', [DashboardController::class, 'updateCategory'])->name('category.update');
+        Route::post('/category/{category}/toggle-visibility', [DashboardController::class, 'toggleCategoryVisibility'])->name('category.toggle-visibility');
         Route::delete('/category/{category}', [DashboardController::class, 'destroyCategory'])->name('category.destroy');
+        
         Route::post('/menu-item', [MenuItemController::class, 'store'])->name('menu-item.store');
         Route::put('/menu-item/{menuItem}', [MenuItemController::class, 'update'])->name('menu-item.update');
-        Route::post('/menu-item/{menuItem}/toggle', [MenuItemController::class, 'toggleAvailability'])->name('menu-item.toggle');
+        Route::post('/menu-item/{item}/toggle-availability', [DashboardController::class, 'toggleItemAvailability'])->name('menu-item.toggle');
+        Route::post('/menu-item/{item}/toggle-featured', [DashboardController::class, 'toggleItemFeatured'])->name('menu-item.toggle-featured');
         Route::delete('/menu-item/{menuItem}', [MenuItemController::class, 'destroy'])->name('menu-item.destroy');
+        
         Route::post('/order/{order}/accept', [DashboardController::class, 'acceptOrder'])->name('order.accept');
+        Route::post('/order/{order}/reject', [DashboardController::class, 'rejectOrder'])->name('order.reject');
         Route::post('/order/{order}/deliver', [DashboardController::class, 'deliverOrder'])->name('order.deliver');
+        Route::get('/order/{order}/print', [DashboardController::class, 'printOrder'])->name('order.print');
+
+        Route::post('/promotion', [DashboardController::class, 'storePromotion'])->name('promotion.store');
+        Route::delete('/promotion/{promotion}', [DashboardController::class, 'destroyPromotion'])->name('promotion.destroy');
     });
 
     // Profile & Orders

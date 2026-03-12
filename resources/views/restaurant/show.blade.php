@@ -173,15 +173,6 @@
         });
     };
 
-    window.showGsapToast = function(message) {
-        const toast = document.getElementById('gsap-toast');
-        const msgEl = document.getElementById('gsap-toast-msg');
-        if (!toast || !msgEl) return;
-        msgEl.textContent = message;
-        gsap.killTweensOf(toast);
-        gsap.fromTo(toast, { opacity: 0, y: -20, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(2)' });
-        gsap.to(toast, { opacity: 0, y: -20, scale: 0.8, duration: 0.3, ease: 'power2.in', delay: 2.2 });
-    };
 
     // ========== Alpine Components ==========
 
@@ -329,7 +320,6 @@
                         const data = await res.json();
                         if (res.ok) {
                             this.cart = data.cart;
-                            if (window.showGsapToast) showGsapToast(data.message);
                             window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
                         }
                     } catch(e) {
@@ -412,10 +402,15 @@
             
             <div class="flex-1 pb-2">
                 <h1 class="text-4xl md:text-5xl font-black outfit text-white">{{ $restaurant->name }}</h1>
-                <p class="text-emerald-300 font-bold mt-2 flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    {{ $restaurant->address ?? 'Location not specified' }}
-                </p>
+                <div class="flex items-center gap-3 mt-2">
+                    <p class="text-emerald-300 font-bold flex items-center gap-2 text-sm sm:text-base">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        {{ $restaurant->address ?? 'Location not specified' }}
+                    </p>
+                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest {{ $restaurant->isOpenNow() ? 'bg-emerald-400/20 text-emerald-400 border border-emerald-400/30' : 'bg-red-400/20 text-red-400 border border-red-400/30' }}">
+                        {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
+                    </span>
+                </div>
                 <p class="text-gray-300 font-medium max-w-2xl mt-3 line-clamp-2 md:line-clamp-none">
                     {{ $restaurant->description }}
                 </p>
@@ -425,16 +420,7 @@
     
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-24 pb-24 relative z-0" x-data="restaurantPage" x-cloak>
 
-        {{-- GSAP Toast --}}
-        <div id="gsap-toast" class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] pointer-events-none" style="opacity:0; transform: translateX(-50%) translateY(-20px);">
-            <div class="bg-gray-900 text-white px-6 py-3 rounded-2xl shadow-2xl shadow-gray-900/30 flex items-center gap-3 font-bold text-sm backdrop-blur-sm">
-                <div class="w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <span id="gsap-toast-msg">Added to cart!</span>
-            </div>
-        </div>
-        
+
         <div class="flex flex-col lg:flex-row gap-10">
             <!-- Sidebar Navigation -->
             <div class="w-full lg:w-1/4">
@@ -459,6 +445,33 @@
                             </button>
                         @endforeach
                     </nav>
+
+                    @if($restaurant->operating_hours)
+                        <div class="hidden lg:block mt-8 pt-6 border-t border-gray-100">
+                            <h4 class="font-black text-xs uppercase tracking-widest text-gray-400 mb-4 px-2">Operating Hours</h4>
+                            <div class="space-y-3">
+                                @php
+                                    $today = strtolower(now()->format('l'));
+                                @endphp
+                                @foreach(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as $day)
+                                    @php
+                                        $dayHours = $restaurant->operating_hours[$day] ?? null;
+                                        $isToday = $today === $day;
+                                    @endphp
+                                    <div class="flex items-center justify-between px-2 {{ $isToday ? 'bg-emerald-50 py-2 rounded-xl border border-emerald-100' : 'text-gray-600' }}">
+                                        <span class="text-xs font-bold uppercase {{ $isToday ? 'text-emerald-700' : 'text-gray-500' }}">{{ substr($day, 0, 3) }}</span>
+                                        <span class="text-[11px] font-black {{ $isToday ? 'text-emerald-600' : 'text-gray-900' }}">
+                                            @if($dayHours && !($dayHours['closed'] ?? false))
+                                                {{ \Carbon\Carbon::parse($dayHours['open'])->format('g:i A') }} - {{ \Carbon\Carbon::parse($dayHours['close'])->format('g:i A') }}
+                                            @else
+                                                <span class="text-red-400">Closed</span>
+                                            @endif
+                                        </span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
             
@@ -486,8 +499,12 @@
                                         @endif
                                         
                                         @if(!$item->is_available)
-                                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
-                                                <span class="text-white text-xs font-bold px-2 py-1 bg-gray-900/80 rounded border border-gray-700">Sold out</span>
+                                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
+                                                <span class="text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-gray-900/80 rounded border border-gray-700">Sold out</span>
+                                            </div>
+                                        @elseif(!$restaurant->isOpenNow())
+                                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
+                                                <span class="text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-red-900/80 rounded border border-red-700">Closed</span>
                                             </div>
                                         @endif
                                     </div>
@@ -495,8 +512,14 @@
                                     <div class="flex-1 min-w-0 flex flex-col justify-between">
                                         <div>
                                             <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
-                                                <h4 class="min-w-0 flex-1 font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight break-words">
+                                                <h4 class="min-w-0 flex-1 font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight break-words flex items-center gap-2">
                                                     {{ $item->name }}
+                                                    @if($item->is_featured)
+                                                        <span class="inline-flex items-center text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-widest border border-amber-100 whitespace-nowrap" title="Featured Item">
+                                                            <svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                                            Featured
+                                                        </span>
+                                                    @endif
                                                 </h4>
                                                 <span class="shrink-0 font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">
                                                     ${{ number_format($item->price, 2) }}
@@ -544,7 +567,7 @@
 
                                         </div>
                                         
-                                        @if($item->is_available)
+                                        @if($item->is_available && $restaurant->isOpenNow())
                                         <div x-show="hasVariants" class="mt-3">
                                             <p class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1" x-text="variantType ? variantType : 'Option'"></p>
                                             <div class="flex flex-wrap gap-2">
@@ -617,6 +640,47 @@
                         <p class="text-gray-500 text-lg font-medium">This restaurant is still working on its tasty menu.</p>
                     </div>
                 @endforelse
+
+                @if($restaurant->operating_hours)
+                    <div class="lg:hidden bg-gray-50 shadow-sm border border-gray-100 rounded-[2.5rem] p-5 mb-10 group overflow-hidden">
+                        <div class="flex flex-col sm:flex-row items-center gap-6">
+                            <div class="flex-shrink-0 flex sm:flex-col items-center gap-2 px-6 py-3 bg-white shadow-sm border border-gray-100 rounded-3xl">
+                                <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <div class="text-left sm:text-center">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 leading-none">Trading</p>
+                                    <p class="text-lg font-black outfit text-gray-900 leading-tight">Hours</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex-1 w-full overflow-x-auto scrollbar-hide">
+                                <div class="flex items-center gap-3 min-w-max py-2">
+                                    @php
+                                        $today = strtolower(now()->format('l'));
+                                    @endphp
+                                    @foreach(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as $day)
+                                        @php
+                                            $dayHours = $restaurant->operating_hours[$day] ?? null;
+                                            $isToday = $today === $day;
+                                        @endphp
+                                        <div class="relative px-5 py-4 rounded-[2rem] flex flex-col items-center justify-center min-w-[120px] transition-all duration-300 {{ $isToday ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/30 scale-105 z-10' : 'bg-white text-gray-600 border border-gray-50 hover:border-emerald-200 hover:shadow-md' }}">
+                                            @if($isToday)
+                                                <div class="absolute -top-2 left-1/2 -translate-x-1/2 bg-white text-emerald-600 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-sm border border-emerald-100">Today</div>
+                                            @endif
+                                            <span class="text-[10px] font-bold uppercase tracking-widest {{ $isToday ? 'text-emerald-100' : 'text-gray-400' }}">{{ substr($day, 0, 3) }}</span>
+                                            <span class="text-[11px] font-black mt-1 whitespace-nowrap">
+                                                @if($dayHours && !($dayHours['closed'] ?? false))
+                                                    {{ \Carbon\Carbon::parse($dayHours['open'])->format('g:i A') }} <span class="opacity-50 mx-0.5">-</span> {{ \Carbon\Carbon::parse($dayHours['close'])->format('g:i A') }}
+                                                @else
+                                                    <span class="{{ $isToday ? 'text-emerald-100/80' : 'text-red-400' }}">Closed</span>
+                                                @endif
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 {{-- Rating & Reviews --}}
                 <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm"
@@ -793,6 +857,13 @@
         font-weight: 900;
         color: #10b981;
         text-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
 </style>
 @endsection

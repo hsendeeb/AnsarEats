@@ -75,7 +75,7 @@ class RestaurantController extends Controller
     public function show(Restaurant $restaurant)
     {
         $restaurant->load(['menuCategories' => function($query) {
-            $query->with(['menuItems' => function($q) {
+            $query->where('is_visible', true)->with(['menuItems' => function($q) {
                 // optionally filter available items or order them
             }]);
         }]);

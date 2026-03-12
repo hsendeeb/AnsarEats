@@ -100,11 +100,70 @@
                         @endforeach
                     </div>
 
+                    <div class="mb-6" x-data="{
+                        promoCode: '',
+                        submitting: false,
+                        message: '',
+                        error: '',
+                        discount: {{ $cart['discount'] }},
+                        async applyPromo() {
+                            if (!this.promoCode) return;
+                            this.submitting = true;
+                            this.message = '';
+                            this.error = '';
+                            try {
+                                const res = await fetch('{{ route('cart.promo') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: JSON.stringify({ code: this.promoCode })
+                                });
+                                const data = await res.json();
+                                if (res.ok) {
+                                    this.message = 'Promo applied!';
+                                    // Refresh page to update totals
+                                    window.location.reload();
+                                } else {
+                                    this.error = data.message || 'Invalid code';
+                                }
+                            } catch (e) {
+                                this.error = 'Error applying promo';
+                            } finally {
+                                this.submitting = false;
+                            }
+                        }
+                    }">
+                        <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Promo Code</label>
+                        <div class="flex gap-2">
+                            <input type="text" x-model="promoCode" placeholder="Enter code" 
+                                class="flex-1 px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-emerald-500 focus:bg-white outline-none font-bold uppercase text-sm transition-all"
+                                @keydown.enter.prevent="applyPromo">
+                            <button type="button" @click="applyPromo" :disabled="submitting"
+                                class="px-4 py-2 bg-gray-900 text-white font-black rounded-xl text-xs hover:bg-gray-800 transition-all disabled:opacity-50">
+                                Apply
+                            </button>
+                        </div>
+                        <p x-show="message" x-text="message" class="text-[10px] font-bold text-emerald-500 mt-1 px-1" x-cloak></p>
+                        <p x-show="error" x-text="error" class="text-[10px] font-bold text-red-500 mt-1 px-1" x-cloak></p>
+                    </div>
+
                     <div class="border-t-2 border-dashed border-gray-200 pt-4 mb-6">
                         <div class="flex justify-between items-center text-sm text-gray-500 font-medium mb-2">
                             <span>Subtotal</span>
-                            <span>${{ number_format($cart['total'], 2) }}</span>
+                            <span>${{ number_format($cart['subtotal'], 2) }}</span>
                         </div>
+                        @if($cart['discount'] > 0)
+                            <div class="flex justify-between items-center text-sm text-emerald-600 font-medium mb-2">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                                    Discount ({{ $cart['promo']['code'] }})
+                                </span>
+                                <span>-${{ number_format($cart['discount'], 2) }}</span>
+                            </div>
+                        @endif
                         <div class="flex justify-between items-center text-sm text-gray-500 font-medium mb-2">
                             <span>Delivery</span>
                             <span class="text-emerald-500 font-bold">Free</span>

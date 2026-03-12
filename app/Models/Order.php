@@ -11,6 +11,11 @@ class Order extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'total' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -19,6 +24,11 @@ class Order extends Model
     public function restaurant()
     {
         return $this->belongsTo(Restaurant::class);
+    }
+
+    public function promotion()
+    {
+        return $this->belongsTo(Promotion::class);
     }
 
     public function orderItems()

@@ -13,6 +13,8 @@ class MenuItem extends Model
 
     protected $casts = [
         'variants' => 'array',
+        'is_available' => 'boolean',
+        'is_featured' => 'boolean',
     ];
 
     public function menuCategory()

@@ -1,0 +1,156 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use App\Models\Restaurant;
+use App\Models\MenuCategory;
+use App\Models\MenuItem;
+use App\Models\Order;
+use App\Models\Promotion;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class OwnerDashboardTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected $owner;
+    protected $restaurant;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->owner = User::factory()->create(['role' => 'owner']);
+        $this->restaurant = Restaurant::factory()->create(['user_id' => $this->owner->id]);
+    }
+
+    public function test_owner_can_toggle_restaurant_status()
+    {
+        $initialStatus = $this->restaurant->is_open;
+        $response = $this->actingAs($this->owner)->post(route('owner.restaurant.toggle-status'));
+        
+        $response->assertRedirect();
+        $this->assertEquals(!$initialStatus, $this->restaurant->fresh()->is_open);
+    }
+
+    public function test_owner_can_accept_order_with_prep_time()
+    {
+        $order = Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'status' => 'pending'
+        ]);
+
+        $response = $this->actingAs($this->owner)->post(route('owner.order.accept', $order), [
+            'estimated_prep_time' => 30
+        ]);
+
+        $response->assertRedirect();
+        $order->refresh();
+        $this->assertEquals('accepted', $order->status);
+        $this->assertEquals(30, $order->estimated_prep_time);
+    }
+
+    public function test_owner_can_reject_order_with_reason()
+    {
+        $order = Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'status' => 'pending'
+        ]);
+
+        $response = $this->actingAs($this->owner)->post(route('owner.order.reject', $order), [
+            'rejection_reason' => 'Too busy'
+        ]);
+
+        $response->assertRedirect();
+        $order->refresh();
+        $this->assertEquals('cancelled', $order->status);
+        $this->assertEquals('Too busy', $order->rejection_reason);
+    }
+
+    public function test_owner_can_toggle_category_visibility()
+    {
+        $category = MenuCategory::factory()->create(['restaurant_id' => $this->restaurant->id]);
+        $initialVisibility = $category->is_visible;
+
+        $response = $this->actingAs($this->owner)->post(route('owner.category.toggle-visibility', $category));
+
+        $response->assertRedirect();
+        $this->assertEquals(!$initialVisibility, $category->fresh()->is_visible);
+    }
+
+    public function test_owner_can_toggle_item_featured_status()
+    {
+        $category = MenuCategory::factory()->create(['restaurant_id' => $this->restaurant->id]);
+        $item = MenuItem::factory()->create(['menu_category_id' => $category->id]);
+        $initialFeatured = $item->is_featured;
+
+        $response = $this->actingAs($this->owner)->post(route('owner.menu-item.toggle-featured', $item));
+
+        $response->assertRedirect();
+        $this->assertEquals(!$initialFeatured, $item->fresh()->is_featured);
+    }
+
+    public function test_owner_can_manage_promotions()
+    {
+        // Store
+        $response = $this->actingAs($this->owner)->post(route('owner.promotion.store'), [
+            'code' => 'SAVE20',
+            'discount_percentage' => 20
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('promotions', [
+            'restaurant_id' => $this->restaurant->id,
+            'code' => 'SAVE20',
+            'discount_percentage' => 20
+        ]);
+
+        $promotion = Promotion::where('code', 'SAVE20')->first();
+
+        // Destroy
+        $response = $this->actingAs($this->owner)->delete(route('owner.promotion.destroy', $promotion));
+        $response->assertRedirect();
+        $this->assertDatabaseMissing('promotions', ['id' => $promotion->id]);
+    }
+    public function test_user_can_apply_promo_at_checkout()
+    {
+        $user = User::factory()->create();
+        $promotion = Promotion::create([
+            'restaurant_id' => $this->restaurant->id,
+            'code' => 'DISCOUNT10',
+            'discount_percentage' => 10,
+            'is_active' => true
+        ]);
+
+        $category = MenuCategory::factory()->create(['restaurant_id' => $this->restaurant->id]);
+        $item = MenuItem::factory()->create(['menu_category_id' => $category->id, 'price' => 100]);
+
+        // Mock session cart
+        session(['cart' => [
+            'restaurant_id' => $this->restaurant->id,
+            'restaurant_name' => $this->restaurant->name,
+            'items' => [
+                '1|small|100.00' => [
+                    'id' => $item->id,
+                    'name' => 'Pizza',
+                    'price' => 100,
+                    'quantity' => 1,
+                    'variant' => 'small'
+                ]
+            ]
+        ]]);
+
+        $response = $this->actingAs($user)->post(route('cart.promo'), [
+            'code' => 'DISCOUNT10'
+        ]);
+
+        $response->assertStatus(200);
+        $cart = session('cart');
+        $this->assertEquals('DISCOUNT10', $cart['promo']['code']);
+        
+        $responseData = $response->json();
+        $this->assertEquals(90, $responseData['total']);
+        $this->assertEquals(10, $responseData['discount']);
+    }
+}

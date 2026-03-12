@@ -11,6 +11,10 @@ class MenuCategory extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'is_visible' => 'boolean',
+    ];
+
     public function restaurant()
     {
         return $this->belongsTo(Restaurant::class);

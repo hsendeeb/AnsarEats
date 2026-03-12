@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\MenuItem;
 use App\Models\Order;
+use App\Models\Restaurant;
+use App\Models\Promotion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,8 +22,18 @@ class CartController extends Controller
      */
     public function index()
     {
-        $cart = session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => []]);
-        $cart['total'] = collect($cart['items'])->sum(fn($item) => $item['price'] * $item['quantity']);
+        $cart = session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => [], 'promo' => null]);
+        
+        $subtotal = collect($cart['items'])->sum(fn($item) => $item['price'] * $item['quantity']);
+        $discountAmount = 0;
+
+        if (!empty($cart['promo'])) {
+            $discountAmount = ($subtotal * $cart['promo']['discount_percentage']) / 100;
+        }
+
+        $cart['subtotal'] = $subtotal;
+        $cart['discount'] = $discountAmount;
+        $cart['total'] = $subtotal - $discountAmount;
         $cart['count'] = collect($cart['items'])->sum('quantity');
 
         return response()->json($cart);
@@ -47,6 +59,10 @@ class CartController extends Controller
 
         $restaurant = $menuItem->menuCategory->restaurant;
         
+        if (!$restaurant->isOpenNow()) {
+            return response()->json(['message' => 'This restaurant is currently closed.'], 422);
+        }
+
         // Prevent owner from ordering from their own restaurant
         if ($restaurant->user_id === Auth::id()) {
             return response()->json(['message' => 'You cannot order from your own restaurant.'], 403);
@@ -161,7 +177,40 @@ class CartController extends Controller
     {
         session()->forget('cart');
 
-        return response()->json(['cart' => ['restaurant_id' => null, 'restaurant_name' => null, 'items' => [], 'total' => 0, 'count' => 0]]);
+        return response()->json(['cart' => ['restaurant_id' => null, 'restaurant_name' => null, 'items' => [], 'total' => 0, 'subtotal' => 0, 'discount' => 0, 'count' => 0, 'promo' => null]]);
+    }
+
+    public function applyPromo(Request $request)
+    {
+        $request->validate(['code' => 'required|string']);
+        
+        $cart = session('cart', ['restaurant_id' => null, 'items' => []]);
+        
+        if (!$cart['restaurant_id']) {
+            return response()->json(['message' => 'Your cart is empty.'], 422);
+        }
+
+        $promotion = Promotion::where('restaurant_id', $cart['restaurant_id'])
+            ->where('code', $request->code)
+            ->where(function($q) {
+                $q->whereNull('valid_until')
+                  ->orWhere('valid_until', '>=', now());
+            })
+            ->first();
+
+        if (!$promotion) {
+            return response()->json(['message' => 'Invalid or expired promo code.'], 422);
+        }
+
+        $cart['promo'] = [
+            'id' => $promotion->id,
+            'code' => $promotion->code,
+            'discount_percentage' => $promotion->discount_percentage,
+        ];
+
+        session(['cart' => $cart]);
+
+        return $this->index();
     }
 
     /**
@@ -169,14 +218,12 @@ class CartController extends Controller
      */
     public function checkout()
     {
-        $cart = session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => []]);
+        $response = $this->index();
+        $cart = $response->getData(true);
 
         if (empty($cart['items'])) {
             return redirect()->route('home')->with('error', 'Your cart is empty!');
         }
-
-        $cart['total'] = collect($cart['items'])->sum(fn($item) => $item['price'] * $item['quantity']);
-        $cart['count'] = collect($cart['items'])->sum('quantity');
 
         return view('checkout', compact('cart'));
     }
@@ -204,19 +251,22 @@ class CartController extends Controller
             return redirect()->route('home')->with('error', 'You cannot order from your own restaurant.');
         }
 
-        $total = collect($cart['items'])->sum(fn($item) => $item['price'] * $item['quantity']);
+        $response = $this->index();
+        $cartData = $response->getData(true);
 
         $order = Order::create([
             'user_id' => Auth::id(),
-            'restaurant_id' => $cart['restaurant_id'],
+            'restaurant_id' => $cartData['restaurant_id'],
             'delivery_address' => $request->delivery_address,
             'phone' => $request->phone,
             'notes' => $request->notes,
-            'total' => $total,
+            'total' => $cartData['total'],
+            'discount_amount' => $cartData['discount'],
+            'promotion_id' => $cartData['promo']['id'] ?? null,
             'status' => 'pending',
         ]);
 
-        foreach ($cart['items'] as $item) {
+        foreach ($cartData['items'] as $item) {
             $displayName = $item['name'];
             if (!empty($item['variant'])) {
                 $displayName .= ' (' . $item['variant'] . ')';
@@ -224,7 +274,8 @@ class CartController extends Controller
 
             $order->orderItems()->create([
                 'menu_item_id' => $item['id'],
-                'name' => $displayName,
+                'name' => $item['name'],
+                'variant_label' => $item['variant'],
                 'price' => $item['price'],
                 'quantity' => $item['quantity'],
             ]);

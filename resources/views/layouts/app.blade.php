@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-50 antialiased">
+<html lang="en" class="bg-gray-50 antialiased">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -73,7 +73,7 @@
         }
     </style>
 </head>
-<body class="h-full flex flex-col text-gray-800 bg-gray-50 overflow-x-hidden relative page-loading">
+<body class="min-h-screen flex flex-col text-gray-800 bg-gray-50 overflow-x-hidden relative page-loading">
 
     <!-- Decorative background blobs -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -167,9 +167,10 @@
                              x-transition:leave="transition ease-in duration-150"
                              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                              x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-                             class="absolute top-full right-0 mt-3 w-72 sm:w-80 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-[110] max-h-[400px] overflow-y-auto"
+                             class="absolute top-full right-0 mt-3 w-72 sm:w-80 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-[110]"
                              x-cloak>
                             
+                            <div class="max-h-[60vh] md:max-h-[400px] overflow-y-auto overscroll-contain pb-4">
                             <template x-if="results.restaurants.length > 0">
                                 <div class="p-2">
                                     <div class="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Restaurants</div>
@@ -216,6 +217,7 @@
                                     </template>
                                 </div>
                             </template>
+                            </div>
                         </div>
                     </div>
 
@@ -383,9 +385,10 @@
                                  x-transition:enter="transition ease-out duration-200"
                                  x-transition:enter-start="opacity-0 translate-y-2 scale-95"
                                  x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                                 class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-[110] max-h-[300px] overflow-y-auto"
+                                 class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-[110]"
                                  x-cloak>
                                 
+                                <div class="max-h-[50vh] overflow-y-auto overscroll-contain pb-4">
                                 <template x-if="results.restaurants.length > 0">
                                     <div class="p-2">
                                         <div class="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Restaurants</div>
@@ -430,6 +433,7 @@
                                         </template>
                                     </div>
                                 </template>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -439,6 +443,13 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                             </div>
                             Home
+                        </a>
+
+                        <a href="{{ route('restaurants.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
+                            <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </div>
+                            Explore
                         </a>
                         
                         @guest
@@ -528,17 +539,77 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-100 py-12 mt-auto relative z-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
-            <div class="flex items-center gap-2 mb-6 grayscale opacity-40">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                <span class="font-extrabold text-2xl outfit">AnsarEats</span>
+    <footer class="bg-gray-900 text-white overflow-hidden py-16 mt-auto relative z-10 w-full ">
+        <!-- White Radial Circles Background Effect -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center z-0 opacity-10">
+            <div class="w-[1200px] h-[1200px] border border-white rounded-full absolute"></div>
+            <div class="w-[1000px] h-[1000px] border border-white rounded-full absolute"></div>
+            <div class="w-[800px] h-[800px] border border-white rounded-full absolute"></div>
+            <div class="w-[600px] h-[600px] border border-white rounded-full absolute"></div>
+            <div class="w-[400px] h-[400px] border border-white rounded-full absolute"></div>
+            <div class="w-[200px] h-[200px] border border-white rounded-full absolute"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12 border-b border-gray-800/80 pb-12">
+                <div class="col-span-1 md:col-span-1">
+                    <div class="flex items-center gap-2 mb-6">
+                        <svg class="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span class="font-extrabold text-3xl outfit text-white tracking-tight">AnsarEats</span>
+                    </div>
+                    <p class="text-gray-400 font-medium text-sm mb-6">Connecting you with the best restaurants, bakeries, and markets. Fresh food delivered to your doorstep in minutes.</p>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800/80 border border-gray-700/50 flex items-center justify-center text-gray-400 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800/80 border border-gray-700/50 flex items-center justify-center text-gray-400 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800/80 border border-gray-700/50 flex items-center justify-center text-gray-400 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-span-1">
+                    <h3 class="text-white font-bold text-lg mb-6 outfit tracking-wide">Quick Links</h3>
+                    <ul class="space-y-3 text-sm font-medium text-gray-400">
+                        <li><a href="{{ url('/') }}" class="hover:text-emerald-400 hover:translate-x-1 transition-all inline-block">&rarr; Home</a></li>
+                        <li><a href="{{ route('restaurants.index') }}" class="hover:text-emerald-400 hover:translate-x-1 transition-all inline-block">&rarr; Explore</a></li>
+                        <li><a href="{{ route('login') }}" class="hover:text-emerald-400 hover:translate-x-1 transition-all inline-block">&rarr; Log In</a></li>
+                        <li><a href="{{ route('register') }}" class="hover:text-emerald-400 hover:translate-x-1 transition-all inline-block">&rarr; Partner With Us</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-span-1">
+                    <h3 class="text-white font-bold text-lg mb-6 outfit tracking-wide">Legal</h3>
+                    <ul class="space-y-3 text-sm font-medium text-gray-400">
+                        <li><a href="#" class="hover:text-emerald-400 hover:translate-x-1 transition-all inline-block">&rarr; Terms of Service</a></li>
+                        <li><a href="#" class="hover:text-emerald-400 hover:translate-x-1 transition-all inline-block">&rarr; Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-emerald-400 hover:translate-x-1 transition-all inline-block">&rarr; Cookie Policy</a></li>
+                        <li><a href="#" class="hover:text-emerald-400 hover:translate-x-1 transition-all inline-block">&rarr; Help Center</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-span-1">
+                    <h3 class="text-white font-bold text-lg mb-6 outfit tracking-wide">Stay Updated</h3>
+                    <p class="text-sm text-gray-400 mb-4">Subscribe to our newsletter for the latest deals.</p>
+                    <form class="flex" @submit.prevent>
+                        <input type="email" placeholder="Your email..." class="bg-gray-800/50 border border-gray-700 text-white px-4 py-3 rounded-l-2xl w-full text-sm font-medium focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
+                        <button type="button" class="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-3 rounded-r-2xl font-bold text-sm transition-colors flex items-center justify-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </form>
+                </div>
             </div>
-            <p class="text-gray-400 font-medium text-sm text-center max-w-sm mb-6">Enjoy playful animations and seamless transitions. Built for showcase purposes.</p>
-            <div class="flex gap-6 text-sm font-bold text-gray-400">
-                <a href="#" class="hover:text-emerald-500 transition-colors">Terms of Service</a>
-                <a href="#" class="hover:text-emerald-500 transition-colors">Privacy Policy</a>
-                <a href="#" class="hover:text-emerald-500 transition-colors">Partner Hub</a>
+            
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-gray-500 text-xs font-medium">
+                <p>&copy; {{ date('Y') }} AnsarEats. All rights reserved.</p>
+                <div class="flex items-center gap-2">
+                    <span>Crafted with</span>
+                    <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
+                    <span>by AnsarEats Team</span>
+                </div>
             </div>
         </div>
     </footer>

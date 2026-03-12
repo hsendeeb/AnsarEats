@@ -9,7 +9,31 @@
     showEditMenuItemModal: false,
     selectedCategoryId: null,
     editingCategory: { id: null, name: '' },
-    editingMenuItem: { id: null, name: '', description: '', price: '', category_id: null, image_url: '', variants: null, variant_type: '' }
+    editingMenuItem: { id: null, name: '', description: '', price: '', category_id: null, image_url: '', variants: null, variant_type: '' },
+    isRestaurantOpen: {{ $restaurant && $restaurant->is_open ? 'true' : 'false' }},
+    togglingStatus: false,
+    async toggleRestaurantStatus() {
+        if (this.togglingStatus) return;
+        this.togglingStatus = true;
+        try {
+            const res = await fetch('{{ route('owner.restaurant.toggle-status') }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.isRestaurantOpen = data.is_open;
+                window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: data.message } }));
+            }
+        } catch (e) {
+            console.error('Toggle failed', e);
+        } finally {
+            this.togglingStatus = false;
+        }
+    }
 }">
 
     <div class="max-w-7xl mx-auto">
@@ -29,10 +53,23 @@
                     </p>
                 </div>
                 
-                <button @click="showRestaurantModal = true" class="flex-shrink-0 bg-white/20 backdrop-blur-sm hover:bg-white/30 border border-white/30 text-white font-bold py-3 px-6 rounded-2xl transition-all transform hover:-translate-y-0.5 active:scale-95 shadow-lg flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    {{ $restaurant ? 'Edit Restaurant' : 'Create Restaurant' }}
-                </button>
+                <div class="flex items-center gap-4">
+                    @if($restaurant)
+                    <div class="flex-shrink-0">
+                        <button type="button" @click="toggleRestaurantStatus()" :disabled="togglingStatus" class="group flex items-center gap-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 px-5 rounded-2xl transition-all shadow-lg backdrop-blur-sm disabled:opacity-50">
+                            <div class="relative w-12 h-6 rounded-full transition-colors" :class="isRestaurantOpen ? 'bg-emerald-500' : 'bg-gray-400'">
+                                <div class="absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform" :class="isRestaurantOpen ? 'translate-x-6' : ''"></div>
+                            </div>
+                            <span x-text="isRestaurantOpen ? 'Accepting Orders' : 'Closed'"></span>
+                        </button>
+                    </div>
+                    @endif
+
+                    <button @click="showRestaurantModal = true" class="flex-shrink-0 bg-white/20 backdrop-blur-sm hover:bg-white/30 border border-white/30 text-white font-bold py-3 px-6 rounded-2xl transition-all transform hover:-translate-y-0.5 active:scale-95 shadow-lg flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        {{ $restaurant ? 'Edit Restaurant' : 'Create Restaurant' }}
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -341,7 +378,20 @@
                                                         {{ $order->status }}
                                                     </span>
                                                 </div>
-                                                <p class="text-xs font-bold text-gray-400 mb-4">{{ $order->created_at->format('M d • h:i A') }}</p>
+                                                <div class="flex items-center gap-4 mb-4">
+                                                    <p class="text-xs font-bold text-gray-400">{{ $order->created_at->format('M d • h:i A') }}</p>
+                                                    @if($order->estimated_prep_time)
+                                                        <span class="flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                            {{ $order->estimated_prep_time }} MIN PREP
+                                                        </span>
+                                                    @endif
+                                                    @if($order->status === 'cancelled' && $order->rejection_reason)
+                                                        <span class="flex items-center gap-1 text-[10px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100">
+                                                            Reason: {{ $order->rejection_reason }}
+                                                        </span>
+                                                    @endif
+                                                </div>
                                                 
                                                 <!-- Customer Details -->
                                                 <div class="flex flex-wrap gap-x-6 gap-y-2">
@@ -368,25 +418,54 @@
                                             </div>
                                             
                                             @if($order->status === 'pending')
-                                                <form method="POST" action="{{ route('owner.order.accept', $order) }}" class="accept-order-form">
-                                                    @csrf
-                                                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-2 px-6 rounded-xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-2 text-sm">
-                                                        Accept
-                                                    </button>
-                                                </form>
+                                                <div class="flex flex-col gap-2">
+                                                    <form method="POST" action="{{ route('owner.order.accept', $order) }}" class="accept-order-form flex gap-2 w-full justify-end">
+                                                        @csrf
+                                                        <select name="estimated_prep_time" class="text-sm border-0 bg-gray-50 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 text-gray-700 font-bold py-2 px-3">
+                                                            <option value="15">15 min prep</option>
+                                                            <option value="30">30 min prep</option>
+                                                            <option value="45">45 min prep</option>
+                                                            <option value="60">60 min prep</option>
+                                                        </select>
+                                                        <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-2 px-6 rounded-xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-2 text-sm whitespace-nowrap">
+                                                            Accept
+                                                        </button>
+                                                    </form>
+                                                    
+                                                    <form method="POST" action="{{ route('owner.order.reject', $order) }}" class="flex gap-2 w-full justify-end" x-data="{ showReason: false }">
+                                                        @csrf
+                                                        <input x-show="showReason" x-transition type="text" name="rejection_reason" placeholder="Reason (Optional)" class="text-sm border-0 bg-red-50 text-red-600 placeholder-red-300 rounded-xl focus:ring-red-500 focus:border-red-500 py-2 px-3 w-32">
+                                                        <button type="button" x-show="!showReason" @click="showReason = true" class="bg-white hover:bg-red-50 text-red-500 font-bold py-2 px-6 rounded-xl border border-red-100 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 text-sm">
+                                                            Reject
+                                                        </button>
+                                                        <button type="submit" x-show="showReason" x-cloak class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-xl shadow-lg shadow-red-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 text-sm whitespace-nowrap">
+                                                            Confirm Reject
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             @elseif($order->status === 'accepted')
-                                                <form method="POST" action="{{ route('owner.order.deliver', $order) }}" class="accept-order-form">
-                                                    @csrf
-                                                    <button type="submit" class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-6 rounded-xl shadow-lg shadow-blue-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-2 text-sm">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                                        Mark Delivered
-                                                    </button>
-                                                </form>
+                                                <div class="flex items-center gap-2">
+                                                    <a href="{{ route('owner.order.print', $order) }}" target="_blank" class="bg-gray-100 hover:bg-gray-200 text-gray-600 p-2 rounded-xl transition-all" title="Print Ticket">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                                    </a>
+                                                    <form method="POST" action="{{ route('owner.order.deliver', $order) }}" class="accept-order-form">
+                                                        @csrf
+                                                        <button type="submit" class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-6 rounded-xl shadow-lg shadow-blue-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-2 text-sm">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                            Mark Delivered
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             @elseif($order->status === 'delivered')
-                                                <span class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-500 bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                                                    Delivered
-                                                </span>
+                                                <div class="flex items-center gap-3">
+                                                    <a href="{{ route('owner.order.print', $order) }}" target="_blank" class="bg-gray-100 hover:bg-gray-200 text-gray-600 p-2 rounded-xl transition-all" title="Print Ticket">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                                    </a>
+                                                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-500 bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                                        Delivered
+                                                    </span>
+                                                </div>
                                             @endif
                                         </div>
                                     </div>
@@ -638,6 +717,16 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-3">
+                                <form method="POST" action="{{ route('owner.category.toggle-visibility', $category) }}" class="inline">
+                                    @csrf
+                                    <button type="submit" class="p-2 transition-colors {{ $category->is_visible ? 'text-emerald-500 hover:text-emerald-600 bg-emerald-50 rounded-lg' : 'text-gray-400 hover:text-gray-600' }}" title="{{ $category->is_visible ? 'Visible on menu' : 'Hidden from menu' }}">
+                                        @if($category->is_visible)
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                        @else
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
+                                        @endif
+                                    </button>
+                                </form>
                                 <button @click="editingCategory = { id: {{ $category->id }}, name: '{{ addslashes($category->name) }}' }; showEditCategoryModal = true" class="p-2 text-gray-400 hover:text-indigo-600 transition-colors" title="Edit Category">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </button>
@@ -700,6 +789,37 @@
                                                 </button>
                                             </form>
                                             
+                                            <div x-data="{ 
+                                                isFeatured: {{ $item->is_featured ? 'true' : 'false' }},
+                                                loading: false,
+                                                async toggleFeatured() {
+                                                    if (this.loading) return;
+                                                    this.loading = true;
+                                                    try {
+                                                        const res = await fetch('{{ route('owner.menu-item.toggle-featured', $item) }}', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'X-Requested-With': 'XMLHttpRequest',
+                                                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                                            }
+                                                        });
+                                                        const data = await res.json();
+                                                        if (data.success) {
+                                                            this.isFeatured = data.is_featured;
+                                                            window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: data.message } }));
+                                                        }
+                                                    } catch (e) {
+                                                        console.error('Featured toggle failed', e);
+                                                    } finally {
+                                                        this.loading = false;
+                                                    }
+                                                }
+                                            }">
+                                                <button type="button" @click="toggleFeatured()" :disabled="loading" :title="isFeatured ? 'Remove featured' : 'Make featured'" class="w-10 h-10 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50" :class="isFeatured ? 'bg-amber-100 text-amber-500 hover:bg-amber-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'">
+                                                    <svg class="w-5 h-5" :fill="isFeatured ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                                                </button>
+                                            </div>
+                                            
                                             <form method="POST" action="{{ route('owner.menu-item.destroy', $item) }}">
                                                 @csrf
                                                 @method('DELETE')
@@ -721,6 +841,75 @@
                         </div>
                     </div>
                 @endforeach
+            </div>
+            
+            <!-- Promotions Section -->
+            <div class="mt-12 bg-white rounded-[2.5rem] border border-gray-100 shadow-xl p-8 mb-10">
+                <div class="flex items-center justify-between mb-8">
+                    <h3 class="text-2xl font-black outfit text-gray-900 flex items-center gap-3">
+                        <span class="w-2 h-10 bg-amber-500 rounded-full"></span>
+                        Promotions & Discounts
+                    </h3>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-1">
+                        <div class="bg-amber-50 rounded-3xl p-6 border border-amber-100">
+                            <h4 class="text-lg font-black text-amber-900 mb-4">Create Promo Code</h4>
+                            <form method="POST" action="{{ route('owner.promotion.store') }}" class="space-y-4">
+                                @csrf
+                                <div>
+                                    <label class="block text-xs font-bold text-amber-800 uppercase tracking-widest mb-1">Code</label>
+                                    <input type="text" name="code" placeholder="e.g. SUMMER10" class="w-full bg-white border-0 rounded-xl focus:ring-amber-500 font-bold uppercase" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-amber-800 uppercase tracking-widest mb-1">Discount %</label>
+                                    <input type="number" name="discount_percentage" min="1" max="100" placeholder="10" class="w-full bg-white border-0 rounded-xl focus:ring-amber-500 font-bold" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-amber-800 uppercase tracking-widest mb-1">Valid Until (Optional)</label>
+                                    <input type="date" name="valid_until" class="w-full bg-white border-0 rounded-xl focus:ring-amber-500 font-bold text-gray-600">
+                                </div>
+                                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-white font-black py-3 rounded-xl shadow-lg shadow-amber-500/20 transition-all active:scale-95">Add Promo</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 space-y-4">
+                        <h4 class="text-lg font-black text-gray-900 mb-4">Active Promotions</h4>
+                        @forelse($restaurant->promotions as $promo)
+                            <div class="bg-white border border-gray-100 rounded-2xl p-5 flex items-center justify-between group hover:shadow-lg transition-shadow">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-14 h-14 bg-emerald-50 text-emerald-500 font-black text-xl rounded-2xl flex items-center justify-center border border-emerald-100 shadow-inner">
+                                        {{ $promo->discount_percentage }}%
+                                    </div>
+                                    <div>
+                                        <h5 class="font-black text-lg text-gray-900 font-mono tracking-wider">{{ $promo->code }}</h5>
+                                        <p class="text-sm font-bold text-gray-400">
+                                            @if($promo->valid_until)
+                                                Valid until {{ $promo->valid_until->format('M d, Y') }}
+                                            @else
+                                                Never expires
+                                            @endif
+                                        </p>
+                                    </div>
+                                </div>
+                                <form method="POST" action="{{ route('owner.promotion.destroy', $promo) }}">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors" title="Delete Promo">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </form>
+                            </div>
+                        @empty
+                            <div class="text-center py-10 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+                                <p class="text-gray-500 font-bold mb-1">No active promotions</p>
+                                <p class="text-sm text-gray-400 font-medium">Create one to offer discounts to your customers.</p>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
             </div>
         @endif
     </div>
@@ -817,6 +1006,31 @@
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Phone</label>
                     <input type="text" name="phone" value="{{ $restaurant->phone ?? old('phone') }}" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="+961 1 234 567">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-3">Operating Hours</label>
+                    <div class="space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                        @php
+                            $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                            $hours = $restaurant->operating_hours ?? [];
+                        @endphp
+                        @foreach($days as $day)
+                            <div class="flex items-center justify-between gap-4" x-data="{ closed: {{ ($hours[$day]['closed'] ?? false) ? 'true' : 'false' }} }">
+                                <span class="w-20 text-xs font-black uppercase tracking-widest text-gray-500">{{ $day }}</span>
+                                <div class="flex items-center gap-2 flex-1">
+                                    <input type="time" name="operating_hours[{{ $day }}][open]" value="{{ $hours[$day]['open'] ?? '08:00' }}" :disabled="closed" class="flex-1 text-xs border-0 bg-white rounded-lg focus:ring-indigo-500 disabled:opacity-40 font-bold">
+                                    <span class="text-gray-300 font-black">/</span>
+                                    <input type="time" name="operating_hours[{{ $day }}][close]" value="{{ $hours[$day]['close'] ?? '22:00' }}" :disabled="closed" class="flex-1 text-xs border-0 bg-white rounded-lg focus:ring-indigo-500 disabled:opacity-40 font-bold">
+                                </div>
+                                <label class="flex items-center gap-2 cursor-pointer group">
+                                    <input type="hidden" name="operating_hours[{{ $day }}][closed]" value="0">
+                                    <input type="checkbox" name="operating_hours[{{ $day }}][closed]" value="1" x-model="closed" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                    <span class="text-[10px] font-black uppercase tracking-tighter text-gray-400 group-hover:text-gray-600">Closed</span>
+                                </label>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
 
                 <div class="flex items-center gap-3">

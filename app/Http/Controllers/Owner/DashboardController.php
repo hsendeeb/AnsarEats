@@ -21,7 +21,7 @@ class DashboardController extends Controller
         if ($period === 'day') {
             $start = Carbon::today()->startOfDay();
             $end = Carbon::today()->endOfDay();
-            $orders = Order::where('restaurant_id', $restaurantId)
+            $orders = Order::where('restaurant_id', '=', $restaurantId)
                 ->whereBetween('created_at', [$start, $end])
                 ->get(['created_at']);
 
@@ -53,7 +53,7 @@ class DashboardController extends Controller
             $days = 30;
             $start = now()->subDays($days - 1)->startOfDay();
             $end = now()->endOfDay();
-            $orders = Order::where('restaurant_id', $restaurantId)
+            $orders = Order::where('restaurant_id', '=', $restaurantId)
                 ->whereBetween('created_at', [$start, $end])
                 ->get(['created_at']);
 
@@ -79,7 +79,7 @@ class DashboardController extends Controller
         $start = now()->subDays($days - 1)->startOfDay();
         $end = now()->endOfDay();
 
-        $orders = Order::where('restaurant_id', $restaurantId)
+        $orders = Order::where('restaurant_id', '=', $restaurantId)
             ->whereBetween('created_at', [$start, $end])
             ->get(['created_at']);
 
@@ -117,7 +117,7 @@ class DashboardController extends Controller
         if ($restaurant) {
             $restaurant->load('menuCategories.menuItems');
 
-            $orders = Order::where('restaurant_id', $restaurant->id)->get();
+            $orders = Order::where('restaurant_id', '=', $restaurant->id)->get();
             
             $stats['total_orders'] = $orders->count();
             $stats['total_revenue'] = $orders->where('status', '!=', 'cancelled')->sum('total');
@@ -200,14 +200,30 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function acceptOrder(\App\Models\Order $order)
+    public function acceptOrder(Request $request, \App\Models\Order $order)
     {
         if ($order->restaurant->user_id !== Auth::id()) {
             abort(403);
         }
 
-        $order->update(['status' => 'accepted']);
+        $order->update([
+            'status' => 'accepted',
+            'estimated_prep_time' => $request->input('estimated_prep_time')
+        ]);
         return back()->with('success', 'Order #' . $order->id . ' has been accepted!');
+    }
+
+    public function rejectOrder(Request $request, \App\Models\Order $order)
+    {
+        if ($order->restaurant->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $order->update([
+            'status' => 'cancelled',
+            'rejection_reason' => $request->input('rejection_reason', 'Cancelled by restaurant')
+        ]);
+        return back()->with('success', 'Order #' . $order->id . ' has been rejected.');
     }
 
     public function deliverOrder(\App\Models\Order $order)
@@ -224,6 +240,16 @@ class DashboardController extends Controller
         return back()->with('success', 'Order #' . $order->id . ' has been marked as delivered!');
     }
 
+    public function printOrder(\App\Models\Order $order)
+    {
+        if ($order->restaurant->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $order->load(['restaurant', 'user', 'orderItems']);
+        return view('owner.print-order', compact('order'));
+    }
+
     public function storeOrUpdate(Request $request)
     {
         $data = $request->validate([
@@ -233,7 +259,8 @@ class DashboardController extends Controller
             'phone' => 'required|string|max:50',
             'is_open' => 'sometimes|boolean',
             'logo' => 'nullable|image|max:2048',
-            'cover_image' => 'nullable|image|max:4096'
+            'cover_image' => 'nullable|image|max:4096',
+            'operating_hours' => 'nullable|array'
         ]);
 
         $data['is_open'] = $request->has('is_open');
@@ -296,5 +323,78 @@ class DashboardController extends Controller
 
         $category->delete();
         return back()->with('success', 'Category deleted!');
+    }
+    public function toggleRestaurantStatus()
+    {
+        $restaurant = Auth::user()->restaurant;
+        if (!$restaurant) abort(404);
+
+        $restaurant->update(['is_open' => !$restaurant->is_open]);
+        
+        if (request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'is_open' => $restaurant->is_open,
+                'message' => 'Restaurant is now ' . ($restaurant->is_open ? 'Open' : 'Closed') . '!'
+            ]);
+        }
+        
+        return back()->with('success', 'Restaurant is now ' . ($restaurant->is_open ? 'Open' : 'Closed') . '!');
+    }
+
+    public function toggleCategoryVisibility(MenuCategory $category)
+    {
+        if ($category->restaurant->user_id !== Auth::id()) abort(403);
+        
+        $category->update(['is_visible' => !$category->is_visible]);
+        return back()->with('success', 'Category is now ' . ($category->is_visible ? 'Visible' : 'Hidden') . '!');
+    }
+
+    public function toggleItemAvailability(\App\Models\MenuItem $item)
+    {
+        if ($item->menuCategory->restaurant->user_id !== Auth::id()) abort(403);
+
+        $item->update(['is_available' => !$item->is_available]);
+        return back()->with('success', 'Menu item is now ' . ($item->is_available ? 'Available' : 'Out of Stock') . '!');
+    }
+
+    public function toggleItemFeatured(\App\Models\MenuItem $item)
+    {
+        if ($item->menuCategory->restaurant->user_id !== Auth::id()) abort(403);
+
+        $item->update(['is_featured' => !$item->is_featured]);
+        
+        if (request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'is_featured' => $item->is_featured,
+                'message' => 'Menu item is ' . ($item->is_featured ? 'now Featured' : 'no longer Featured') . '!'
+            ]);
+        }
+        
+        return back()->with('success', 'Menu item is ' . ($item->is_featured ? 'now Featured' : 'no longer Featured') . '!');
+    }
+
+    public function storePromotion(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string|max:50',
+            'discount_percentage' => 'required|integer|min:1|max:100',
+            'valid_until' => 'nullable|date',
+        ]);
+
+        $restaurant = Auth::user()->restaurant;
+        if (!$restaurant) abort(404);
+
+        $restaurant->promotions()->create($request->only('code', 'discount_percentage', 'valid_until'));
+
+        return back()->with('success', 'Promotion added successfully!');
+    }
+
+    public function destroyPromotion(\App\Models\Promotion $promotion)
+    {
+        if ($promotion->restaurant->user_id !== Auth::id()) abort(403);
+        $promotion->delete();
+        return back()->with('success', 'Promotion removed!');
     }
 }

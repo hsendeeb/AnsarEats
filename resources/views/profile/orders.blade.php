@@ -108,18 +108,52 @@
                         </div>
                         <div>
                             <h3 class="font-extrabold text-gray-900">{{ $order->restaurant->name }}</h3>
-                            <p class="text-xs font-bold text-gray-400 uppercase tracking-tighter">{{ $order->created_at->format('M d, Y • h:i A') }}</p>
+                            <div class="flex items-center gap-3">
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-tighter">{{ $order->created_at->format('M d, Y • h:i A') }}</p>
+                                @if($order->estimated_prep_time && $order->status === 'accepted')
+                                    <span class="flex items-center gap-1 text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 uppercase tracking-widest">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        {{ $order->estimated_prep_time }} MIN PREP
+                                    </span>
+                                @endif
+                                @if($order->status === 'cancelled' && $order->rejection_reason)
+                                    <span class="text-[9px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100 uppercase tracking-widest">
+                                        Reason: {{ $order->rejection_reason }}
+                                    </span>
+                                @endif
+                            </div>
                         </div>
                     </div>
-                    <div class="">
-                        <div class="font-black text-gray-900">${{ number_format($order->total, 2) }}</div>
-                        <span class="inline-block ms-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest 
-                            {{ $order->status === 'accepted' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600' }}">
+                    <div class="text-right">
+                        <div class="font-black text-gray-900 leading-tight">${{ number_format($order->total, 2) }}</div>
+                        @if($order->discount_amount > 0)
+                            <div class="text-[10px] font-bold text-emerald-500 uppercase">Saved ${{ number_format($order->discount_amount, 2) }}</div>
+                        @endif
+                        <span class="inline-block mt-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest 
+                            {{ $order->status === 'accepted' ? 'bg-emerald-100 text-emerald-600' : 
+                               ($order->status === 'delivered' ? 'bg-blue-100 text-blue-600' : 
+                               ($order->status === 'cancelled' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600')) }}">
                             {{ $order->status }}
                         </span>
                     </div>
                 </div>
                 <div class="p-6 bg-gray-50/50">
+                    @if($order->status === 'accepted' && $order->estimated_prep_time)
+                        <div class="mb-6 bg-emerald-500 rounded-2xl p-4 text-white flex items-center justify-between shadow-lg shadow-emerald-500/20">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                                    <svg class="w-6 h-6 animate-spin" style="animation-duration: 4s;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black uppercase tracking-widest opacity-80 leading-none mb-1">In Preparation</p>
+                                    <p class="text-lg font-black outfit leading-tight">{{ $order->estimated_prep_time }} Minutes Remaining</p>
+                                </div>
+                            </div>
+                            <div class="text-right hidden sm:block">
+                                <span class="px-3 py-1 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-sm">Live Order</span>
+                            </div>
+                        </div>
+                    @endif
                     <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Items Ordered</p>
                     <div class="space-y-2">
                         @foreach($order->orderItems as $item)

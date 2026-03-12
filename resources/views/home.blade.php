@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="relative bg-white pt-6 md:pt-8 pb-32 overflow-hidden" x-data="{ 
+<div class="relative bg-white pt-6 md:pt-8 pb-32 overflow-x-clip z-[30]" x-data="{ 
     activeLottie: 0,
     animations: [
         'https://lottie.host/a52b1c0b-6390-42ee-ad5c-fca5db1b7dfa/hcsHrorguN.lottie',
@@ -92,10 +92,11 @@
                              x-transition:leave="transition ease-in duration-150"
                              x-transition:leave-start="opacity-100 translate-y-0"
                              x-transition:leave-end="opacity-0 translate-y-2"
-                             class="absolute left-0 right-0 mt-3 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-[100] max-h-[450px] overflow-y-auto"
+                             class="absolute left-0 right-0 mt-3 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-[100]"
                              x-cloak>
                             
-                            <!-- Restaurants Section -->
+                            <div class="max-h-[60vh] md:max-h-[450px] overflow-y-auto overscroll-contain pb-4">
+                                <!-- Restaurants Section -->
                             <template x-if="results.restaurants.length > 0">
                                 <div>
                                     <div class="px-5 py-3 bg-gray-50/50 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-50">Restaurants</div>
@@ -145,6 +146,7 @@
                                     </div>
                                 </div>
                             </template>
+                            </div>
                         </div>
                     </div>
 
@@ -207,7 +209,7 @@
     </div>
 </div>
 
-<section class="pb-20 bg-gray-50 -mt-8 relative z-20">
+<section class="pt-24 pb-20 bg-gray-50 relative z-20">
     <div class="container mx-auto px-4">
         <div class="flex flex-wrap justify-between items-end mb-12 px-4">
             <div>
@@ -215,8 +217,8 @@
                 <div class="w-24 h-2 bg-emerald-500 rounded-full mt-2"></div>
             </div>
             <a href="{{ route('restaurants.index') }}" class="hidden sm:inline-block font-bold text-emerald-600 hover:text-emerald-500 flex items-center gap-2 group transition-all">
-                See all 
-               
+                <span>See all</span>
+                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
             </a>
         </div>
 
@@ -276,6 +278,13 @@
                     <a href="{{ route('register') }}" class="inline-block mt-8 font-bold px-8 py-4 rounded-full bg-gray-900 text-white hover:bg-emerald-500 hover:shadow-xl hover:shadow-emerald-500/40 transition-all transform hover:-translate-y-1">Open Your Store</a>
                 </div>
             @endforelse
+        </div>
+
+        <div class="mt-8 flex justify-center lg:hidden">
+            <a href="{{ route('restaurants.index') }}" class="inline-flex items-center gap-2 px-8 py-4 bg-white border border-gray-200 text-gray-900 font-black rounded-2xl shadow-sm hover:bg-gray-50 transition-all active:scale-95 group">
+                <span>View All Spots</span>
+                <svg class="w-5 h-5 text-emerald-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+            </a>
         </div>
     </div>
 </section>

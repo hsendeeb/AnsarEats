@@ -11,10 +11,13 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RatingController;
 
+use App\Http\Controllers\BrowseController;
+
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/restaurants', [RestaurantController::class, 'index'])->name('restaurants.index');
 Route::get('/restaurant/{restaurant}', [RestaurantController::class, 'show'])->name('restaurant.show');
 Route::get('/search/suggestions', [SearchController::class, 'suggestions'])->name('search.suggestions');
+Route::get('/browse', [BrowseController::class, 'index'])->name('browse.index');
 
 // Basic demo auth routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');

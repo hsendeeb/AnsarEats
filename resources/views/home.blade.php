@@ -157,14 +157,7 @@
                     </button>
                 </div>
                 
-                <div class="mt-12 flex items-center gap-6 justify-center lg:justify-start grayscale opacity-50">
-                    <div class="text-sm font-black text-gray-400 uppercase tracking-widest">Trusted by</div>
-                    <div class="flex gap-4">
-                        <div class="w-8 h-8 rounded-full bg-gray-200"></div>
-                        <div class="w-8 h-8 rounded-full bg-gray-200"></div>
-                        <div class="w-8 h-8 rounded-full bg-gray-200"></div>
-                    </div>
-                </div>
+               
             </div>
 
             <!-- Right Visual (Lottie Slideshow) -->
@@ -211,6 +204,35 @@
 
 <section class="pt-24 pb-20 bg-gray-50 relative z-20">
     <div class="container mx-auto px-4">
+
+        <!-- Browse By Category Section -->
+        <div class="mb-20">
+            <div class="flex flex-wrap justify-between items-end mb-10 px-4">
+                <div>
+                    <h2 class="text-4xl outfit font-black text-gray-900 tracking-tight">Browse by Category</h2>
+                    <div class="w-24 h-2 bg-emerald-500 rounded-full mt-2"></div>
+                    <p class="mt-3 text-gray-500 font-medium">Find what you're craving, fast.</p>
+                </div>
+            </div>
+
+            @php
+                $homeCategories = \App\Http\Controllers\BrowseController::categories();
+                $homeCategories = array_filter($homeCategories, fn($c) => $c['slug'] !== 'all');
+            @endphp
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 px-4">
+                @foreach($homeCategories as $cat)
+                    <a href="{{ route('browse.index', ['category' => $cat['slug']]) }}"
+                       class="group flex flex-col items-center justify-center gap-3 p-6 rounded-3xl bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:border-emerald-200 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                        <div class="w-14 h-14 rounded-2xl bg-gray-50 group-hover:bg-emerald-50 flex items-center justify-center text-3xl transition-colors duration-300 group-hover:scale-110 transform">
+                            {{ $cat['emoji'] }}
+                        </div>
+                        <span class="font-bold text-gray-700 group-hover:text-emerald-600 text-sm transition-colors">{{ $cat['label'] }}</span>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+
         <div class="flex flex-wrap justify-between items-end mb-12 px-4">
             <div>
                 <h2 class="text-4xl outfit font-black text-gray-900 tracking-tight">Trending Spots</h2>
@@ -286,6 +308,96 @@
                 <svg class="w-5 h-5 text-emerald-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
             </a>
         </div>
+        
+        <!-- Trending Meals Section -->
+        @if(isset($trendingMeals) && $trendingMeals->count() > 0)
+        <div class="mt-32">
+            <div class="flex flex-wrap justify-between items-end mb-12 px-4">
+                <div>
+                    <h2 class="text-4xl outfit font-black text-gray-900 tracking-tight">Most Loved Meals</h2>
+                    <div class="w-24 h-2 bg-emerald-500 rounded-full mt-2"></div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap">
+                @foreach($trendingMeals as $meal)
+                    <div class="group w-full md:w-1/2 lg:w-1/3 px-4 mb-10" id="browse-card-[homemeal]-{{ $meal->id }}">
+                        <div class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col sm:flex-row gap-4 hover:shadow-xl transition-shadow relative overflow-hidden h-full">
+                            <!-- Meal Image -->
+                            <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="shrink-0 flex sm:block items-center justify-center">
+                                <div class="w-full sm:w-28 h-40 sm:h-28 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative" id="browse-img-[homemeal]-{{ $meal->id }}">
+                                    @if($meal->image)
+                                        <img alt="{{ $meal->name }}" src="{{ Storage::url($meal->image) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-gray-300">
+                                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        </div>
+                                    @endif
+                                    <div class="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent sm:hidden"></div>
+                                    <div class="absolute bottom-2 left-2 flex items-center gap-1 bg-white/90 backdrop-blur-md pl-1 pr-2 py-1 rounded-full shadow-lg sm:hidden">
+                                        <div class="w-4 h-4 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-white shadow-sm">
+                                            @if($meal->menuCategory->restaurant->logo)
+                                                <img src="{{ Storage::url($meal->menuCategory->restaurant->logo) }}" class="w-full h-full object-cover">
+                                            @else
+                                                <div class="w-full h-full flex items-center justify-center bg-emerald-100 text-emerald-600 text-[8px] font-bold">{{ substr($meal->menuCategory->restaurant->name,0,1) }}</div>
+                                            @endif
+                                        </div>
+                                        <span class="text-[9px] font-bold text-gray-900 truncate max-w-[80px]">{{ $meal->menuCategory->restaurant->name }}</span>
+                                    </div>
+                                </div>
+                            </a>
+                            
+                            <!-- Details -->
+                            <div class="flex-1 min-w-0 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
+                                        <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="min-w-0 flex-1">
+                                            <h4 class="font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight break-words flex items-center gap-2">
+                                                {{ $meal->name }}
+                                                @if($meal->is_featured)
+                                                    <span class="inline-flex items-center text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-widest border border-amber-100 whitespace-nowrap">Featured</span>
+                                                @endif
+                                            </h4>
+                                            <div class="hidden sm:flex items-center gap-1.5 mt-1">
+                                                <div class="w-4 h-4 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+                                                    @if($meal->menuCategory->restaurant->logo)
+                                                        <img src="{{ Storage::url($meal->menuCategory->restaurant->logo) }}" class="w-full h-full object-cover">
+                                                    @else
+                                                        <div class="w-full h-full flex items-center justify-center bg-emerald-100 text-emerald-600 text-[8px] font-bold">{{ substr($meal->menuCategory->restaurant->name,0,1) }}</div>
+                                                    @endif
+                                                </div>
+                                                <span class="text-[10px] font-bold text-gray-500 truncate">{{ $meal->menuCategory->restaurant->name }}</span>
+                                                <span class="text-gray-300 mx-1">•</span>
+                                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ $meal->menuCategory->name }}</span>
+                                            </div>
+                                        </a>
+                                        <span class="shrink-0 font-black text-emerald-500 whitespace-nowrap">
+                                            ${{ number_format($meal->price, 2) }}
+                                        </span>
+                                    </div>
+                                    @if($meal->description)
+                                        <p class="text-sm text-gray-500 font-medium line-clamp-2 mt-2 break-words">{{ $meal->description }}</p>
+                                    @endif
+                                </div>
+
+                                <!-- Custom Add to Cart Button (Only difference from browse is no active add function since it requires GSAP) -->
+                                <div class="flex items-center justify-between mt-3">
+                                    <div class="text-xs font-bold text-gray-400 flex items-center gap-1">
+                                        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                                        {{ $meal->order_items_count }} orders
+                                    </div>
+                                    
+                                    @if(Auth::id() === ($meal->menuCategory->restaurant->user_id ?? null))
+                                        <span class="text-[10px] font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">Own Restaurant</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
     </div>
 </section>
 @endsection

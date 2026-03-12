@@ -321,7 +321,7 @@ class DashboardController extends Controller
             abort(403);
         }
 
-        $category->delete();
+        $category->deleteOrFail();
         return back()->with('success', 'Category deleted!');
     }
     public function toggleRestaurantStatus()

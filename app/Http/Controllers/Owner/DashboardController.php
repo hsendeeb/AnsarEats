@@ -170,7 +170,7 @@ class DashboardController extends Controller
                 $ordersQuery->orderByDesc('created_at');
             }
 
-            $orders = $ordersQuery->paginate(10)->appends($request->query());
+            $orders = $ordersQuery->paginate(5)->appends($request->query());
         } else {
             $orders = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
         }

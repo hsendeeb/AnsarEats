@@ -31,6 +31,34 @@
         if (window.gsap && window.MotionPathPlugin) {
             gsap.registerPlugin(MotionPathPlugin);
         }
+
+        // Dark Mode Logic (Flash Prevention)
+        const isSelectedDark = localStorage.getItem('dark-mode') === 'true';
+        const hasNoSelection = !('dark-mode' in localStorage);
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (isSelectedDark || (hasNoSelection && prefersDark)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('darkMode', {
+                on: localStorage.getItem('dark-mode') === 'true' || (!('dark-mode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
+                toggle() {
+                    this.on = !this.on;
+                    localStorage.setItem('dark-mode', this.on);
+                    if (this.on) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                }
+            });
+        });
     </script>
    
 
@@ -71,15 +99,43 @@
             opacity: 1;
             pointer-events: all;
         }
+
+        /* Dark Mode Transitions */
+        html.dark body { background-color: #0b0f1a; color: #f8fafc; }
+        html.dark .bg-white { background-color: #161d31; color: #f1f5f9; }
+        html.dark .bg-gray-50 { background-color: #0b0f1a; }
+        html.dark .bg-gray-100 { background-color: #262c40 !important; }
+        html.dark .bg-gray-200 { background-color: #334155 !important; }
+        html.dark .text-gray-900 { color: #ffffff !important; }
+        html.dark .text-gray-800 { color: #f1f5f9 !important; }
+        html.dark .text-gray-700 { color: #cbd5e1 !important; }
+        html.dark .text-gray-600 { color: #94a3b8 !important; }
+        html.dark .text-gray-500 { color: #8291a6 !important; }
+        html.dark .text-gray-400 { color: #64748b !important; }
+        html.dark .border-gray-100 { border-color: #262c40 !important; }
+        html.dark .border-gray-200 { border-color: #334155 !important; }
+        html.dark .border-gray-50 { border-color: #1e293b !important; }
+        html.dark .hover\:bg-gray-100:hover { background-color: #262c40 !important; }
+        html.dark .hover\:bg-emerald-50:hover { background-color: rgba(16, 185, 129, 0.1) !important; }
+        html.dark .shadow-sm { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2); }
+        html.dark input::placeholder { color: #64748b !important; }
+        html.dark input { background-color: #262c40 !important; color: #ffffff !important; }
+        html.dark nav { background-color: rgba(22, 29, 49, 0.8) !important; border-color: #1e293b !important; }
+        html.dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.05) !important; }
+        html.dark .bg-indigo-50 { background-color: rgba(79, 70, 229, 0.05) !important; }
+        html.dark .wave-fill { fill: #0b0f1a !important; }
+        
+        .transition-theme { 
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col text-gray-800 bg-gray-50 overflow-x-hidden relative page-loading">
+<body class="min-h-screen flex flex-col text-gray-800 bg-gray-50 dark:bg-gray-900 overflow-x-hidden relative page-loading transition-theme">
 
     <!-- Decorative background blobs -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div class="absolute top-0 -left-4 w-72 h-72 bg-emerald-300 rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob"></div>
-        <div class="absolute top-0 -right-4 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div class="absolute -bottom-8 left-20 w-72 h-72 bg-emerald-400 rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div class="absolute top-0 -left-4 w-72 h-72 bg-emerald-300 rounded-full mix-blend-multiply filter blur-2xl opacity-10 animate-blob"></div>
+        <div class="absolute top-0 -right-4 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-2xl opacity-10 animate-blob animation-delay-2000"></div>
     </div>
 
     <!-- Global Page Loader -->
@@ -273,6 +329,25 @@
                                         Dashboard
                                     </a>
                                     @endif
+
+                                    <hr class="my-2 border-gray-50">
+
+                                    <!-- Dark Mode Toggle -->
+                                    <div class="px-4 py-3 flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                                                <svg x-show="!$store.darkMode.on" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                                                <svg x-show="$store.darkMode.on" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                                            </div>
+                                            <span class="text-sm font-bold text-gray-600">Dark Mode</span>
+                                        </div>
+                                        <button @click.stop="$store.darkMode.toggle()" 
+                                                class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" 
+                                                :class="$store.darkMode.on ? 'bg-emerald-500' : 'bg-gray-200'">
+                                            <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" 
+                                                  :class="$store.darkMode.on ? 'translate-x-5' : 'translate-x-0'"></span>
+                                        </button>
+                                    </div>
 
                                     <hr class="my-2 border-gray-50">
 
@@ -492,6 +567,25 @@
                                 </button>
                             </form>
                         @endguest
+
+                        <hr class="my-4 border-gray-100 dark:border-gray-800">
+
+                        <!-- Mobile Dark Mode Toggle (Global) -->
+                        <div class="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-white dark:bg-gray-700 flex items-center justify-center text-gray-400">
+                                    <svg x-show="!$store.darkMode.on" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                                    <svg x-show="$store.darkMode.on" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                                </div>
+                                <span class="font-bold text-gray-900 dark:text-gray-100">Dark Mode</span>
+                            </div>
+                            <button @click="$store.darkMode.toggle()" 
+                                    class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" 
+                                    :class="$store.darkMode.on ? 'bg-emerald-500' : 'bg-gray-200'">
+                                <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" 
+                                      :class="$store.darkMode.on ? 'translate-x-5' : 'translate-x-0'"></span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Footer -->

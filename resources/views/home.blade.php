@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="relative bg-white pt-6 md:pt-8 pb-32 overflow-x-clip z-[30]" x-data="{ 
+<div class="relative bg-white dark:bg-gray-900 transition-colors pt-6 md:pt-8 pb-32 overflow-x-clip z-[30]" x-data="{ 
     activeLottie: 0,
     animations: [
         'https://lottie.host/a52b1c0b-6390-42ee-ad5c-fca5db1b7dfa/hcsHrorguN.lottie',
@@ -204,7 +204,7 @@
     <!-- Wave Bottom -->
     <div class="absolute bottom-0 left-0 right-0 h-24 pointer-events-none">
         <svg class="w-full h-full preserve-3d" viewBox="0 0 1440 320" preserveAspectRatio="none">
-            <path fill="#f9fafb" fill-opacity="1" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,112C672,107,768,149,864,154.7C960,160,1056,128,1152,112C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            <path class="wave-fill transition-colors" fill="#f9fafb" fill-opacity="1" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,112C672,107,768,149,864,154.7C960,160,1056,128,1152,112C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
         </svg>
     </div>
 </div>

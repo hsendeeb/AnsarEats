@@ -7,7 +7,31 @@
     <div class="absolute bottom-20 left-20 w-16 h-16 bg-teal-200 rounded-xl opacity-20 animate-bounce" style="animation-duration: 6s;"></div>
     <div class="absolute top-1/3 left-1/4 w-10 h-10 bg-emerald-300 rounded-full opacity-15 animate-ping" style="animation-duration: 3s;"></div>
 
-    <div class="w-full max-w-2xl relative z-10" x-data="{ show: false }" x-init="setTimeout(() => show = true, 100)">
+    <div class="w-full max-w-2xl relative z-10" 
+         x-data="{ 
+            show: false, 
+            status: '{{ $order->status }}',
+            statusLabel() {
+                return this.status.charAt(0).toUpperCase() + this.status.slice(1);
+            },
+            init() {
+                setTimeout(() => this.show = true, 100);
+                
+                if (window.Echo) {
+                    window.Echo.private('order.{{ $order->id }}')
+                        .listen('OrderStatusUpdated', (e) => {
+                            console.log('Real-time update:', e);
+                            this.status = e.status;
+                            
+                            // Re-fetch prep time if accepted
+                            if (e.status === 'accepted') {
+                                window.location.reload(); // Simple approach for now to catch prep time
+                            }
+                        });
+                }
+            }
+         }" 
+         x-init="init()">
         <div 
             x-show="show"
             x-transition:enter="transition ease-out duration-700"
@@ -21,10 +45,36 @@
                 <div class="absolute -bottom-8 -left-8 w-36 h-36 bg-white/10 rounded-full"></div>
                 
                 <div class="w-24 h-24 mx-auto bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-6 animate-bounce" style="animation-duration: 2s;">
-                    <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <template x-if="status === 'delivered'">
+                        <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                    </template>
+                    <template x-if="status === 'out_for_delivery'">
+                        <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </template>
+                    <template x-if="status === 'preparing'">
+                        <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    </template>
+                    <template x-if="['pending', 'accepted'].includes(status)">
+                        <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </template>
+                    <template x-if="['rejected', 'cancelled'].includes(status)">
+                        <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </template>
                 </div>
-                <h2 class="text-3xl font-black outfit text-white tracking-tight">Order Placed! 🎉</h2>
-                <p class="text-emerald-100 font-medium mt-2 text-lg">Your food is on its way</p>
+                <h2 class="text-3xl font-black outfit text-white tracking-tight" 
+                    x-text="status === 'delivered' ? 'Food Delivered! 😋' : 
+                           (status === 'out_for_delivery' ? 'On the Way! 🚀' : 
+                           (status === 'preparing' ? 'Cooking... 🥘' : 
+                           (['rejected', 'cancelled'].includes(status) ? 'Order Cancelled' : 'Order Placed! 🎉')))">
+                    Order Placed! 🎉
+                </h2>
+                <p class="text-emerald-100 font-medium mt-2 text-lg" 
+                   x-text="status === 'delivered' ? 'Enjoy your meal!' : 
+                          (status === 'out_for_delivery' ? 'Your rider is nearby!' : 
+                          (status === 'preparing' ? 'The kitchen is busy!' : 
+                          (['rejected', 'cancelled'].includes(status) ? 'We are sorry for the inconvenience.' : 'Your food is on its way')))">
+                    Your food is on its way
+                </p>
             </div>
 
             <!-- Order Details -->
@@ -37,9 +87,25 @@
                     </div>
                     <div class="text-right">
                         <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Status</p>
-                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-700 font-bold text-sm">
-                            <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
-                            {{ ucfirst($order->status) }}
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full font-bold text-sm transition-all duration-500"
+                              :class="{
+                                  'bg-amber-100 text-amber-700': status === 'pending',
+                                  'bg-blue-100 text-blue-700': status === 'accepted',
+                                  'bg-indigo-100 text-indigo-700': status === 'preparing',
+                                  'bg-teal-100 text-teal-700': status === 'out_for_delivery',
+                                  'bg-emerald-100 text-emerald-700': status === 'delivered',
+                                  'bg-red-100 text-red-700': status === 'rejected' || status === 'cancelled'
+                              }">
+                            <span class="w-2 h-2 rounded-full animate-pulse"
+                                  :class="{
+                                      'bg-amber-500': status === 'pending',
+                                      'bg-blue-500': status === 'accepted',
+                                      'bg-indigo-500': status === 'preparing',
+                                      'bg-teal-500': status === 'out_for_delivery',
+                                      'bg-emerald-500': status === 'delivered',
+                                      'bg-red-500': status === 'rejected' || status === 'cancelled'
+                                  }"></span>
+                            <span x-text="statusLabel()">{{ ucfirst(str_replace('_', ' ', $order->status)) }}</span>
                         </span>
                     </div>
                 </div>

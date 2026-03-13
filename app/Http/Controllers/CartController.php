@@ -283,6 +283,13 @@ class CartController extends Controller
 
         session()->forget('cart');
 
+        // Send Order Confirmation Email
+        try {
+            \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderPlacedMail($order));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send order placement email: ' . $e->getMessage());
+        }
+
         return redirect()->route('order.confirmation', $order)->with('success', 'Order placed successfully! 🎉');
     }
 

@@ -210,7 +210,56 @@ class DashboardController extends Controller
             'status' => 'accepted',
             'estimated_prep_time' => $request->input('estimated_prep_time')
         ]);
+
+        // Send Status Update Email
+        try {
+            \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderStatusUpdatedMail($order));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
+        }
+
+        // Trigger Real-time Broadcast
+        event(new \App\Events\OrderStatusUpdated($order));
+
         return back()->with('success', 'Order #' . $order->id . ' has been accepted!');
+    }
+
+    public function prepareOrder(\App\Models\Order $order)
+    {
+        if ($order->restaurant->user_id !== Auth::id()) abort(403);
+        
+        $order->update(['status' => 'preparing']);
+
+        // Send Status Update Email
+        try {
+            \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderStatusUpdatedMail($order));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
+        }
+
+        // Trigger Real-time Broadcast
+        event(new \App\Events\OrderStatusUpdated($order));
+
+        return back()->with('success', 'Order #' . $order->id . ' is now being prepared!');
+    }
+
+    public function outForDeliveryOrder(\App\Models\Order $order)
+    {
+        if ($order->restaurant->user_id !== Auth::id()) abort(403);
+        
+        $order->update(['status' => 'out_for_delivery']);
+
+        // Send Status Update Email
+        try {
+            \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderStatusUpdatedMail($order));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
+        }
+
+        // Trigger Real-time Broadcast
+        event(new \App\Events\OrderStatusUpdated($order));
+
+        return back()->with('success', 'Order #' . $order->id . ' is out for delivery!');
     }
 
     public function rejectOrder(Request $request, \App\Models\Order $order)
@@ -223,6 +272,17 @@ class DashboardController extends Controller
             'status' => 'cancelled',
             'rejection_reason' => $request->input('rejection_reason', 'Cancelled by restaurant')
         ]);
+
+        // Send Status Update Email
+        try {
+            \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderStatusUpdatedMail($order));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
+        }
+
+        // Trigger Real-time Broadcast
+        event(new \App\Events\OrderStatusUpdated($order));
+
         return back()->with('success', 'Order #' . $order->id . ' has been rejected.');
     }
 
@@ -232,11 +292,18 @@ class DashboardController extends Controller
             abort(403);
         }
 
-        if ($order->status !== 'accepted') {
-            return back()->with('error', 'Only accepted orders can be marked as delivered.');
+        $order->update(['status' => 'delivered']);
+
+        // Send Status Update Email
+        try {
+            \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderStatusUpdatedMail($order));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
         }
 
-        $order->update(['status' => 'delivered']);
+        // Trigger Real-time Broadcast
+        event(new \App\Events\OrderStatusUpdated($order));
+
         return back()->with('success', 'Order #' . $order->id . ' has been marked as delivered!');
     }
 

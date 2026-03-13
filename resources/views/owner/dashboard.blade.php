@@ -999,9 +999,51 @@
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Description</label>
                     <textarea name="description" rows="3" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all resize-none" placeholder="Tell customers about your cuisine...">{{ $restaurant->description ?? old('description') }}</textarea>
                 </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Address</label>
-                    <input type="text" name="address" value="{{ $restaurant->address ?? old('address') }}" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Hamra Street, Beirut">
+                <div x-data="{ 
+                    gettingLocation: false, 
+                    async useCurrentLocation() {
+                        if (!navigator.geolocation) {
+                            alert('Geolocation is not supported by your browser');
+                            return;
+                        }
+
+                        this.gettingLocation = true;
+                        navigator.geolocation.getCurrentPosition(async (position) => {
+                            const lat = position.coords.latitude;
+                            const lon = position.coords.longitude;
+                            
+                            $refs.latInput.value = lat;
+                            $refs.lonInput.value = lon;
+
+                            try {
+                                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`);
+                                const data = await response.json();
+                                if (data && data.display_name) {
+                                    $refs.addressInput.value = data.display_name;
+                                }
+                            } catch (error) {
+                                console.error('Error fetching address:', error);
+                            } finally {
+                                this.gettingLocation = false;
+                            }
+                        }, (error) => {
+                            console.error('Error getting location:', error);
+                            alert('Could not get your location. Please ensure location permissions are granted.');
+                            this.gettingLocation = false;
+                        });
+                    }
+                }">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-sm font-bold text-gray-700">Address</label>
+                        <button type="button" @click="useCurrentLocation()" :disabled="gettingLocation" class="text-xs font-black text-indigo-600 hover:text-indigo-500 flex items-center gap-1 transition-all">
+                            <svg x-show="!gettingLocation" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <svg x-show="gettingLocation" class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            <span x-text="gettingLocation ? 'Locating...' : 'Use Current Location'"></span>
+                        </button>
+                    </div>
+                    <input type="text" name="address" x-ref="addressInput" value="{{ $restaurant->address ?? old('address') }}" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Hamra Street, Beirut">
+                    <input type="hidden" name="latitude" x-ref="latInput" value="{{ $restaurant->latitude ?? old('latitude') }}">
+                    <input type="hidden" name="longitude" x-ref="lonInput" value="{{ $restaurant->longitude ?? old('longitude') }}">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Phone</label>

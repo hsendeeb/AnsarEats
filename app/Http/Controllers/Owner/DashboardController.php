@@ -256,6 +256,8 @@ class DashboardController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'address' => 'required|string|max:255',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
             'phone' => 'required|string|max:50',
             'is_open' => 'sometimes|boolean',
             'logo' => 'nullable|image|max:2048',

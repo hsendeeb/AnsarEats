@@ -403,10 +403,18 @@
             <div class="flex-1 pb-2">
                 <h1 class="text-4xl md:text-5xl font-black outfit text-white">{{ $restaurant->name }}</h1>
                 <div class="flex items-center gap-3 mt-2">
-                    <p class="text-emerald-300 font-bold flex items-center gap-2 text-sm sm:text-base">
-                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        {{ $restaurant->address ?? 'Location not specified' }}
-                    </p>
+                    @php
+                        $mapsQuery = $restaurant->latitude && $restaurant->longitude 
+                            ? "{$restaurant->latitude},{$restaurant->longitude}" 
+                            : urlencode($restaurant->address);
+                        $mapsUrl = "https://www.google.com/maps/search/?api=1&query={$mapsQuery}";
+                    @endphp
+                    <a href="{{ $mapsUrl }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl text-emerald-300 hover:text-white border border-white/10 hover:border-white/20 transition-all duration-300 group shadow-lg shadow-black/20">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <span class="text-sm font-black tracking-tight">{{ $restaurant->address ?? 'Location not specified' }}</span>
+                    </a>
                     <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest {{ $restaurant->isOpenNow() ? 'bg-emerald-400/20 text-emerald-400 border border-emerald-400/30' : 'bg-red-400/20 text-red-400 border border-red-400/30' }}">
                         {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
                     </span>

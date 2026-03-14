@@ -264,11 +264,61 @@
             Alpine.data('restaurantPage', () => ({
                 activeCategory: '{{ $restaurant->menuCategories->first()->id ?? "" }}',
                 cart: { items: {}, count: 0, total: 0, restaurant_id: null },
+                indicatorStyle: '',
                 
                 async init() {
                     console.log('restaurantPage init starting...');
                     await this.loadCart();
+                    
+                    this.$nextTick(() => {
+                        this.updateIndicator(this.activeCategory);
+                    });
+
+                    this.$watch('activeCategory', val => {
+                        this.updateIndicator(val);
+                    });
+
+                    window.addEventListener('resize', () => {
+                        this.updateIndicator(this.activeCategory);
+                    });
+                    
                     console.log('restaurantPage initialized');
+                },
+
+                updateIndicator(id) {
+                    const nav = this.$refs.nav;
+                    if (!nav) return;
+                    const el = nav.querySelector(`[data-cat-id='${id}']`);
+                    if (!el) return;
+
+                    const isHorizontal = window.innerWidth < 1024; // lg breakpoint
+                    if (isHorizontal) {
+                        this.indicatorStyle = `left: ${el.offsetLeft}px; width: ${el.offsetWidth}px; height: 3px; bottom: 0;`;
+                        
+                        // Auto-scroll the nav horizontally to keep the active tab centered
+                        const navWidth = nav.offsetWidth;
+                        const elWidth = el.offsetWidth;
+                        const elOffset = el.offsetLeft;
+                        const scrollLeft = elOffset - (navWidth / 2) + (elWidth / 2);
+                        
+                        nav.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+                    } else {
+                        this.indicatorStyle = `top: ${el.offsetTop}px; height: ${el.offsetHeight}px; width: 3px; left: 0;`;
+                    }
+                },
+
+                scrollToCategory(id) {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    // Sticky bar height (approx 60px) + Navbar height (80px) = 140px
+                    const offset = window.innerWidth < 1024 ? 140 : 120; 
+                    const elementPosition = el.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
                 },
                 
                 async loadCart() {
@@ -379,7 +429,7 @@
     }
 </script>
 
-<div class="relative bg-white overflow-hidden">
+<div class="relative bg-white">
     <!-- Cover Layer -->
     <div class="h-[500px] sm:h-80 lg:h-96 relative w-full">
         @if($restaurant->cover_image)
@@ -429,25 +479,29 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-24 pb-24 relative z-0" x-data="restaurantPage" x-cloak>
 
 
-        <div class="flex flex-col lg:flex-row gap-10">
-            <!-- Sidebar Navigation -->
-            <div class="w-full lg:w-1/4">
-                <div class="sticky top-28 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
-                    <h3 class="font-black text-2xl outfit text-gray-900 mb-6">Menu</h3>
+        <div class="flex flex-col lg:flex-row gap-10" x-data="{ isStuck: false }" @scroll.window="isStuck = window.pageYOffset > 400">
+            <!-- Sidebar / Mobile Tabs Navigation -->
+            <div class="w-screen lg:w-1/4 sticky top-20 lg:top-28 z-[45] bg-white/95 backdrop-blur-md lg:bg-transparent lg:backdrop-blur-none transition-all duration-300 -ml-4 sm:-ml-6 lg:ml-0 px-4 sm:px-6 lg:px-0 border-b border-gray-100 lg:border-none"
+                 :class="isStuck ? 'shadow-xl shadow-gray-900/5' : 'shadow-none'">
+                <div class="bg-white lg:border border-gray-100 lg:rounded-3xl p-0 lg:p-6 shadow-none transition-all duration-300">
+                    <h3 class="hidden lg:block font-black text-2xl outfit text-gray-900 mb-6">Menu</h3>
                     
-                    <nav class="space-y-2">
+                    <nav x-ref="nav" class="relative flex flex-row lg:flex-col overflow-x-auto no-scrollbar scroll-smooth p-0 lg:p-0">
+                        <!-- Sliding Indicator -->
+                        <div class="absolute bg-emerald-500 transition-all duration-300 ease-out z-20 rounded-full" :style="indicatorStyle"></div>
+
                         @foreach($restaurant->menuCategories as $category)
                             <button 
-                                @click="activeCategory = '{{ $category->id }}'; document.getElementById('category-{{ $category->id }}').scrollIntoView({behavior: 'smooth', block: 'start'})"
-                                :class="{'bg-emerald-50 text-emerald-600 font-bold pl-6': activeCategory === '{{ $category->id }}', 'text-gray-600 font-medium hover:bg-gray-50 pl-4': activeCategory !== '{{ $category->id }}'}"
-                                class="w-full text-left py-3 pr-4 rounded-xl transition-all relative group"
+                                type="button"
+                                data-cat-id="{{ $category->id }}"
+                                @click="activeCategory = '{{ $category->id }}'; scrollToCategory('category-{{ $category->id }}')"
+                                :class="activeCategory === '{{ $category->id }}' ? 'text-emerald-600 font-bold' : 'text-gray-500 font-medium hover:text-gray-800 lg:hover:bg-gray-50'"
+                                class="relative flex-shrink-0 flex items-center justify-between gap-3 px-6 py-5 lg:py-3 transition-all group lg:w-full text-left lg:rounded-xl z-10"
                             >
+                                <span class="whitespace-nowrap">{{ $category->name }}</span>
                                 <span 
-                                    :class="{'opacity-100': activeCategory === '{{ $category->id }}', 'opacity-0': activeCategory !== '{{ $category->id }}'}" 
-                                    class="absolute left-2 top-1/2 transform -translate-y-1/2 w-1.5 h-6 bg-emerald-500 rounded-full transition-opacity">
-                                </span>
-                                {{ $category->name }}
-                                <span class="float-right text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full group-hover:bg-white transition-colors">
+                                    :class="activeCategory === '{{ $category->id }}' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-500'"
+                                    class="hidden lg:block text-[10px] font-black px-2 py-1 rounded-full transition-colors">
                                     {{ $category->menuItems->count() }}
                                 </span>
                             </button>
@@ -487,7 +541,7 @@
             <div class="w-full lg:w-3/4 space-y-10">
                 <!-- Menu Sections -->
                 @forelse($restaurant->menuCategories as $category)
-                    <div id="category-{{ $category->id }}" class="mb-16 scroll-mt-28" x-intersect.margin.-200px.0.0.0="activeCategory = '{{ $category->id }}'">
+                    <div id="category-{{ $category->id }}" class="mb-16 scroll-mt-36 lg:scroll-mt-28" x-intersect.margin.-200px.0.0.0="activeCategory = '{{ $category->id }}'">
                         <h2 class="text-3xl font-black outfit text-gray-900 mb-8 pb-4 border-b-2 border-dashed border-gray-200">
                             {{ $category->name }}
                         </h2>

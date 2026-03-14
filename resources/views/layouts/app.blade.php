@@ -140,6 +140,10 @@
         .swiper-slide {
             transition: transform 0.5s ease;
         }
+
+        /* Utilities */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col text-gray-800 bg-gray-50 dark:bg-gray-900 overflow-x-hidden relative page-loading transition-theme">

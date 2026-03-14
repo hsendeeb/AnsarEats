@@ -10,22 +10,66 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- Sidebar Navigation -->
         <div class="md:col-span-1">
-            <nav class="space-y-2">
-                <a href="{{ route('profile.show') }}" class="flex items-center gap-3 px-5 py-4 rounded-2xl bg-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                    Account Info
-                </a>
-                <a href="{{ route('profile.orders') }}" class="flex items-center gap-3 px-5 py-4 rounded-2xl bg-white text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 font-bold transition-all border border-transparent hover:border-emerald-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                    Order History
-                </a>
-                @if(auth()->user()->restaurant)
-                <a href="{{ route('owner.dashboard') }}" class="flex items-center gap-3 px-5 py-4 rounded-2xl bg-white text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition-all border border-transparent hover:border-indigo-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                    Owner Dashboard
-                </a>
-                @endif
-            </nav>
+            <div class="sticky top-28 space-y-6">
+                <!-- Sliding Underline Tabs Navigation -->
+                <nav x-data="{
+                        activeTab: '{{ url()->current() }}',
+                        indicatorStyle: '',
+                        init() {
+                            this.$nextTick(() => this.updateIndicator(this.activeTab));
+                            window.addEventListener('resize', () => { this.updateIndicator(this.activeTab) });
+                        },
+                        updateIndicator(href) {
+                            const el = this.$refs.nav.querySelector(`[href='${href}']`);
+                            if (!el) return;
+                            const isHorizontal = window.innerWidth < 768; // md breakpoint
+                            if (isHorizontal) {
+                                this.indicatorStyle = `left: ${el.offsetLeft}px; width: ${el.offsetWidth}px; height: 3px; bottom: 0;`;
+                            } else {
+                                this.indicatorStyle = `top: ${el.offsetTop}px; height: ${el.offsetHeight}px; width: 3px; left: -1px;`;
+                            }
+                        },
+                        clickTab(e, href) {
+                            e.preventDefault();
+                            this.activeTab = href;
+                            this.updateIndicator(href);
+                            setTimeout(() => window.location.href = href, 200); // Wait for sliding animation
+                        }
+                    }" 
+                    x-ref="nav"
+                    class="relative flex flex-row md:flex-col gap-2 md:gap-1 overflow-x-auto no-scrollbar pb-2 md:pb-0 border-b md:border-b-0 md:border-l border-gray-200 md:pl-2"
+                >
+                    <!-- Sliding Indicator -->
+                    <div class="absolute bg-emerald-500 transition-all duration-300 ease-out z-10 rounded-full" :style="indicatorStyle"></div>
+
+                    <!-- Links -->
+                    <a href="{{ route('profile.show') }}" 
+                       @click="clickTab($event, '{{ route('profile.show') }}')"
+                       class="relative flex-shrink-0 flex items-center justify-center md:justify-start gap-3 px-4 py-3 md:py-4 font-bold transition-colors"
+                       :class="activeTab.includes('{{ route('profile.show') }}') ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-800'">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <span class="whitespace-nowrap">Account Info</span>
+                    </a>
+
+                    <a href="{{ route('profile.orders') }}" 
+                       @click="clickTab($event, '{{ route('profile.orders') }}')"
+                       class="relative flex-shrink-0 flex items-center justify-center md:justify-start gap-3 px-4 py-3 md:py-4 font-bold transition-colors"
+                       :class="activeTab.includes('{{ route('profile.orders') }}') ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-800'">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        <span class="whitespace-nowrap">Order History</span>
+                    </a>
+
+                    @if(auth()->user()->restaurant)
+                    <a href="{{ route('owner.dashboard') }}" 
+                       @click="clickTab($event, '{{ route('owner.dashboard') }}')"
+                       class="relative flex-shrink-0 flex items-center justify-center md:justify-start gap-3 px-4 py-3 md:py-4 font-bold transition-colors"
+                       :class="activeTab.includes('{{ route('owner.dashboard') }}') ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-800'">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        <span class="whitespace-nowrap">Owner Dashboard</span>
+                    </a>
+                    @endif
+                </nav>
+            </div>
         </div>
 
         <!-- Form Section -->

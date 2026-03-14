@@ -39,6 +39,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
     Route::post('/checkout', [CartController::class, 'placeOrder'])->name('checkout.place');
     Route::get('/order/{order}/confirmation', [CartController::class, 'confirmation'])->name('order.confirmation');
+    Route::get('/order/{order}/status', [CartController::class, 'pollStatus'])->name('order.status');
+    Route::get('/orders/batch-status', [CartController::class, 'batchStatus'])->name('orders.batch-status');
 
     // Rating
     Route::post('/restaurant/{restaurant}/rate', [RatingController::class, 'store'])->name('restaurant.rate');
@@ -46,7 +48,9 @@ Route::middleware('auth')->group(function () {
     // Owner routes
     Route::prefix('owner')->name('owner.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/orders', [DashboardController::class, 'orders'])->name('orders');
         Route::get('/dashboard/chart-data', [DashboardController::class, 'chartData'])->name('dashboard.chart-data');
+        Route::get('/dashboard/poll-new-orders', [DashboardController::class, 'pollNewOrders'])->name('dashboard.poll-new-orders');
         Route::post('/restaurant', [DashboardController::class, 'storeOrUpdate'])->name('restaurant.store');
         Route::post('/restaurant/toggle-status', [DashboardController::class, 'toggleRestaurantStatus'])->name('restaurant.toggle-status');
         

@@ -22,32 +22,122 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Sidebar Navigation -->
+        <!-- Sidebar Navigation & Filters -->
         <div class="md:col-span-1">
-            <nav class="space-y-2 sticky top-28">
-                <a href="{{ route('profile.show') }}" class="flex items-center gap-3 px-5 py-4 rounded-2xl bg-white text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 font-bold transition-all border border-transparent hover:border-emerald-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                    Account Info
-                </a>
-                <a href="{{ route('profile.orders') }}" class="flex items-center gap-3 px-5 py-4 rounded-2xl bg-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                    Order History
-                </a>
+            <div class="sticky top-28 space-y-6">
+                <!-- Sliding Underline Tabs Navigation -->
+                <nav x-data="{
+                        activeTab: '{{ url()->current() }}',
+                        indicatorStyle: '',
+                        init() {
+                            this.$nextTick(() => this.updateIndicator(this.activeTab));
+                            window.addEventListener('resize', () => { this.updateIndicator(this.activeTab) });
+                        },
+                        updateIndicator(href) {
+                            const el = this.$refs.nav.querySelector(`[href='${href}']`);
+                            if (!el) return;
+                            const isHorizontal = window.innerWidth < 768; // md breakpoint
+                            if (isHorizontal) {
+                                this.indicatorStyle = `left: ${el.offsetLeft}px; width: ${el.offsetWidth}px; height: 3px; bottom: 0;`;
+                            } else {
+                                this.indicatorStyle = `top: ${el.offsetTop}px; height: ${el.offsetHeight}px; width: 3px; left: -1px;`;
+                            }
+                        },
+                        clickTab(e, href) {
+                            e.preventDefault();
+                            this.activeTab = href;
+                            this.updateIndicator(href);
+                            setTimeout(() => window.location.href = href, 200); // Wait for sliding animation
+                        }
+                    }" 
+                    x-ref="nav"
+                    class="relative flex flex-row md:flex-col gap-2 md:gap-1 overflow-x-auto no-scrollbar pb-2 md:pb-0 border-b md:border-b-0 md:border-l border-gray-200 md:pl-2"
+                >
+                    <!-- Sliding Indicator -->
+                    <div class="absolute bg-emerald-500 transition-all duration-300 ease-out z-10 rounded-full" :style="indicatorStyle"></div>
+
+                    <!-- Links -->
+                    <a href="{{ route('profile.show') }}" 
+                       @click="clickTab($event, '{{ route('profile.show') }}')"
+                       class="relative flex-shrink-0 flex items-center justify-center md:justify-start gap-3 px-4 py-3 md:py-4 font-bold transition-colors"
+                       :class="activeTab.includes('{{ route('profile.show') }}') ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-800'">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <span class="whitespace-nowrap">Account Info</span>
+                    </a>
+
+                    <a href="{{ route('profile.orders') }}" 
+                       @click="clickTab($event, '{{ route('profile.orders') }}')"
+                       class="relative flex-shrink-0 flex items-center justify-center md:justify-start gap-3 px-4 py-3 md:py-4 font-bold transition-colors"
+                       :class="activeTab.includes('{{ route('profile.orders') }}') ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-800'">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        <span class="whitespace-nowrap">Order History</span>
+                    </a>
+
+                    @if(auth()->user()->restaurant)
+                    <a href="{{ route('owner.dashboard') }}" 
+                       @click="clickTab($event, '{{ route('owner.dashboard') }}')"
+                       class="relative flex-shrink-0 flex items-center justify-center md:justify-start gap-3 px-4 py-3 md:py-4 font-bold transition-colors"
+                       :class="activeTab.includes('{{ route('owner.dashboard') }}') ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-800'">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        <span class="whitespace-nowrap">Owner Dashboard</span>
+                    </a>
+                    @endif
+                </nav>
                 
-                <hr class="my-4 border-gray-100">
+                <hr class="border-gray-100 hidden md:block">
                 
-                <div class="p-2">
-                    <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 px-3">Filter by Time</p>
-                    <div class="flex flex-col gap-1">
-                        <a href="{{ route('profile.orders') }}" class="px-4 py-2 rounded-xl text-sm font-bold {{ $activeFilter == 'all' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100' }} transition-all">All Orders</a>
-                        <a href="{{ route('profile.orders', ['filter' => 'today']) }}" class="px-4 py-2 rounded-xl text-sm font-bold {{ $activeFilter == 'today' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100' }} transition-all">Today</a>
-                        <a href="{{ route('profile.orders', ['filter' => 'week']) }}" class="px-4 py-2 rounded-xl text-sm font-bold {{ $activeFilter == 'week' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100' }} transition-all">This Week</a>
-                        <a href="{{ route('profile.orders', ['filter' => 'month']) }}" class="px-4 py-2 rounded-xl text-sm font-bold {{ $activeFilter == 'month' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100' }} transition-all">This Month</a>
+                <!-- Filter Dropdown (Dashboard Style) -->
+                @php
+                    $activeFilterLabel = 'All Orders';
+                    if ($activeFilter === 'today') $activeFilterLabel = 'Today';
+                    elseif ($activeFilter === 'week') $activeFilterLabel = 'This Week';
+                    elseif ($activeFilter === 'month') $activeFilterLabel = 'This Month';
+                @endphp
+                
+                <div class="relative z-20" x-data="{ open: false }" @click.outside="open = false">
+                    <button @click="open = !open" type="button"
+                        class="w-full flex items-center justify-between gap-2 px-5 py-4 rounded-2xl text-sm font-bold transition-all
+                        {{ $activeFilter != 'all' ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                            <span>{{ $activeFilterLabel }}</span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+                         class="absolute left-0 right-0 mt-3 hidden w-full md:w-56 rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden"
+                         :class="{'hidden': !open}"
+                         style="display: none;">
+                        <div class="p-2 flex flex-col gap-1">
+                            <a href="{{ route('profile.orders') }}" class="px-4 py-2.5 rounded-xl text-sm font-bold {{ $activeFilter == 'all' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-500 hover:bg-gray-50' }} transition-all flex items-center justify-between">
+                                All Orders
+                                @if($activeFilter == 'all')<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>@endif
+                            </a>
+                            <a href="{{ route('profile.orders', ['filter' => 'today']) }}" class="px-4 py-2.5 rounded-xl text-sm font-bold {{ $activeFilter == 'today' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-500 hover:bg-gray-50' }} transition-all flex items-center justify-between">
+                                Today
+                                @if($activeFilter == 'today')<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>@endif
+                            </a>
+                            <a href="{{ route('profile.orders', ['filter' => 'week']) }}" class="px-4 py-2.5 rounded-xl text-sm font-bold {{ $activeFilter == 'week' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-500 hover:bg-gray-50' }} transition-all flex items-center justify-between">
+                                This Week
+                                @if($activeFilter == 'week')<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>@endif
+                            </a>
+                            <a href="{{ route('profile.orders', ['filter' => 'month']) }}" class="px-4 py-2.5 rounded-xl text-sm font-bold {{ $activeFilter == 'month' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-500 hover:bg-gray-50' }} transition-all flex items-center justify-between">
+                                This Month
+                                @if($activeFilter == 'month')<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>@endif
+                            </a>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Simple Merit Metrics -->
-                <div class="mt-8 p-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl text-white shadow-xl shadow-emerald-500/20">
+                <div class="p-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl text-white shadow-xl shadow-emerald-500/20">
                     <p class="text-xs font-black uppercase tracking-widest opacity-80 mb-4">Total Spent</p>
                     <p class="text-4xl font-extrabold outfit mb-1">${{ number_format($orders->sum('total'), 2) }}</p>
                     <p class="text-sm font-bold opacity-80 mb-6">{{ $orders->count() }} total orders</p>
@@ -90,16 +180,23 @@
                     </div>
                     @endif
                 </div>
-            </nav>
+            </div>
         </div>
 
         <!-- Orders List Section -->
-        <div class="md:col-span-2 space-y-6">
+        <div class="md:col-span-2 space-y-6"
+             x-data="ordersTracker()"
+             x-init="init()">
             @forelse($orders as $order)
-            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-                <div class="p-6 border-b border-gray-50 flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100">
+            <div x-data="{ openDetails: false }" 
+                 class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
+                 data-order-id="{{ $order->id }}"
+                 data-order-status="{{ $order->status }}">
+                 
+                <!-- Clickable Header -->
+                <div @click="openDetails = !openDetails" class="p-6 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors select-none group">
+                    <div class="flex items-center gap-4 border-b-0">
+                        <div class="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100 group-hover:border-emerald-200 transition-colors">
                             @if($order->restaurant->logo)
                                 <img src="{{ Storage::url($order->restaurant->logo) }}" class="w-full h-full object-cover">
                             @else
@@ -107,53 +204,103 @@
                             @endif
                         </div>
                         <div>
-                            <h3 class="font-extrabold text-gray-900">{{ $order->restaurant->name }}</h3>
-                            <div class="flex items-center gap-3">
-                                <p class="text-xs font-bold text-gray-400 uppercase tracking-tighter">{{ $order->created_at->format('M d, Y • h:i A') }}</p>
-                                @if($order->estimated_prep_time && $order->status === 'accepted')
-                                    <span class="flex items-center gap-1 text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 uppercase tracking-widest">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        {{ $order->estimated_prep_time }} MIN PREP
-                                    </span>
-                                @endif
-                                @if($order->status === 'cancelled' && $order->rejection_reason)
-                                    <span class="text-[9px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100 uppercase tracking-widest">
-                                        Reason: {{ $order->rejection_reason }}
-                                    </span>
-                                @endif
-                            </div>
+                            <h3 class="font-extrabold text-gray-900 group-hover:text-emerald-600 transition-colors">{{ $order->restaurant->name }}</h3>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-tighter">{{ $order->created_at->format('M d, Y • h:i A') }}</p>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <div class="font-black text-gray-900 leading-tight">${{ number_format($order->total, 2) }}</div>
-                        @if($order->discount_amount > 0)
-                            <div class="text-[10px] font-bold text-emerald-500 uppercase">Saved ${{ number_format($order->discount_amount, 2) }}</div>
-                        @endif
-                        <span class="inline-block mt-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest 
-                            {{ $order->status === 'accepted' ? 'bg-emerald-100 text-emerald-600' : 
-                               ($order->status === 'delivered' ? 'bg-blue-100 text-blue-600' : 
-                               ($order->status === 'cancelled' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600')) }}">
-                            {{ $order->status }}
-                        </span>
+                    <div class="flex items-center gap-6">
+                        <div class="text-right">
+                            <div class="font-black text-gray-900 leading-tight">${{ number_format($order->total, 2) }}</div>
+                            @if($order->discount_amount > 0)
+                                <div class="text-[10px] font-bold text-emerald-500 uppercase">Saved ${{ number_format($order->discount_amount, 2) }}</div>
+                            @endif
+                            {{-- Dynamic status badge, updated by Alpine --}}
+                            <span class="inline-block mt-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest status-badge-{{ $order->id }}"
+                                  :class="getStatusClass(getStatus({{ $order->id }}, '{{ $order->status }}'))">
+                                <span x-text="formatStatus(getStatus({{ $order->id }}, '{{ $order->status }}'))">{{ $order->status }}</span>
+                            </span>
+                        </div>
+                        <!-- Expand/Collapse Chevron -->
+                        <div class="w-8 h-8 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 transition-all duration-300 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:border-emerald-100" 
+                             :class="openDetails ? 'rotate-180 bg-emerald-50 text-emerald-600 border-emerald-100' : ''">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
                     </div>
                 </div>
-                <div class="p-6 bg-gray-50/50">
-                    @if($order->status === 'accepted' && $order->estimated_prep_time)
-                        <div class="mb-6 bg-emerald-500 rounded-2xl p-4 text-white flex items-center justify-between shadow-lg shadow-emerald-500/20">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                                    <svg class="w-6 h-6 animate-spin" style="animation-duration: 4s;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-black uppercase tracking-widest opacity-80 leading-none mb-1">In Preparation</p>
-                                    <p class="text-lg font-black outfit leading-tight">{{ $order->estimated_prep_time }} Minutes Remaining</p>
-                                </div>
-                            </div>
-                            <div class="text-right hidden sm:block">
-                                <span class="px-3 py-1 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-sm">Live Order</span>
+
+                <!-- Collapsible Details Wrapper -->
+                <div x-show="openDetails"
+                     x-transition:enter="transition ease-out duration-300 origin-top"
+                     x-transition:enter-start="opacity-0 scale-y-95 -translate-y-2"
+                     x-transition:enter-end="opacity-100 scale-y-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-200 origin-top"
+                     x-transition:leave-start="opacity-100 scale-y-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 scale-y-95 -translate-y-2"
+                     style="display: none;"
+                     class="border-t border-gray-50">
+
+                {{-- Compact Live Progress Stepper (only for active orders) --}}
+                @php $activeStatuses = ['pending','accepted','preparing','out_for_delivery']; @endphp
+                @if(in_array($order->status, $activeStatuses))
+                <div x-data="{ openTracker: false }" class="border-b border-emerald-50 overflow-hidden">
+                    <!-- Accordion Toggle Button -->
+                    <button @click="openTracker = !openTracker" class="w-full px-6 py-4 bg-gradient-to-r from-emerald-50/40 to-teal-50/40 hover:from-emerald-50 hover:to-teal-50 transition-all flex items-center justify-between group cursor-pointer focus:outline-none">
+                        <div class="flex items-center gap-3">
+                            <span class="relative flex h-2.5 w-2.5">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                            </span>
+                            <span class="text-[11px] font-black uppercase tracking-widest text-emerald-600">Live Order Tracking</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest transition-opacity" :class="openTracker ? 'opacity-0' : 'opacity-100'">View Progress</span>
+                            <div class="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm border border-emerald-100/50 text-emerald-500 transition-transform duration-300" :class="openTracker ? 'rotate-180 bg-emerald-100' : 'group-hover:bg-emerald-50'">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
                             </div>
                         </div>
-                    @endif
+                    </button>
+
+                    <!-- Accordion Content -->
+                    <div x-show="openTracker" 
+                         x-transition:enter="transition ease-out duration-300 transform origin-top"
+                         x-transition:enter-start="opacity-0 scale-y-95 -translate-y-2"
+                         x-transition:enter-end="opacity-100 scale-y-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-200 transform origin-top"
+                         x-transition:leave-start="opacity-100 scale-y-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 scale-y-95 -translate-y-2"
+                         class="bg-gradient-to-r from-emerald-50 to-teal-50 border-t border-emerald-100/30">
+                        <div class="px-6 pt-5 pb-6">
+                            @php
+                                $steps = ['pending'=>'Placed','accepted'=>'Accepted','preparing'=>'Preparing','out_for_delivery'=>'On the Way','delivered'=>'Delivered'];
+                                $stepKeys = array_keys($steps);
+                                $currentIdx = array_search($order->status, $stepKeys) ?: 0;
+                            @endphp
+                            <div class="relative flex items-center justify-between">
+                                <div class="absolute left-0 right-0 top-3.5 h-0.5 bg-emerald-100 z-0"></div>
+                                @foreach($steps as $key => $label)
+                                @php $i = array_search($key, $stepKeys); @endphp
+                                <div class="relative z-10 flex flex-col items-center gap-1.5 flex-1">
+                                    <div class="w-7 h-7 rounded-full flex items-center justify-center transition-all duration-500 text-[10px] font-black"
+                                         :class="isStepDone({{ $i }}, getStatus({{ $order->id }}, '{{ $order->status }}'))
+                                            ? (isStepActive({{ $i }}, getStatus({{ $order->id }}, '{{ $order->status }}'))
+                                                ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/40 ring-2 ring-emerald-100 scale-110'
+                                                : 'bg-emerald-500 text-white')
+                                            : 'bg-white text-gray-300 border border-gray-200'">
+                                        {{ $i + 1 }}
+                                    </div>
+                                    <span class="text-[8px] font-black uppercase tracking-wide text-center leading-tight transition-colors duration-300"
+                                          :class="isStepDone({{ $i }}, getStatus({{ $order->id }}, '{{ $order->status }}')) ? 'text-emerald-700 font-bold' : 'text-gray-400'">
+                                        {{ $label }}
+                                    </span>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+                <div class="p-6 bg-gray-50/50">
                     <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Items Ordered</p>
                     <div class="space-y-2">
                         @foreach($order->orderItems as $item)
@@ -178,6 +325,7 @@
                         @endforeach
                     </div>
                 </div>
+                </div> <!-- End of Collapsible Details Wrapper -->
             </div>
             @empty
             <div class="bg-white rounded-3xl border-2 border-dashed border-gray-200 p-12 text-center">
@@ -193,3 +341,81 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function ordersTracker() {
+    const ORDER_STEPS = ['pending', 'accepted', 'preparing', 'out_for_delivery', 'delivered'];
+    const TERMINAL    = ['delivered', 'cancelled'];
+
+    // Collect all active order IDs from the page
+    const activeIds = Array.from(document.querySelectorAll('[data-order-status]'))
+        .filter(el => !TERMINAL.includes(el.dataset.orderStatus))
+        .map(el => el.dataset.orderId);
+
+    return {
+        statuses: {},   // map of orderId => status
+        pollInterval: null,
+
+        init() {
+            // Seed initial statuses from data attributes
+            document.querySelectorAll('[data-order-id]').forEach(el => {
+                this.statuses[el.dataset.orderId] = el.dataset.orderStatus;
+            });
+
+            if (activeIds.length > 0) {
+                this.pollInterval = setInterval(() => this.pollStatuses(), 6000);
+            }
+        },
+
+        getStatus(id, fallback) {
+            return this.statuses[id] ?? fallback;
+        },
+
+        async pollStatuses() {
+            if (activeIds.length === 0) return;
+            try {
+                const res = await fetch('{{ route("orders.batch-status") }}?ids=' + activeIds.join(','), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                Object.entries(data).forEach(([id, info]) => {
+                    this.statuses[id] = info.status;
+                });
+            } catch(e) {}
+        },
+
+        isStepDone(stepIndex, currentStatus) {
+            const currentIdx = ORDER_STEPS.indexOf(currentStatus);
+            return stepIndex <= currentIdx;
+        },
+
+        isStepActive(stepIndex, currentStatus) {
+            return ORDER_STEPS.indexOf(currentStatus) === stepIndex;
+        },
+
+        getStatusClass(status) {
+            const map = {
+                'pending':          'bg-amber-100 text-amber-600',
+                'accepted':         'bg-blue-100 text-blue-600',
+                'preparing':        'bg-indigo-100 text-indigo-600',
+                'out_for_delivery': 'bg-teal-100 text-teal-600',
+                'delivered':        'bg-emerald-100 text-emerald-600',
+                'cancelled':        'bg-red-100 text-red-600',
+            };
+            return map[status] ?? 'bg-gray-100 text-gray-600';
+        },
+
+        formatStatus(status) {
+            return status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        },
+
+        destroy() {
+            if (this.pollInterval) clearInterval(this.pollInterval);
+        }
+    };
+}
+</script>
+@endpush
+

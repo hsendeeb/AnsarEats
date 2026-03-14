@@ -146,36 +146,46 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get();
 
-            // Fetch Orders with Filters
-            $ordersQuery = Order::with(['user', 'orderItems'])
-                ->where('restaurant_id', $restaurant->id);
+        }
+        
+        return view('owner.dashboard', compact('restaurant', 'stats'));
+    }
 
-            if ($request->has('filter')) {
-                if ($request->filter === 'day') {
-                    $ordersQuery->whereDate('created_at', Carbon::today());
-                } elseif ($request->filter === 'week') {
-                    $ordersQuery->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-                }
-            }
+    public function orders(Request $request)
+    {
+        $user = Auth::user();
+        $restaurant = $user->restaurant;
 
-            if ($request->has('status')) {
-                if (in_array($request->status, ['pending', 'accepted', 'delivered', 'cancelled'])) {
-                    $ordersQuery->where('status', $request->status);
-                }
-            }
-
-            if ($request->has('sort') && $request->sort === 'total') {
-                $ordersQuery->orderByDesc('total');
-            } else {
-                $ordersQuery->orderByDesc('created_at');
-            }
-
-            $orders = $ordersQuery->paginate(5)->appends($request->query());
-        } else {
-            $orders = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
+        if (!$restaurant) {
+            return redirect()->route('owner.dashboard')->with('error', 'Please create a restaurant first.');
         }
 
-        return view('owner.dashboard', compact('restaurant', 'stats', 'orders'));
+        $ordersQuery = Order::with(['user', 'orderItems'])
+            ->where('restaurant_id', $restaurant->id);
+
+        if ($request->has('filter')) {
+            if ($request->filter === 'day') {
+                $ordersQuery->whereDate('created_at', Carbon::today());
+            } elseif ($request->filter === 'week') {
+                $ordersQuery->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+            }
+        }
+
+        if ($request->has('status')) {
+            if (in_array($request->status, ['pending', 'accepted', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'])) {
+                $ordersQuery->where('status', $request->status);
+            }
+        }
+
+        if ($request->has('sort') && $request->sort === 'total') {
+            $ordersQuery->orderByDesc('total');
+        } else {
+            $ordersQuery->orderByDesc('created_at');
+        }
+
+        $orders = $ordersQuery->paginate(5)->appends($request->query());
+
+        return view('owner.orders', compact('restaurant', 'orders'));
     }
 
     public function chartData(Request $request)
@@ -200,6 +210,35 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function pollNewOrders(Request $request)
+    {
+        $restaurant = Auth::user()->restaurant;
+        if (!$restaurant) {
+            return response()->json(['count' => 0, 'latest_id' => 0]);
+        }
+
+        $sinceId = (int) $request->input('since_id', 0);
+
+        $query = Order::where('restaurant_id', $restaurant->id)
+                      ->where('status', 'pending');
+
+        if ($sinceId > 0) {
+            $query->where('id', '>', $sinceId);
+        }
+
+        $newOrders = $query->latest()->get(['id', 'created_at', 'total']);
+
+        return response()->json([
+            'count'     => $newOrders->count(),
+            'latest_id' => $newOrders->first()?->id ?? $sinceId,
+            'orders'    => $newOrders->map(fn($o) => [
+                'id'         => $o->id,
+                'total'      => number_format($o->total, 2),
+                'created_at' => $o->created_at->diffForHumans(),
+            ]),
+        ]);
+    }
+
     public function acceptOrder(Request $request, \App\Models\Order $order)
     {
         if ($order->restaurant->user_id !== Auth::id()) {
@@ -218,8 +257,9 @@ class DashboardController extends Controller
             \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
         }
 
-        // Trigger Real-time Broadcast
-        event(new \App\Events\OrderStatusUpdated($order));
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Order #' . $order->id . ' has been accepted!']);
+        }
 
         return back()->with('success', 'Order #' . $order->id . ' has been accepted!');
     }
@@ -237,8 +277,9 @@ class DashboardController extends Controller
             \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
         }
 
-        // Trigger Real-time Broadcast
-        event(new \App\Events\OrderStatusUpdated($order));
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Order #' . $order->id . ' is now being prepared!']);
+        }
 
         return back()->with('success', 'Order #' . $order->id . ' is now being prepared!');
     }
@@ -256,8 +297,9 @@ class DashboardController extends Controller
             \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
         }
 
-        // Trigger Real-time Broadcast
-        event(new \App\Events\OrderStatusUpdated($order));
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Order #' . $order->id . ' is out for delivery!']);
+        }
 
         return back()->with('success', 'Order #' . $order->id . ' is out for delivery!');
     }
@@ -280,8 +322,9 @@ class DashboardController extends Controller
             \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
         }
 
-        // Trigger Real-time Broadcast
-        event(new \App\Events\OrderStatusUpdated($order));
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Order #' . $order->id . ' has been rejected.']);
+        }
 
         return back()->with('success', 'Order #' . $order->id . ' has been rejected.');
     }
@@ -301,8 +344,9 @@ class DashboardController extends Controller
             \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
         }
 
-        // Trigger Real-time Broadcast
-        event(new \App\Events\OrderStatusUpdated($order));
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Order #' . $order->id . ' has been marked as delivered!']);
+        }
 
         return back()->with('success', 'Order #' . $order->id . ' has been marked as delivered!');
     }

@@ -306,4 +306,45 @@ class CartController extends Controller
 
         return view('order-confirmation', compact('order'));
     }
+
+    /**
+     * Poll order status (lightweight JSON endpoint for real-time UI)
+     */
+    public function pollStatus(Order $order)
+    {
+        if ($order->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        return response()->json([
+            'id'     => $order->id,
+            'status' => $order->status,
+            'estimated_prep_time' => $order->estimated_prep_time,
+        ]);
+    }
+
+    /**
+     * Poll multiple order statuses at once (for profile orders history page)
+     */
+    public function batchStatus(Request $request)
+    {
+        $ids = collect(explode(',', $request->input('ids', '')))
+            ->map(fn($id) => (int) trim($id))
+            ->filter()
+            ->unique()
+            ->take(20); // safety cap
+
+        $orders = Order::where('user_id', Auth::id())
+            ->whereIn('id', $ids)
+            ->get(['id', 'status', 'estimated_prep_time']);
+
+        return response()->json(
+            $orders->mapWithKeys(fn($o) => [
+                $o->id => [
+                    'status'              => $o->status,
+                    'estimated_prep_time' => $o->estimated_prep_time,
+                ]
+            ])
+        );
+    }
 }

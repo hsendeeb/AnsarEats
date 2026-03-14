@@ -8,29 +8,7 @@
     <div class="absolute top-1/3 left-1/4 w-10 h-10 bg-emerald-300 rounded-full opacity-15 animate-ping" style="animation-duration: 3s;"></div>
 
     <div class="w-full max-w-2xl relative z-10" 
-         x-data="{ 
-            show: false, 
-            status: '{{ $order->status }}',
-            statusLabel() {
-                return this.status.charAt(0).toUpperCase() + this.status.slice(1);
-            },
-            init() {
-                setTimeout(() => this.show = true, 100);
-                
-                if (window.Echo) {
-                    window.Echo.private('order.{{ $order->id }}')
-                        .listen('OrderStatusUpdated', (e) => {
-                            console.log('Real-time update:', e);
-                            this.status = e.status;
-                            
-                            // Re-fetch prep time if accepted
-                            if (e.status === 'accepted') {
-                                window.location.reload(); // Simple approach for now to catch prep time
-                            }
-                        });
-                }
-            }
-         }" 
+         x-data="orderTracker()" 
          x-init="init()">
         <div 
             x-show="show"
@@ -110,23 +88,58 @@
                     </div>
                 </div>
 
-                @if($order->estimated_prep_time && $order->status === 'accepted')
-                <div class="mb-8 bg-emerald-50 border border-emerald-100 rounded-2xl p-6 flex items-center justify-between shadow-sm animate-pulse" style="animation-duration: 3s;">
-                    <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600 leading-none mb-1">Estimated Prep Time</p>
-                            <p class="text-2xl font-black outfit text-gray-900 leading-tight">{{ $order->estimated_prep_time }} Minutes</p>
-                        </div>
+                @if($order->estimated_prep_time && in_array($order->status, ['accepted','preparing','out_for_delivery']))
+                <div class="mb-6 bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                    <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 flex-shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    <div class="hidden sm:block text-right">
-                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Started at</p>
-                        <p class="font-bold text-gray-900">{{ $order->updated_at->format('h:i A') }}</p>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-0.5">Est. Prep Time</p>
+                        <p class="text-xl font-black outfit text-gray-900">{{ $order->estimated_prep_time }} Minutes</p>
                     </div>
                 </div>
                 @endif
+
+                <!-- Live Order Progress Stepper -->
+                <div class="mb-8">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">Order Progress</p>
+                    <div class="relative flex items-center justify-between">
+                        <!-- Connector line -->
+                        <div class="absolute left-0 right-0 top-5 h-0.5 bg-gray-100 z-0"></div>
+
+                        @php
+                            $steps = [
+                                ['key' => 'pending',          'label' => 'Placed',      'icon' => 'M5 13l4 4L19 7'],
+                                ['key' => 'accepted',         'label' => 'Accepted',    'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+                                ['key' => 'preparing',        'label' => 'Preparing',   'icon' => 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10'],
+                                ['key' => 'out_for_delivery', 'label' => 'On the Way',  'icon' => 'M13 10V3L4 14h7v7l9-11h-7z'],
+                                ['key' => 'delivered',        'label' => 'Delivered',   'icon' => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'],
+                            ];
+                            $allKeys = array_column($steps, 'key');
+                            $currentIndex = array_search($order->status, $allKeys);
+                            if ($currentIndex === false) $currentIndex = 0;
+                        @endphp
+
+                        @foreach($steps as $i => $step)
+                        @php $done = $i <= $currentIndex; $active = $i === $currentIndex; @endphp
+                        <div class="relative z-10 flex flex-col items-center gap-2 flex-1"
+                             :class="{ 'opacity-40': !isStepDone('{{ $step['key'] }}') }">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 shadow-sm"
+                                 :class="isStepActive('{{ $step['key'] }}') 
+                                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/40 scale-110 ring-4 ring-emerald-100' 
+                                    : (isStepDone('{{ $step['key'] }}') ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-300')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="{{ $step['icon'] }}"></path>
+                                </svg>
+                            </div>
+                            <span class="text-[9px] font-black uppercase tracking-wide text-center leading-tight transition-colors duration-300"
+                                  :class="isStepDone('{{ $step['key'] }}') ? 'text-emerald-600' : 'text-gray-300'">
+                                {{ $step['label'] }}
+                            </span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
 
                 <!-- Restaurant -->
                 <div class="flex items-center gap-3 mb-6">
@@ -190,3 +203,80 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function orderTracker() {
+    const ORDER_STEPS = ['pending', 'accepted', 'preparing', 'out_for_delivery', 'delivered'];
+
+    return {
+        show: false,
+        status: '{{ $order->status }}',
+        pollInterval: null,
+        terminalStatuses: ['delivered', 'cancelled'],
+
+        init() {
+            setTimeout(() => this.show = true, 100);
+            if (!this.terminalStatuses.includes(this.status)) {
+                this.startPolling();
+            }
+        },
+
+        startPolling() {
+            this.pollInterval = setInterval(() => this.fetchStatus(), 5000);
+        },
+
+        stopPolling() {
+            if (this.pollInterval) {
+                clearInterval(this.pollInterval);
+                this.pollInterval = null;
+            }
+        },
+
+        async fetchStatus() {
+            try {
+                const res = await fetch('{{ route("order.status", $order->id) }}', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                });
+                if (!res.ok) { this.stopPolling(); return; }
+
+                const data = await res.json();
+                const newStatus = data.status;
+
+                if (newStatus !== this.status) {
+                    this.status = newStatus;
+                    if (newStatus === 'accepted' && data.estimated_prep_time) {
+                        window.location.reload();
+                        return;
+                    }
+                }
+
+                if (this.terminalStatuses.includes(newStatus)) {
+                    this.stopPolling();
+                }
+            } catch (e) {
+                console.warn('Status poll failed:', e);
+            }
+        },
+
+        isStepDone(stepKey) {
+            const currentIdx = ORDER_STEPS.indexOf(this.status);
+            const stepIdx = ORDER_STEPS.indexOf(stepKey);
+            return stepIdx <= currentIdx;
+        },
+
+        isStepActive(stepKey) {
+            return this.status === stepKey;
+        },
+
+        statusLabel() {
+            return this.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        },
+
+        destroy() {
+            this.stopPolling();
+        }
+    };
+}
+</script>
+@endpush

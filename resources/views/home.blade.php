@@ -202,7 +202,7 @@
     </div>
 </div>
 
-<section class="pt-24 pb-20 bg-gray-50 relative z-20">
+<section class="pt-8 pb-20 bg-gray-50 relative z-20">
     <div class="container mx-auto px-4">
 
         <!-- Browse By Category Section -->
@@ -220,16 +220,61 @@
                 $homeCategories = array_filter($homeCategories, fn($c) => $c['slug'] !== 'all');
             @endphp
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 px-4">
-                @foreach($homeCategories as $cat)
-                    <a href="{{ route('browse.index', ['category' => $cat['slug']]) }}"
-                       class="group flex flex-col items-center justify-center gap-3 p-6 rounded-3xl bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:border-emerald-200 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
-                        <div class="w-14 h-14 rounded-2xl bg-gray-50 group-hover:bg-emerald-50 flex items-center justify-center text-3xl transition-colors duration-300 group-hover:scale-110 transform">
-                            {{ $cat['emoji'] }}
-                        </div>
-                        <span class="font-bold text-gray-700 group-hover:text-emerald-600 text-sm transition-colors">{{ $cat['label'] }}</span>
-                    </a>
-                @endforeach
+            <!-- 3D Category Slider -->
+            <div class="relative px-4" x-data="{ initSwiper() {
+                new Swiper('.category-swiper', {
+                    effect: 'coverflow',
+                    grabCursor: true,
+                    centeredSlides: true,
+                    slidesPerView: 'auto',
+                    initialSlide: 2,
+                    coverflowEffect: {
+                        rotate: 5,
+                        stretch: 0,
+                        depth: 100,
+                        modifier: 2.5,
+                        slideShadows: false,
+                    },
+                    loop: true,
+                    autoplay: {
+                        delay: 3000,
+                        disableOnInteraction: false,
+                    },
+                    breakpoints: {
+                        320: { slidesPerView: 2, spaceBetween: 10 },
+                        640: { slidesPerView: 3, spaceBetween: 20 },
+                        1024: { slidesPerView: 5, spaceBetween: 30 }
+                    }
+                });
+            }}" x-init="initSwiper()">
+                <div class="swiper category-swiper !overflow-visible">
+                    <div class="swiper-wrapper">
+                        @foreach($homeCategories as $cat)
+                            <div class="swiper-slide !w-56">
+                                <a href="{{ route('browse.index', ['category' => $cat['slug']]) }}"
+                                   class="group flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] bg-white border border-gray-100 shadow-sm hover:shadow-2xl hover:border-emerald-200 transition-all duration-500 cursor-pointer block text-center">
+                                    <div class="w-20 h-20 rounded-3xl bg-gray-50 group-hover:bg-emerald-500 flex items-center justify-center text-4xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 transform shadow-inner group-hover:shadow-emerald-200">
+                                        {{ $cat['emoji'] }}
+                                    </div>
+                                    <div class="space-y-1">
+                                        <span class="block font-black text-gray-900 group-hover:text-emerald-600 text-base transition-colors">{{ $cat['label'] }}</span>
+                        
+                                    </div>
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                
+                <!-- Custom Navigation (Optional but adds premium feel) -->
+                <div class="hidden lg:flex justify-center gap-4 mt-12">
+                    <div class="p-3 rounded-full bg-white shadow-md border border-gray-100 text-gray-400 hover:text-emerald-500 hover:border-emerald-200 transition-all cursor-pointer transform active:scale-95" onclick="document.querySelector('.category-swiper').swiper.slidePrev()">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                    </div>
+                    <div class="p-3 rounded-full bg-white shadow-md border border-gray-100 text-gray-400 hover:text-emerald-500 hover:border-emerald-200 transition-all cursor-pointer transform active:scale-95" onclick="document.querySelector('.category-swiper').swiper.slideNext()">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -481,7 +481,7 @@
 
         <div class="flex flex-col lg:flex-row gap-10" x-data="{ isStuck: false }" @scroll.window="isStuck = window.pageYOffset > 400">
             <!-- Sidebar / Mobile Tabs Navigation -->
-            <div class="w-screen lg:w-1/4 sticky top-20 lg:top-28 z-[45] bg-white/95 backdrop-blur-md lg:bg-transparent lg:backdrop-blur-none transition-all duration-300 -ml-4 sm:-ml-6 lg:ml-0 px-4 sm:px-6 lg:px-0 border-b border-gray-100 lg:border-none"
+            <div class="w-screen lg:w-1/4 sticky top-20 lg:top-28 z-[45] bg-white/95 backdrop-blur-md lg:bg-transparent lg:backdrop-blur-none transition-all duration-300 -mx-4 sm:-mx-6 lg:mx-0 px-4 sm:px-6 lg:px-0 border-b border-gray-100 lg:border-none"
                  :class="isStuck ? 'shadow-xl shadow-gray-900/5' : 'shadow-none'">
                 <div class="bg-white lg:border border-gray-100 lg:rounded-3xl p-0 lg:p-6 shadow-none transition-all duration-300">
                     <h3 class="hidden lg:block font-black text-2xl outfit text-gray-900 mb-6">Menu</h3>

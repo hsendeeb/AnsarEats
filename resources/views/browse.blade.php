@@ -6,10 +6,6 @@
     <!-- Page Header -->
     <div class="bg-white dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-            <div class="mb-4">
-                <h1 class="text-3xl outfit font-black text-gray-900 tracking-tight">Browse by Category</h1>
-                <p class="text-gray-500 font-medium text-sm mt-1">Explore items from all restaurants by category</p>
-            </div>
 
             <!-- Horizontal Category Pills -->
             <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1"

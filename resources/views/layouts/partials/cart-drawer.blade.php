@@ -1,5 +1,4 @@
-<template x-teleport="body">
-    <div x-data="cartDrawer" @toggle-cart.window="console.log('DRAWER: received toggle-cart event! current open:', open); open = !open; console.log('DRAWER: new open state:', open)" @cart-updated.window="updateFromEvent($event)">
+<div x-data="cartDrawer" @toggle-cart.window="open = !open" @cart-updated.window="updateFromEvent($event)">
         <!-- Overlay -->
         <div x-show="open" 
              x-transition:enter="transition ease-out duration-300" 
@@ -110,4 +109,3 @@
             </template>
         </div>
     </div>
-</template>

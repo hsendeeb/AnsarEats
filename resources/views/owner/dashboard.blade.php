@@ -187,7 +187,7 @@
                 </a>
 
                 <!-- Completed Orders -->
-                <a href="{{ route('owner.orders', ['status' => 'out_for_delivery']) }}" class="block bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-blue-500/10 transition-all text-left cursor-pointer relative overflow-hidden">
+                <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" class="block bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-blue-500/10 transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -1214,22 +1214,27 @@
                     });
                 });
 
-                // Bar Chart
+                // Orders Line Chart
                 const barCanvas = document.getElementById('barChart');
                 if (barCanvas) {
                     const barCtx = barCanvas.getContext('2d');
                     const barChart = new Chart(barCtx, {
-                        type: 'bar',
+                        type: 'line',
                         data: {
                             labels: stats.chart_data.bar.labels,
                             datasets: [{
                                 label: 'Orders',
                                 data: stats.chart_data.bar.data,
-                                backgroundColor: 'rgba(79, 70, 229, 0.2)',
                                 borderColor: 'rgb(79, 70, 229)',
-                                borderWidth: 2,
-                                borderRadius: 8,
-                                barThickness: 20
+                                backgroundColor: 'rgba(79, 70, 229, 0.12)',
+                                borderWidth: 3,
+                                tension: 0.35,
+                                fill: true,
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                pointBackgroundColor: 'rgb(79, 70, 229)',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2
                             }]
                         },
                         options: {

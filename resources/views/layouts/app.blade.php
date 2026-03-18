@@ -625,10 +625,10 @@
                 </div>
             </div>
         </template>
-        @include('layouts.partials.cart-drawer')
-        @include('layouts.partials.toast-notification')
     </nav>
 
+    @include('layouts.partials.cart-drawer')
+    @include('layouts.partials.toast-notification')
 
 
     <!-- Main Content -->

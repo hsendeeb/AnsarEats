@@ -221,7 +221,7 @@
             @endphp
 
             <!-- 3D Category Slider -->
-            <div class="relative px-4" x-data="{ initSwiper() {
+            <div class="relative px-4 overflow-x-hidden" x-data="{ initSwiper() {
                 new Swiper('.category-swiper', {
                     effect: 'coverflow',
                     grabCursor: true,
@@ -247,10 +247,10 @@
                     }
                 });
             }}" x-init="initSwiper()">
-                <div class="swiper category-swiper !overflow-visible">
+                <div class="swiper category-swiper !overflow-hidden md:!overflow-visible">
                     <div class="swiper-wrapper">
                         @foreach($homeCategories as $cat)
-                            <div class="swiper-slide !w-56">
+                            <div class="swiper-slide !w-40 sm:!w-48 lg:!w-56">
                                 <a href="{{ route('browse.index', ['category' => $cat['slug']]) }}"
                                    class="group flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] bg-white border border-gray-100 shadow-sm hover:shadow-2xl hover:border-emerald-200 transition-all duration-500 cursor-pointer block text-center">
                                     <div class="w-20 h-20 rounded-3xl bg-gray-50 group-hover:bg-emerald-500 flex items-center justify-center text-4xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 transform shadow-inner group-hover:shadow-emerald-200">

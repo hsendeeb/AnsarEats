@@ -32,7 +32,15 @@
                         @csrf
 
                         <div class="group">
-                            <label for="delivery_address" class="block text-sm font-bold text-gray-700 mb-2">Delivery Address</label>
+                            <div class="flex items-center justify-between gap-3 mb-2">
+                                <label for="delivery_address" class="block text-sm font-bold text-gray-700">Delivery Address</label>
+                                <button type="button" id="useCurrentLocation"
+                                    class="text-xs font-black text-indigo-600 hover:text-indigo-500 flex items-center gap-1 transition-all">
+                                    <svg id="useCurrentLocationIdleIcon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    <svg id="useCurrentLocationLoadingIcon" class="w-3.5 h-3.5 animate-spin hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                    <span id="useCurrentLocationLabel">Use Current Location</span>
+                                </button>
+                            </div>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-emerald-500 transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
@@ -41,6 +49,7 @@
                                     class="block w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
                                     placeholder="Hamra Street, Building 42, 3rd Floor">
                             </div>
+                            <p id="locationHelp" class="text-[11px] font-medium text-gray-400 mt-2">Tip: Using current location will fill coordinates; you can edit to add details.</p>
                             @error('delivery_address')
                                 <p class="text-red-500 text-sm mt-2 font-bold">{{ $message }}</p>
                             @enderror
@@ -185,4 +194,74 @@
         </div>
     </div>
 </div>
+<script>
+    (function() {
+        function initUseLocation() {
+            const btn = document.getElementById('useCurrentLocation');
+            const input = document.getElementById('delivery_address');
+            const help = document.getElementById('locationHelp');
+            const idleIcon = document.getElementById('useCurrentLocationIdleIcon');
+            const loadingIcon = document.getElementById('useCurrentLocationLoadingIcon');
+            const label = document.getElementById('useCurrentLocationLabel');
+            if (!btn || !input) return;
+
+            btn.addEventListener('click', () => {
+                if (!window.isSecureContext) {
+                    if (help) help.textContent = 'Location requires HTTPS or localhost.';
+                    return;
+                }
+            if (!navigator.geolocation) {
+                if (help) help.textContent = 'Geolocation is not supported by your browser.';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.classList.add('opacity-60');
+            if (idleIcon) idleIcon.classList.add('hidden');
+            if (loadingIcon) loadingIcon.classList.remove('hidden');
+            if (label) label.textContent = 'Locating...';
+            if (help) help.textContent = 'Getting your current location...';
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const lat = pos.coords.latitude.toFixed(6);
+                const lng = pos.coords.longitude.toFixed(6);
+
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+                    const data = await res.json();
+                    if (data && data.display_name) {
+                        input.value = data.display_name;
+                        if (help) help.textContent = 'Location added. You can edit the address details.';
+                    } else {
+                        input.value = `${lat}, ${lng}`;
+                        if (help) help.textContent = 'Location added as coordinates. You can add details.';
+                    }
+                } catch (e) {
+                    input.value = `${lat}, ${lng}`;
+                    if (help) help.textContent = 'Location added as coordinates. You can add details.';
+                }
+
+                btn.disabled = false;
+                btn.classList.remove('opacity-60');
+                if (idleIcon) idleIcon.classList.remove('hidden');
+                if (loadingIcon) loadingIcon.classList.add('hidden');
+                if (label) label.textContent = 'Use Current Location';
+            }, () => {
+                if (help) help.textContent = 'Unable to get location. Please type it manually.';
+                btn.disabled = false;
+                btn.classList.remove('opacity-60');
+                if (idleIcon) idleIcon.classList.remove('hidden');
+                if (loadingIcon) loadingIcon.classList.add('hidden');
+                if (label) label.textContent = 'Use Current Location';
+            }, { enableHighAccuracy: true, timeout: 10000 });
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initUseLocation);
+        } else {
+            initUseLocation();
+        }
+    })();
+</script>
 @endsection

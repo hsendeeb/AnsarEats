@@ -11,7 +11,7 @@
         </div>
 
 <!-- Orders Management -->
-            <div class="mb-16" id="orders" x-data="ordersFilter()" x-init="init()">
+            <div class="mb-16 relative overflow-visible" id="orders" x-data="ordersFilter()" x-init="init()">
 
                 <!-- New Order Notification Banner -->
                 <div
@@ -55,7 +55,7 @@
                         <p class="text-gray-500 font-medium mt-1">Manage and track your restaurant's orders in real-time.</p>
                     </div>
                     
-                    <div class="flex flex-wrap items-center gap-2" id="orders-filters">
+                    <div class="flex flex-wrap items-center gap-2 relative z-30 overflow-visible w-full md:w-auto" id="orders-filters">
                         {{-- Status pills --}}
                         <a href="{{ route('owner.orders', ['status' => 'pending']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">Pending</a>
                         <a href="{{ route('owner.orders', ['status' => 'accepted']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'accepted' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">Accepted</a>
@@ -71,7 +71,7 @@
                             elseif (request('sort') === 'total') $activeFilterLabel = 'Highest Amount';
                         @endphp
 
-                        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                        <div class="relative z-40" x-data="{ open: false }" @click.outside="open = false">
                             <button @click="open = !open" type="button"
                                 class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all
                                 {{ $activeFilterLabel ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
@@ -88,7 +88,7 @@
                                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                                  x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
                                  x-cloak
-                                 class="absolute right-0 mt-2 w-52 bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 py-2 z-50 overflow-hidden">
+                                 class="absolute left-0 sm:left-auto sm:right-0 mt-2 w-56 max-w-[90vw] bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 py-2 z-50 overflow-hidden">
 
                                 <p class="px-4 pt-2 pb-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date Range</p>
                                 <a href="{{ route('owner.orders', ['filter' => 'day']) }}" @click.prevent="applyFilter($el.href); open = false"
@@ -151,11 +151,13 @@
                                     <div class="flex flex-col lg:flex-row justify-between gap-6">
                                         <div class="flex flex-col sm:flex-row gap-5">
                                             <!-- Order Status Icon -->
-                                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 {{ $order->status === 'pending' ? 'bg-amber-100 text-amber-500' : ($order->status === 'accepted' ? 'bg-emerald-100 text-emerald-500' : ($order->status === 'delivered' ? 'bg-blue-100 text-blue-500' : 'bg-gray-100 text-gray-400')) }}">
+                                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 {{ $order->status === 'pending' ? 'bg-amber-100 text-amber-500' : ($order->status === 'accepted' ? 'bg-emerald-100 text-emerald-500' : (in_array($order->status, ['preparing', 'out_for_delivery']) ? 'bg-indigo-100 text-indigo-500' : ($order->status === 'delivered' ? 'bg-blue-100 text-blue-500' : 'bg-gray-100 text-gray-400'))) }}">
                                                 @if($order->status === 'pending')
                                                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                                 @elseif($order->status === 'accepted')
                                                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                @elseif(in_array($order->status, ['preparing', 'out_for_delivery']))
+                                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                                                 @elseif($order->status === 'delivered')
                                                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                                 @else
@@ -165,9 +167,12 @@
 
                                             <div class="flex-1">
                                                 <div class="flex items-center gap-3 mb-1">
+                                                    @php
+                                                        $statusLabel = $order->status === 'out_for_delivery' ? 'preparing' : $order->status;
+                                                    @endphp
                                                     <h4 class="text-xl font-black outfit text-gray-900">Order #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</h4>
-                                                    <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest {{ $order->status === 'pending' ? 'bg-amber-100 text-amber-600' : ($order->status === 'accepted' ? 'bg-emerald-100 text-emerald-600' : ($order->status === 'delivered' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600')) }}">
-                                                        {{ $order->status }}
+                                                    <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest {{ $order->status === 'pending' ? 'bg-amber-100 text-amber-600' : ($order->status === 'accepted' ? 'bg-emerald-100 text-emerald-600' : (in_array($order->status, ['preparing', 'out_for_delivery']) ? 'bg-indigo-100 text-indigo-600' : ($order->status === 'delivered' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'))) }}">
+                                                        {{ $statusLabel }}
                                                     </span>
                                                 </div>
                                                 <div class="flex items-center gap-4 mb-4">
@@ -197,9 +202,23 @@
                                                     </div>
                                                     <div class="flex items-center gap-2">
                                                         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                                        <span class="text-xs font-bold text-gray-600 truncate max-w-[150px]">{{ $order->delivery_address }}</span>
+                                                        <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($order->delivery_address) }}" target="_blank" rel="noopener"
+                                                           class="text-xs font-bold text-emerald-600 hover:text-emerald-500 underline decoration-emerald-200 underline-offset-2 truncate max-w-[150px]">
+                                                            {{ $order->delivery_address }}
+                                                        </a>
                                                     </div>
                                                 </div>
+                                                @if($order->notes)
+                                                    <div class="mt-3 flex items-start gap-3 rounded-2xl bg-amber-50 border border-amber-100 px-3 py-2">
+                                                        <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                        </div>
+                                                        <div>
+                                                            <p class="text-[10px] font-black uppercase tracking-widest text-amber-600">Special Instructions</p>
+                                                            <p class="text-xs font-medium text-gray-700">{{ $order->notes }}</p>
+                                                        </div>
+                                                    </div>
+                                                @endif
                                             </div>
                                         </div>
 
@@ -245,17 +264,7 @@
                                                         </button>
                                                     </form>
                                                 </div>
-                                            @elseif($order->status === 'preparing')
-                                                <div class="flex items-center gap-2">
-                                                    <form method="POST" action="{{ route('owner.order.out-for-delivery', $order) }}" class="order-status-form">
-                                                        @csrf
-                                                        <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-2 px-6 rounded-xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-2 text-sm">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                                                            Out for Delivery
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            @elseif($order->status === 'out_for_delivery')
+                                            @elseif(in_array($order->status, ['preparing', 'out_for_delivery']))
                                                 <div class="flex items-center gap-2">
                                                     <form method="POST" action="{{ route('owner.order.deliver', $order) }}" class="order-status-form">
                                                         @csrf

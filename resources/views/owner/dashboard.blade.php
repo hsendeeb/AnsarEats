@@ -33,8 +33,15 @@
         } finally {
             this.togglingStatus = false;
         }
+    },
+    hasOpenModal() {
+        return this.showRestaurantModal
+            || this.showCategoryModal
+            || this.showEditCategoryModal
+            || this.showMenuItemModal
+            || this.showEditMenuItemModal;
     }
-}">
+}" x-effect="document.documentElement.classList.toggle('modal-open', hasOpenModal()); document.body.classList.toggle('modal-open', hasOpenModal());">
 
     <div class="max-w-7xl mx-auto">
         <!-- Welcome Banner -->
@@ -46,17 +53,17 @@
             <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
                     <h1 class="text-4xl md:text-5xl font-black outfit tracking-tight leading-tight">
-                        Hey, {{ Auth::user()->name }}! 
+                        {{ $restaurant ? $restaurant->name : Auth::user()->name }}
                     </h1>
                     <p class="mt-3 text-purple-200 font-medium text-lg max-w-lg">
                         Manage your restaurant, categories, and menu items from this dashboard.
                     </p>
                 </div>
                 
-                <div class="flex items-center gap-4">
+                <div class="flex flex-col lg:flex-row lg:items-center gap-4 w-full lg:w-auto">
                     @if($restaurant)
                     <div class="flex-shrink-0">
-                        <button type="button" @click="toggleRestaurantStatus()" :disabled="togglingStatus" class="group flex items-center gap-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 px-5 rounded-2xl transition-all shadow-lg backdrop-blur-sm disabled:opacity-50">
+                        <button type="button" @click="toggleRestaurantStatus()" :disabled="togglingStatus" class="group w-full lg:w-auto flex items-center gap-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 px-5 rounded-2xl transition-all shadow-lg backdrop-blur-sm disabled:opacity-50">
                             <div class="relative w-12 h-6 rounded-full transition-colors" :class="isRestaurantOpen ? 'bg-emerald-500' : 'bg-gray-400'">
                                 <div class="absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform" :class="isRestaurantOpen ? 'translate-x-6' : ''"></div>
                             </div>
@@ -65,7 +72,7 @@
                     </div>
                     @endif
 
-                    <button @click="showRestaurantModal = true" class="flex-shrink-0 bg-white/20 backdrop-blur-sm hover:bg-white/30 border border-white/30 text-white font-bold py-3 px-6 rounded-2xl transition-all transform hover:-translate-y-0.5 active:scale-95 shadow-lg flex items-center gap-2">
+                    <button @click="showRestaurantModal = true" class="flex-shrink-0 w-full lg:w-auto bg-white/20 backdrop-blur-sm hover:bg-white/30 border border-white/30 text-white font-bold py-3 px-6 rounded-2xl transition-all transform hover:-translate-y-0.5 active:scale-95 shadow-lg flex items-center justify-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         {{ $restaurant ? 'Edit Restaurant' : 'Create Restaurant' }}
                     </button>
@@ -89,10 +96,30 @@
                 </button>
             </div>
         @else
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-3 mb-10">
+                <button @click="showCategoryModal = true" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-95">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                    Add Category
+                </button>
+                
+                @if($restaurant->menuCategories->count() > 0)
+                <button @click="showMenuItemModal = true" class="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-white font-bold rounded-2xl shadow-lg shadow-amber-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-95">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                    Add Menu Item
+                </button>
+                @endif
+                
+                <a href="{{ route('restaurant.show', $restaurant) }}" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 hover:border-emerald-500 text-gray-700 hover:text-emerald-600 font-bold rounded-2xl transition-all transform hover:-translate-y-0.5 active:scale-95">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    View Public Page
+                </a>
+            </div>
+
             <!-- Analytics Overview -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
                 <!-- Total Revenue -->
-                <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-emerald-500/10 transition-all">
+                <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-emerald-500/10 transition-all relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zM12 4v16m8-8H4"></path></svg>
@@ -103,10 +130,13 @@
                         <p class="text-sm font-bold text-gray-400">Total Revenue</p>
                         <p class="text-2xl lg:text-3xl font-black text-gray-900 outfit">${{ number_format($stats['total_revenue'], 2) }}</p>
                     </div>
+                    <div class="absolute bottom-4 right-4 w-24 h-12">
+                        <canvas class="sparkline" data-color="#10b981" data-sparkline='@json($stats["sparklines"]["revenue"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
+                    </div>
                 </div>
 
                 <!-- Avg Order Value -->
-                <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-teal-500/10 transition-all">
+                <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-teal-500/10 transition-all relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-teal-100 rounded-2xl flex items-center justify-center text-teal-500 group-hover:scale-110 transition-transform">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
@@ -117,10 +147,13 @@
                         <p class="text-sm font-bold text-gray-400">Avg. Order</p>
                         <p class="text-2xl lg:text-3xl font-black text-gray-900 outfit">${{ number_format($stats['avg_order_value'], 2) }}</p>
                     </div>
+                    <div class="absolute bottom-4 right-4 w-24 h-12">
+                        <canvas class="sparkline" data-color="#14b8a6" data-sparkline='@json($stats["sparklines"]["avg_order_value"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
+                    </div>
                 </div>
 
                 <!-- Total Orders -->
-                <a href="{{ route('owner.orders') }}" class="block bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-indigo-500/10 transition-all text-left cursor-pointer">
+                <a href="{{ route('owner.orders') }}" class="block bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-indigo-500/10 transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
@@ -131,10 +164,13 @@
                         <p class="text-sm font-bold text-gray-400">Total Orders</p>
                         <p class="text-2xl lg:text-3xl font-black text-gray-900 outfit">{{ $stats['total_orders'] }}</p>
                     </div>
+                    <div class="absolute bottom-4 right-4 w-24 h-12">
+                        <canvas class="sparkline" data-color="#6366f1" data-sparkline='@json($stats["sparklines"]["total_orders"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
+                    </div>
                 </a>
 
                 <!-- Pending Orders -->
-                <a href="{{ route('owner.orders', ['status' => 'pending']) }}" class="block bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-amber-500/10 transition-all text-left cursor-pointer">
+                <a href="{{ route('owner.orders', ['status' => 'pending']) }}" class="block bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-amber-500/10 transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -145,10 +181,13 @@
                         <p class="text-sm font-bold text-gray-400">Pending</p>
                         <p class="text-2xl lg:text-3xl font-black text-gray-900 outfit">{{ $stats['pending_orders'] }}</p>
                     </div>
+                    <div class="absolute bottom-4 right-4 w-24 h-12">
+                        <canvas class="sparkline" data-color="#f59e0b" data-sparkline='@json($stats["sparklines"]["pending_orders"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
+                    </div>
                 </a>
 
                 <!-- Completed Orders -->
-                <a href="{{ route('owner.orders', ['status' => 'out_for_delivery']) }}" class="block bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-blue-500/10 transition-all text-left cursor-pointer">
+                <a href="{{ route('owner.orders', ['status' => 'out_for_delivery']) }}" class="block bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-blue-500/10 transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -158,6 +197,9 @@
                     <div>
                         <p class="text-sm font-bold text-gray-400">Completed</p>
                         <p class="text-2xl lg:text-3xl font-black text-gray-900 outfit">{{ $stats['completed_orders'] }}</p>
+                    </div>
+                    <div class="absolute bottom-4 right-4 w-24 h-12">
+                        <canvas class="sparkline" data-color="#3b82f6" data-sparkline='@json($stats["sparklines"]["completed_orders"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
                     </div>
                 </a>
             </div>
@@ -232,28 +274,8 @@
                 </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="flex flex-wrap gap-3 mb-10">
-                <button @click="showCategoryModal = true" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-95">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-                    Add Category
-                </button>
-                
-                @if($restaurant->menuCategories->count() > 0)
-                <button @click="showMenuItemModal = true" class="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-white font-bold rounded-2xl shadow-lg shadow-amber-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-95">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-                    Add Menu Item
-                </button>
-                @endif
-                
-                <a href="{{ route('restaurant.show', $restaurant) }}" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 hover:border-emerald-500 text-gray-700 hover:text-emerald-600 font-bold rounded-2xl transition-all transform hover:-translate-y-0.5 active:scale-95">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                    View Public Page
-                </a>
-            </div>
-
             <!-- Orders Management Link -->
-            <div class="mb-16 bg-white rounded-3xl border border-gray-100 shadow-sm p-8 flex items-center justify-between">
+            <div class="mb-16 bg-white rounded-3xl border border-gray-100 shadow-sm p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h3 class="text-2xl font-black outfit text-gray-900 flex items-center gap-3">
                         <span class="w-2 h-8 bg-emerald-500 rounded-full"></span>
@@ -261,7 +283,7 @@
                     </h3>
                     <p class="text-gray-500 font-medium mt-1">Manage and track your restaurant's orders in real-time.</p>
                 </div>
-                <a href="{{ route('owner.orders') }}" class="inline-flex items-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95">
+                <a href="{{ route('owner.orders') }}" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 w-full sm:w-auto">
                     View Orders
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                 </a>
@@ -329,7 +351,7 @@
                                             <span class="font-black text-emerald-500 text-lg">${{ number_format($item->price, 2) }}</span>
                                         </div>
                                         
-                                        <div class="flex items-center gap-2 flex-shrink-0">
+                                        <div class="hidden sm:flex items-center gap-2 flex-shrink-0">
                                             <button @click="editingMenuItem = { 
                                                 id: {{ $item->id }}, 
                                                 name: '{{ addslashes($item->name) }}', 
@@ -392,6 +414,86 @@
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                 </button>
                                             </form>
+                                        </div>
+
+                                        <!-- Mobile Actions Dropdown -->
+                                        <div class="sm:hidden flex items-center flex-shrink-0" x-data="{ open: false }">
+                                            <button type="button" @click="open = !open" @click.away="open = false" class="w-10 h-10 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 flex items-center justify-center transition-colors" title="More actions" aria-label="More actions">
+                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                                </svg>
+                                            </button>
+
+                                            <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95 translate-y-1" x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 translate-y-1" class="absolute right-4 mt-12 w-48 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden z-20">
+                                                <button type="button" @click="editingMenuItem = { 
+                                                    id: {{ $item->id }}, 
+                                                    name: '{{ addslashes($item->name) }}', 
+                                                    description: '{{ addslashes($item->description ?? '') }}', 
+                                                    price: {{ $item->price }}, 
+                                                    category_id: {{ $item->menu_category_id }},
+                                                    image_url: '{{ $item->image ? Storage::url($item->image) : '' }}',
+                                                    variants: {{ Js::from($item->variants) }},
+                                                    variant_type: {{ Js::from($item->variants['type'] ?? '') }}
+                                                }; showEditMenuItemModal = true; open = false" class="w-full px-4 py-3 text-left text-sm font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center gap-2">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                    Edit Item
+                                                </button>
+
+                                                <form method="POST" action="{{ route('owner.menu-item.toggle', $item) }}" class="w-full">
+                                                    @csrf
+                                                    <button type="submit" @click="open = false" class="w-full px-4 py-3 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors flex items-center gap-2">
+                                                        @if($item->is_available)
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                            Mark Unavailable
+                                                        @else
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                                            Mark Available
+                                                        @endif
+                                                    </button>
+                                                </form>
+
+                                                <div class="px-4 py-3 text-left text-sm font-bold text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors flex items-center gap-2 cursor-pointer"
+                                                     x-data="{ 
+                                                        isFeatured: {{ $item->is_featured ? 'true' : 'false' }},
+                                                        loading: false,
+                                                        async toggleFeatured() {
+                                                            if (this.loading) return;
+                                                            this.loading = true;
+                                                            try {
+                                                                const res = await fetch('{{ route('owner.menu-item.toggle-featured', $item) }}', {
+                                                                    method: 'POST',
+                                                                    headers: {
+                                                                        'X-Requested-With': 'XMLHttpRequest',
+                                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                                                    }
+                                                                });
+                                                                const data = await res.json();
+                                                                if (data.success) {
+                                                                    this.isFeatured = data.is_featured;
+                                                                    window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: data.message } }));
+                                                                    open = false;
+                                                                }
+                                                            } catch (e) {
+                                                                console.error('Featured toggle failed', e);
+                                                            } finally {
+                                                                this.loading = false;
+                                                            }
+                                                        }
+                                                     }"
+                                                     @click="toggleFeatured()">
+                                                    <svg class="w-4 h-4" :fill="isFeatured ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                                                    <span x-text="isFeatured ? 'Remove Featured' : 'Mark Featured'"></span>
+                                                </div>
+
+                                                <form method="POST" action="{{ route('owner.menu-item.destroy', $item) }}" class="w-full">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" onclick="return confirm('Delete this item?')" @click="open = false" class="w-full px-4 py-3 text-left text-sm font-bold text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                        Delete Item
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
                                 @empty
@@ -482,8 +584,8 @@
     {{-- ============================= --}}
     {{-- MODAL: Create / Edit Restaurant --}}
     {{-- ============================= --}}
-    <div x-show="showRestaurantModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 sm:pt-16 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
-        <div @click.outside="showRestaurantModal = false" x-show="showRestaurantModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div x-show="showRestaurantModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[12000] flex items-start md:items-center justify-center px-4 pt-[calc(env(safe-area-inset-top)+5rem)] md:pt-8 pb-4 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
+        <div @click.outside="showRestaurantModal = false" x-show="showRestaurantModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">{{ $restaurant ? 'Edit Restaurant' : 'Create Restaurant' }}</h3>
@@ -623,14 +725,14 @@
                             $hours = $restaurant->operating_hours ?? [];
                         @endphp
                         @foreach($days as $day)
-                            <div class="flex items-center justify-between gap-4" x-data="{ closed: {{ ($hours[$day]['closed'] ?? false) ? 'true' : 'false' }} }">
-                                <span class="w-20 text-xs font-black uppercase tracking-widest text-gray-500">{{ $day }}</span>
-                                <div class="flex items-center gap-2 flex-1">
-                                    <input type="time" name="operating_hours[{{ $day }}][open]" value="{{ $hours[$day]['open'] ?? '08:00' }}" :disabled="closed" class="flex-1 text-xs border-0 bg-white rounded-lg focus:ring-indigo-500 disabled:opacity-40 font-bold">
-                                    <span class="text-gray-300 font-black">/</span>
-                                    <input type="time" name="operating_hours[{{ $day }}][close]" value="{{ $hours[$day]['close'] ?? '22:00' }}" :disabled="closed" class="flex-1 text-xs border-0 bg-white rounded-lg focus:ring-indigo-500 disabled:opacity-40 font-bold">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" x-data="{ closed: {{ ($hours[$day]['closed'] ?? false) ? 'true' : 'false' }} }">
+                                <span class="w-full sm:w-20 text-xs font-black uppercase tracking-widest text-gray-500">{{ $day }}</span>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:flex-1 min-w-0">
+                                    <input type="time" name="operating_hours[{{ $day }}][open]" value="{{ $hours[$day]['open'] ?? '08:00' }}" :disabled="closed" class="w-full sm:flex-1 text-xs border-0 bg-white rounded-lg focus:ring-indigo-500 disabled:opacity-40 font-bold">
+                                    <span class="text-gray-300 font-black hidden sm:inline">/</span>
+                                    <input type="time" name="operating_hours[{{ $day }}][close]" value="{{ $hours[$day]['close'] ?? '22:00' }}" :disabled="closed" class="w-full sm:flex-1 text-xs border-0 bg-white rounded-lg focus:ring-indigo-500 disabled:opacity-40 font-bold">
                                 </div>
-                                <label class="flex items-center gap-2 cursor-pointer group">
+                                <label class="flex items-center gap-2 cursor-pointer group self-start sm:self-auto">
                                     <input type="hidden" name="operating_hours[{{ $day }}][closed]" value="0">
                                     <input type="checkbox" name="operating_hours[{{ $day }}][closed]" value="1" x-model="closed" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                                     <span class="text-[10px] font-black uppercase tracking-tighter text-gray-400 group-hover:text-gray-600">Closed</span>
@@ -658,8 +760,8 @@
     {{-- ============================= --}}
     {{-- MODAL: Add Category --}}
     {{-- ============================= --}}
-    <div x-show="showCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 sm:pt-16 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
-        <div @click.outside="showCategoryModal = false" x-show="showCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div x-show="showCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[12000] flex items-start md:items-center justify-center px-4 pt-[calc(env(safe-area-inset-top)+5rem)] md:pt-8 pb-4 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
+        <div @click.outside="showCategoryModal = false" x-show="showCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-600 to-blue-600 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Add Category</h3>
@@ -685,8 +787,8 @@
     {{-- ============================= --}}
     {{-- MODAL: Add Menu Item --}}
     {{-- ============================= --}}
-    <div x-show="showMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 sm:pt-16 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
-        <div @click.outside="showMenuItemModal = false" x-show="showMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div x-show="showMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[12000] flex items-start md:items-center justify-center px-4 pt-[calc(env(safe-area-inset-top)+5rem)] md:pt-8 pb-4 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
+        <div @click.outside="showMenuItemModal = false" x-show="showMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
             <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Add Menu Item</h3>
@@ -863,8 +965,8 @@
     {{-- ============================= --}}
     {{-- MODAL: Edit Category --}}
     {{-- ============================= --}}
-    <div x-show="showEditCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 sm:pt-16 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
-        <div @click.outside="showEditCategoryModal = false" x-show="showEditCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div x-show="showEditCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[12000] flex items-start md:items-center justify-center px-4 pt-[calc(env(safe-area-inset-top)+5rem)] md:pt-8 pb-4 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
+        <div @click.outside="showEditCategoryModal = false" x-show="showEditCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-700 to-blue-700 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Edit Category</h3>
@@ -891,8 +993,8 @@
     {{-- ============================= --}}
     {{-- MODAL: Edit Menu Item --}}
     {{-- ============================= --}}
-    <div x-show="showEditMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 sm:pt-16 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
-        <div @click.outside="showEditMenuItemModal = false" x-show="showEditMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div x-show="showEditMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[12000] flex items-start md:items-center justify-center px-4 pt-[calc(env(safe-area-inset-top)+5rem)] md:pt-8 pb-4 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
+        <div @click.outside="showEditMenuItemModal = false" x-show="showEditMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-500 to-blue-500 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Edit Menu Item</h3>
@@ -1065,6 +1167,53 @@
             const stats = @json($stats);
 
             function initDashboard() {
+                // Sparklines for metric cards
+                const sparkCanvases = Array.from(document.querySelectorAll('.sparkline'));
+                sparkCanvases.forEach((canvas) => {
+                    const raw = canvas.getAttribute('data-sparkline');
+                    const color = canvas.getAttribute('data-color') || '#10b981';
+                    let series = [];
+                    try {
+                        series = raw ? JSON.parse(raw) : [];
+                    } catch (e) {
+                        series = [];
+                    }
+
+                    if (!Array.isArray(series) || series.length === 0) return;
+
+                    const ctx = canvas.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: series.map((_, i) => i + 1),
+                            datasets: [{
+                                data: series,
+                                borderColor: color,
+                                backgroundColor: color + '22',
+                                borderWidth: 2,
+                                pointRadius: 0,
+                                tension: 0.35,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { enabled: false }
+                            },
+                            scales: {
+                                x: { display: false },
+                                y: { display: false }
+                            },
+                            elements: {
+                                line: { capBezierPoints: true }
+                            }
+                        }
+                    });
+                });
+
                 // Bar Chart
                 const barCanvas = document.getElementById('barChart');
                 if (barCanvas) {

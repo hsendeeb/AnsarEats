@@ -144,6 +144,14 @@
         /* Utilities */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Prevent background scroll when any modal is open */
+        html.modal-open,
+        body.modal-open {
+            overflow: hidden !important;
+            overscroll-behavior: none;
+            touch-action: none;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col text-gray-800 bg-gray-50 dark:bg-gray-900 overflow-x-hidden relative page-loading transition-theme">
@@ -160,7 +168,7 @@
     </div>
     
     <!-- Navigation -->
-    <nav x-data="{ mobileMenuOpen: false }" class="bg-white/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm border-b border-gray-100">
+    <nav x-data="{ mobileMenuOpen: false }" x-effect="document.documentElement.classList.toggle('overflow-hidden', mobileMenuOpen); document.body.classList.toggle('overflow-hidden', mobileMenuOpen);" class="bg-white/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20">
                 <div class="flex items-center">
@@ -391,7 +399,7 @@
 
         <!-- Mobile Menu Drawer Sidebar -->
         <template x-teleport="body">
-            <div x-show="mobileMenuOpen" x-cloak class="fixed inset-0 z-[100]">
+            <div x-show="mobileMenuOpen" x-cloak class="fixed inset-0 z-[100] overflow-hidden">
                 <!-- Overlay -->
                 <div x-show="mobileMenuOpen" 
                      x-transition:enter="transition ease-out duration-300"
@@ -528,7 +536,17 @@
                             </div>
                         </div>
                     </div>
-                    <div class="flex-1 overflow-y-auto p-6 space-y-2">
+
+                    <!-- Quick Actions -->
+                    <div class="px-6 py-4 border-b border-gray-100">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Quick Actions</p>
+                        <button @click="$dispatch('toggle-cart'); mobileMenuOpen = false" class="w-full py-4 bg-emerald-500 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            View Cart
+                        </button>
+                    </div>
+
+                    <div class="overflow-y-auto max-h-[calc(100vh-320px)] p-6 space-y-2">
                         <a href="{{ url('/') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
                             <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
@@ -604,14 +622,6 @@
                         </div>
                     </div>
 
-                    <!-- Footer -->
-                    <div class="p-6 bg-gray-50 text-center">
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Quick Actions</p>
-                        <button @click="$dispatch('toggle-cart'); mobileMenuOpen = false" class="w-full py-4 bg-emerald-500 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                            View Cart
-                        </button>
-                    </div>
                 </div>
             </div>
         </template>

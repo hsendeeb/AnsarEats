@@ -136,6 +136,42 @@ class DashboardController extends Controller
             $stats['chart_data']['pie']['labels'] = $statusCounts->keys()->map(fn($s) => ucfirst($s))->toArray();
             $stats['chart_data']['pie']['data'] = $statusCounts->values()->toArray();
 
+            // Sparklines (last 14 days)
+            $sparkDays = 14;
+            $sparkStart = now()->subDays($sparkDays - 1)->startOfDay();
+            $sparkEnd = now()->endOfDay();
+            $ordersRecent = Order::where('restaurant_id', '=', $restaurant->id)
+                ->whereBetween('created_at', [$sparkStart, $sparkEnd])
+                ->get(['created_at', 'status', 'total']);
+
+            $ordersByDate = $ordersRecent->groupBy(fn($o) => Carbon::parse($o->created_at)->format('Y-m-d'));
+            $sparkDates = collect(range(0, $sparkDays - 1))
+                ->map(fn($i) => now()->subDays($sparkDays - 1 - $i)->format('Y-m-d'));
+
+            $sparkline = [
+                'total_orders' => [],
+                'pending_orders' => [],
+                'completed_orders' => [],
+                'revenue' => [],
+                'avg_order_value' => [],
+            ];
+
+            foreach ($sparkDates as $date) {
+                $dayOrders = $ordersByDate[$date] ?? collect();
+                $dayTotalOrders = $dayOrders->count();
+                $dayRevenue = $dayOrders->where('status', '!=', 'cancelled')->sum('total');
+                $dayPending = $dayOrders->where('status', 'pending')->count();
+                $dayCompleted = $dayOrders->where('status', 'delivered')->count();
+
+                $sparkline['total_orders'][] = $dayTotalOrders;
+                $sparkline['pending_orders'][] = $dayPending;
+                $sparkline['completed_orders'][] = $dayCompleted;
+                $sparkline['revenue'][] = (float) $dayRevenue;
+                $sparkline['avg_order_value'][] = $dayTotalOrders > 0 ? (float) ($dayRevenue / $dayTotalOrders) : 0.0;
+            }
+
+            $stats['sparklines'] = $sparkline;
+
             // Top Selling Items
             $stats['top_items'] = \App\Models\OrderItem::whereHas('order', function($query) use ($restaurant) {
                     $query->where('restaurant_id', $restaurant->id);

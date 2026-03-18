@@ -95,7 +95,7 @@
                              class="absolute left-0 right-0 mt-3 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-[100]"
                              x-cloak>
                             
-                            <div class="max-h-[60vh] md:max-h-[450px] overflow-y-auto overscroll-contain pb-4">
+                            <div class="h-80 md:h-96 overflow-y-scroll overscroll-contain no-scrollbar pb-4" style="-webkit-overflow-scrolling: touch; touch-action: pan-y;">
                                 <!-- Restaurants Section -->
                             <template x-if="results.restaurants.length > 0">
                                 <div>

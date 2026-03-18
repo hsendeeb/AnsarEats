@@ -576,12 +576,6 @@
                                             <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
                                                 <h4 class="min-w-0 flex-1 font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight break-words flex items-center gap-2">
                                                     {{ $item->name }}
-                                                    @if($item->is_featured)
-                                                        <span class="inline-flex items-center text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-widest border border-amber-100 whitespace-nowrap" title="Featured Item">
-                                                            <svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                                            Featured
-                                                        </span>
-                                                    @endif
                                                 </h4>
                                                 <span class="shrink-0 font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">
                                                     ${{ number_format($item->price, 2) }}
@@ -625,6 +619,14 @@
                                                     <span x-text="expanded ? 'See less' : 'See more'"></span>
                                                 </button>
                                             </div>
+                                            @if($item->is_featured)
+                                                <div class="mt-2">
+                                                    <span class="inline-flex items-center text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-widest border border-amber-100 whitespace-nowrap" title="Featured Item">
+                                                        <svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                                        Featured
+                                                    </span>
+                                                </div>
+                                            @endif
 
 
                                         </div>

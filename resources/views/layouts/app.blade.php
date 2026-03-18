@@ -250,7 +250,7 @@
                              class="absolute top-full right-0 mt-3 w-72 sm:w-80 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-[110]"
                              x-cloak>
                             
-                            <div class="max-h-[60vh] md:max-h-[400px] overflow-y-auto overscroll-contain pb-4">
+                            <div class="h-80 md:h-96 overflow-y-auto overscroll-contain no-scrollbar pb-4" style="-webkit-overflow-scrolling: touch;">
                             <template x-if="results.restaurants.length > 0">
                                 <div class="p-2">
                                     <div class="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Restaurants</div>
@@ -487,7 +487,7 @@
                                  class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-[110]"
                                  x-cloak>
                                 
-                                <div class="max-h-[50vh] overflow-y-auto overscroll-contain pb-4">
+                                <div class="h-72 overflow-y-auto overscroll-contain no-scrollbar pb-4" style="-webkit-overflow-scrolling: touch;">
                                 <template x-if="results.restaurants.length > 0">
                                     <div class="p-2">
                                         <div class="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Restaurants</div>

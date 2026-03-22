@@ -3,12 +3,14 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory,HasApiTokens, Notifiable;
@@ -22,6 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -50,6 +53,16 @@ class User extends Authenticatable
     public function restaurant()
     {
         return $this->hasOne(Restaurant::class);
+    }
+
+    public function restaurantRegistrationRequests()
+    {
+        return $this->hasMany(RestaurantRegistrationRequest::class);
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->role === 'super_admin';
     }
 
     /**

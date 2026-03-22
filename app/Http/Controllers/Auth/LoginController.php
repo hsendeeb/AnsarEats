@@ -26,6 +26,10 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
+            if (Auth::user()?->role === 'super_admin') {
+                return redirect()->intended(route('filament.admin.pages.dashboard'));
+            }
+
             return redirect()->intended('owner/dashboard');
         }
 

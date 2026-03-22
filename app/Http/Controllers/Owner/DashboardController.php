@@ -102,6 +102,10 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $restaurant = $user->restaurant;
+        $pendingRequest = $user->restaurantRegistrationRequests()
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
 
         $stats = [
             'total_orders' => 0,
@@ -184,7 +188,7 @@ class DashboardController extends Controller
 
         }
         
-        return view('owner.dashboard', compact('restaurant', 'stats'));
+        return view('owner.dashboard', compact('restaurant', 'pendingRequest', 'stats'));
     }
 
     public function orders(Request $request)
@@ -193,7 +197,15 @@ class DashboardController extends Controller
         $restaurant = $user->restaurant;
 
         if (!$restaurant) {
-            return redirect()->route('owner.dashboard')->with('error', 'Please create a restaurant first.');
+            $pendingRequestExists = $user->restaurantRegistrationRequests()
+                ->where('status', 'pending')
+                ->exists();
+
+            return redirect()
+                ->route('owner.dashboard')
+                ->with('error', $pendingRequestExists
+                    ? 'Your restaurant request is still pending super admin approval.'
+                    : 'Please submit a restaurant registration request first.');
         }
 
         $ordersQuery = Order::with(['user', 'orderItems'])
@@ -416,6 +428,10 @@ class DashboardController extends Controller
 
         $user = Auth::user();
         $restaurant = $user->restaurant;
+        $pendingRequest = $user->restaurantRegistrationRequests()
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
 
         if ($request->hasFile('logo')) {
             $data['logo'] = $request->file('logo')->store('restaurants', 'public');
@@ -425,18 +441,31 @@ class DashboardController extends Controller
             $data['cover_image'] = $request->file('cover_image')->store('restaurants', 'public');
         }
 
+        $requestPayload = $data;
+        $requestPayload['restaurant_name'] = $data['name'];
+        unset($requestPayload['name']);
+
         if ($restaurant) {
             $restaurant->update($data);
-        } else {
-            $restaurant = $user->restaurant()->create($data);
             $user->update(['role' => 'owner']);
+        } else {
+            if ($pendingRequest) {
+                $pendingRequest->update($requestPayload);
 
-            // Send Restaurant Created Email
-            try {
-                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\RestaurantCreatedMail($user, $restaurant));
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Failed to send restaurant created email: ' . $e->getMessage());
+                return back()->with(
+                    'success',
+                    'Your restaurant registration request was updated and is waiting for super admin approval.'
+                );
             }
+
+            $user->restaurantRegistrationRequests()->create(array_merge($requestPayload, [
+                'status' => 'pending',
+            ]));
+
+            return back()->with(
+                'success',
+                'Restaurant registration request submitted. A super admin must approve it before the restaurant is created.'
+            );
         }
 
         return back()->with('success', 'Restaurant saved successfully!');

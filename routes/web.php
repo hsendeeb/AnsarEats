@@ -18,6 +18,10 @@ Route::get('/restaurants', [RestaurantController::class, 'index'])->name('restau
 Route::get('/restaurant/{restaurant}', [RestaurantController::class, 'show'])->name('restaurant.show');
 Route::get('/search/suggestions', [SearchController::class, 'suggestions'])->name('search.suggestions');
 Route::get('/browse', [BrowseController::class, 'index'])->name('browse.index');
+Route::view('/terms-of-service', 'legal.terms')->name('legal.terms');
+Route::view('/privacy-policy', 'legal.privacy')->name('legal.privacy');
+Route::view('/cookie-policy', 'legal.cookies')->name('legal.cookies');
+Route::view('/help-center', 'legal.help-center')->name('help.center');
 
 // Basic demo auth routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');

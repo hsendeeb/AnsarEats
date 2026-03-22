@@ -9,3 +9,88 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+body { font-family: 'Inter', sans-serif; }
+h1, h2, h3, h4, h5, h6, .outfit { font-family: 'Outfit', sans-serif; }
+
+html { scroll-behavior: smooth; }
+
+/* Blob animations for background */
+@keyframes blob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+}
+.animate-blob {
+    animation: blob 7s infinite;
+}
+.animation-delay-2000 {
+    animation-delay: 2s;
+}
+.animation-delay-4000 {
+    animation-delay: 4s;
+}
+
+[x-cloak] { display: none !important; }
+
+/* Global page loader overlay */
+#page-loader {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+}
+
+body.page-loading #page-loader {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Dark Mode Transitions */
+html.dark body { background-color: #0b0f1a; color: #f8fafc; }
+html.dark .bg-white { background-color: #161d31; color: #f1f5f9; }
+html.dark .bg-gray-50 { background-color: #0b0f1a; }
+html.dark .bg-gray-100 { background-color: #262c40 !important; }
+html.dark .bg-gray-200 { background-color: #334155 !important; }
+html.dark .text-gray-900 { color: #ffffff !important; }
+html.dark .text-gray-800 { color: #f1f5f9 !important; }
+html.dark .text-gray-700 { color: #cbd5e1 !important; }
+html.dark .text-gray-600 { color: #94a3b8 !important; }
+html.dark .text-gray-500 { color: #8291a6 !important; }
+html.dark .text-gray-400 { color: #64748b !important; }
+html.dark .border-gray-100 { border-color: #262c40 !important; }
+html.dark .border-gray-200 { border-color: #334155 !important; }
+html.dark .border-gray-50 { border-color: #1e293b !important; }
+html.dark .hover\:bg-gray-100:hover { background-color: #262c40 !important; }
+html.dark .hover\:bg-emerald-50:hover { background-color: rgba(16, 185, 129, 0.1) !important; }
+html.dark .shadow-sm { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2); }
+html.dark input::placeholder { color: #64748b !important; }
+html.dark input { background-color: #262c40 !important; color: #ffffff !important; }
+html.dark nav { background-color: rgba(22, 29, 49, 0.8) !important; border-color: #1e293b !important; }
+html.dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.05) !important; }
+html.dark .bg-indigo-50 { background-color: rgba(79, 70, 229, 0.05) !important; }
+html.dark .wave-fill { fill: #0b0f1a !important; }
+
+.transition-theme {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Swiper Perspective */
+.category-swiper {
+    perspective: 1200px;
+}
+.swiper-slide {
+    transition: transform 0.5s ease;
+}
+
+/* Utilities */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Prevent background scroll when any modal is open */
+html.modal-open,
+body.modal-open {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+    touch-action: none;
+}

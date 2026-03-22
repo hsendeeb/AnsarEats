@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $restaurantDraft = $restaurant ?? $pendingRequest;
+@endphp
 <div class="min-h-screen bg-gray-50 py-10 px-4 relative" x-data="{ 
     showRestaurantModal: false, 
     showCategoryModal: false,
@@ -74,7 +77,7 @@
 
                     <button @click="showRestaurantModal = true" class="flex-shrink-0 w-full lg:w-auto bg-white/20 backdrop-blur-sm hover:bg-white/30 border border-white/30 text-white font-bold py-3 px-6 rounded-2xl transition-all transform hover:-translate-y-0.5 active:scale-95 shadow-lg flex items-center justify-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        {{ $restaurant ? 'Edit Restaurant' : 'Create Restaurant' }}
+                        {{ $restaurant ? 'Edit Restaurant' : ($pendingRequest ? 'Edit Request' : 'Create Restaurant') }}
                     </button>
                 </div>
             </div>
@@ -83,16 +86,21 @@
         @if(!$restaurant)
             <!-- Empty State -->
             <div class="bg-white rounded-[2rem] border border-gray-100 shadow-xl p-16 text-center">
+                @if($pendingRequest)
+                    <div class="max-w-xl mx-auto mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800 font-bold text-sm">
+                        Your registration request is pending super admin approval.
+                    </div>
+                @endif
                 <div class="inline-flex items-center justify-center w-28 h-28 rounded-full bg-purple-100 text-purple-500 mb-8 animate-bounce" style="animation-duration: 2s;">
                     <svg class="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 </div>
                 <h3 class="text-3xl font-black outfit text-gray-900 mb-3">Start Your Journey</h3>
                 <p class="text-gray-500 text-lg font-medium max-w-md mx-auto mb-8">
-                    Create your restaurant profile first. Then you can add categories and menu items.
+                    {{ $pendingRequest ? 'Update your request details while you wait for approval.' : 'Create your restaurant profile first. Then you can add categories and menu items.' }}
                 </p>
                 <button @click="showRestaurantModal = true" class="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 hover:bg-purple-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl hover:shadow-purple-500/30 transition-all transform hover:-translate-y-0.5 active:scale-95 text-lg">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-                    Create Your Restaurant
+                    {{ $pendingRequest ? 'Edit Request' : 'Create Your Restaurant' }}
                 </button>
             </div>
         @else
@@ -588,7 +596,7 @@
         <div @click.outside="showRestaurantModal = false" x-show="showRestaurantModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-black outfit">{{ $restaurant ? 'Edit Restaurant' : 'Create Restaurant' }}</h3>
+                    <h3 class="text-2xl font-black outfit">{{ $restaurant ? 'Edit Restaurant' : ($pendingRequest ? 'Edit Registration Request' : 'Create Restaurant') }}</h3>
                     <button @click="showRestaurantModal = false" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
@@ -596,8 +604,8 @@
             </div>
             
             <form method="POST" action="{{ route('owner.restaurant.store') }}" enctype="multipart/form-data" class="p-6 space-y-4" x-data="{
-                logoPreview: '{{ $restaurant && $restaurant->logo ? Storage::url($restaurant->logo) : '' }}',
-                coverPreview: '{{ $restaurant && $restaurant->cover_image ? Storage::url($restaurant->cover_image) : '' }}',
+                logoPreview: '{{ $restaurantDraft && $restaurantDraft->logo ? Storage::url($restaurantDraft->logo) : '' }}',
+                coverPreview: '{{ $restaurantDraft && $restaurantDraft->cover_image ? Storage::url($restaurantDraft->cover_image) : '' }}',
                 handleLogoSelect(event) {
                     const file = event.target.files[0];
                     if (file) {
@@ -660,11 +668,11 @@
 
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Restaurant Name</label>
-                    <input type="text" name="name" value="{{ $restaurant->name ?? old('name') }}" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="My Amazing Restaurant">
+                    <input type="text" name="name" value="{{ old('name') ?? optional($restaurantDraft)->name ?? optional($pendingRequest)->restaurant_name ?? '' }}" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="My Amazing Restaurant">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Description</label>
-                    <textarea name="description" rows="3" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all resize-none" placeholder="Tell customers about your cuisine...">{{ $restaurant->description ?? old('description') }}</textarea>
+                    <textarea name="description" rows="3" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all resize-none" placeholder="Tell customers about your cuisine...">{{ old('description') ?? optional($restaurantDraft)->description }}</textarea>
                 </div>
                 <div x-data="{ 
                     gettingLocation: false, 
@@ -708,13 +716,13 @@
                             <span x-text="gettingLocation ? 'Locating...' : 'Use Current Location'"></span>
                         </button>
                     </div>
-                    <input type="text" name="address" x-ref="addressInput" value="{{ $restaurant->address ?? old('address') }}" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Hamra Street, Beirut">
-                    <input type="hidden" name="latitude" x-ref="latInput" value="{{ $restaurant->latitude ?? old('latitude') }}">
-                    <input type="hidden" name="longitude" x-ref="lonInput" value="{{ $restaurant->longitude ?? old('longitude') }}">
+                    <input type="text" name="address" x-ref="addressInput" value="{{ old('address') ?? optional($restaurantDraft)->address }}" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Hamra Street, Beirut">
+                    <input type="hidden" name="latitude" x-ref="latInput" value="{{ old('latitude') ?? optional($restaurantDraft)->latitude }}">
+                    <input type="hidden" name="longitude" x-ref="lonInput" value="{{ old('longitude') ?? optional($restaurantDraft)->longitude }}">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Phone</label>
-                    <input type="text" name="phone" value="{{ $restaurant->phone ?? old('phone') }}" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="+961 1 234 567">
+                    <input type="text" name="phone" value="{{ old('phone') ?? optional($restaurantDraft)->phone }}" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="+961 1 234 567">
                 </div>
 
                 <div>
@@ -722,7 +730,7 @@
                     <div class="space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                         @php
                             $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-                            $hours = $restaurant->operating_hours ?? [];
+                            $hours = optional($restaurantDraft)->operating_hours ?? [];
                         @endphp
                         @foreach($days as $day)
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" x-data="{ closed: {{ ($hours[$day]['closed'] ?? false) ? 'true' : 'false' }} }">
@@ -744,14 +752,14 @@
 
                 <div class="flex items-center gap-3">
                     <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="is_open" value="1" {{ ($restaurant->is_open ?? true) ? 'checked' : '' }} class="sr-only peer">
+                        <input type="checkbox" name="is_open" value="1" {{ (optional($restaurantDraft)->is_open ?? true) ? 'checked' : '' }} class="sr-only peer">
                         <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                     </label>
                     <span class="text-sm font-bold text-gray-700">Open for business</span>
                 </div>
                 
                 <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] mt-4">
-                    {{ $restaurant ? 'Update Restaurant' : 'Create Restaurant' }}
+                    {{ $restaurant ? 'Update Restaurant' : ($pendingRequest ? 'Update Request' : 'Submit for Approval') }}
                 </button>
             </form>
         </div>

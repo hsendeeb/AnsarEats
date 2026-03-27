@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function () {
 
     // Rating
     Route::post('/restaurant/{restaurant}/rate', [RatingController::class, 'store'])->name('restaurant.rate');
+    Route::get('/partner-with-us', [DashboardController::class, 'showPartnerForm'])->name('partner.with.us');
 
     // Owner routes
     Route::prefix('owner')->name('owner.')->group(function () {

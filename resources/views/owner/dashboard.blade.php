@@ -2,7 +2,7 @@
 
 @section('content')
 @php
-    $restaurantDraft = $restaurant ?? $pendingRequest;
+    $restaurantDraft = $restaurant ?? $latestRequest ?? $pendingRequest ?? null;
 @endphp
 <div class="min-h-screen bg-gray-50 py-10 px-4 relative" x-data="{ 
     showRestaurantModal: false, 
@@ -56,10 +56,10 @@
             <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
                     <h1 class="text-4xl md:text-5xl font-black outfit tracking-tight leading-tight">
-                        {{ $restaurant ? $restaurant->name : Auth::user()->name }}
+                        {{ $restaurant?->name ?? $latestRequest?->restaurant_name ?? Auth::user()->name }}
                     </h1>
                     <p class="mt-3 text-purple-200 font-medium text-lg max-w-lg">
-                        Manage your restaurant, categories, and menu items from this dashboard.
+                        {{ $restaurant ? 'Manage your restaurant, categories, and menu items from this dashboard.' : 'Submit your restaurant details for review and come back here to track the decision.' }}
                     </p>
                 </div>
                 
@@ -86,9 +86,14 @@
         @if(!$restaurant)
             <!-- Empty State -->
             <div class="bg-white rounded-[2rem] border border-gray-100 shadow-xl p-16 text-center">
-                @if($pendingRequest)
+                @if($latestRequest?->status === 'pending')
                     <div class="max-w-xl mx-auto mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800 font-bold text-sm">
                         Your registration request is pending super admin approval.
+                    </div>
+                @elseif($latestRequest?->status === 'rejected')
+                    <div class="max-w-xl mx-auto mb-8 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 text-sm">
+                        <div class="font-bold">Your last restaurant request was rejected.</div>
+                        <div class="mt-1 font-medium">{{ $latestRequest->rejection_reason ?: 'No rejection reason was provided.' }}</div>
                     </div>
                 @endif
                 <div class="inline-flex items-center justify-center w-28 h-28 rounded-full bg-purple-100 text-purple-500 mb-8 animate-bounce" style="animation-duration: 2s;">
@@ -96,11 +101,11 @@
                 </div>
                 <h3 class="text-3xl font-black outfit text-gray-900 mb-3">Start Your Journey</h3>
                 <p class="text-gray-500 text-lg font-medium max-w-md mx-auto mb-8">
-                    {{ $pendingRequest ? 'Update your request details while you wait for approval.' : 'Create your restaurant profile first. Then you can add categories and menu items.' }}
+                    {{ $latestRequest?->status === 'pending' ? 'Update your request details while you wait for approval.' : ($latestRequest?->status === 'rejected' ? 'Adjust your restaurant details and submit again for another review.' : 'Create your restaurant profile first. Then you can add categories and menu items.') }}
                 </p>
                 <button @click="showRestaurantModal = true" class="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 hover:bg-purple-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl hover:shadow-purple-500/30 transition-all transform hover:-translate-y-0.5 active:scale-95 text-lg">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-                    {{ $pendingRequest ? 'Edit Request' : 'Create Your Restaurant' }}
+                    {{ $latestRequest ? 'Update Request' : 'Create Your Restaurant' }}
                 </button>
             </div>
         @else
@@ -596,7 +601,7 @@
         <div @click.outside="showRestaurantModal = false" x-show="showRestaurantModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-black outfit">{{ $restaurant ? 'Edit Restaurant' : ($pendingRequest ? 'Edit Registration Request' : 'Create Restaurant') }}</h3>
+                    <h3 class="text-2xl font-black outfit">{{ $restaurant ? 'Edit Restaurant' : ($latestRequest ? 'Update Registration Request' : 'Create Restaurant') }}</h3>
                     <button @click="showRestaurantModal = false" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
@@ -759,7 +764,7 @@
                 </div>
                 
                 <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] mt-4">
-                    {{ $restaurant ? 'Update Restaurant' : ($pendingRequest ? 'Update Request' : 'Submit for Approval') }}
+                    {{ $restaurant ? 'Update Restaurant' : ($latestRequest ? 'Update Request' : 'Submit for Approval') }}
                 </button>
             </form>
         </div>

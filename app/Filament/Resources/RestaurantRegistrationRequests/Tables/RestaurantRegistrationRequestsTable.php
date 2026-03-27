@@ -5,6 +5,7 @@ namespace App\Filament\Resources\RestaurantRegistrationRequests\Tables;
 use App\Models\Restaurant;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
+use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -30,6 +31,9 @@ class RestaurantRegistrationRequestsTable
                     ->searchable(),
                 TextColumn::make('phone')
                     ->searchable(),
+                TextColumn::make('address')
+                    ->limit(40)
+                    ->toggleable(),
                 TextColumn::make('status')
                     ->badge()
                     ->sortable()
@@ -47,6 +51,12 @@ class RestaurantRegistrationRequestsTable
                     ->dateTime()
                     ->placeholder('-')
                     ->sortable(),
+                TextColumn::make('rejection_reason')
+                    ->label('Rejection Reason')
+                    ->limit(40)
+                    ->wrap()
+                    ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('status')
@@ -106,8 +116,14 @@ class RestaurantRegistrationRequestsTable
                     ->color('danger')
                     ->icon('heroicon-o-x-circle')
                     ->requiresConfirmation()
+                    ->form([
+                        Textarea::make('rejection_reason')
+                            ->label('Reason for rejection')
+                            ->required()
+                            ->rows(4),
+                    ])
                     ->visible(fn ($record): bool => $record->status === 'pending')
-                    ->action(function ($record): void {
+                    ->action(function (array $data, $record): void {
                         if ($record->status !== 'pending') {
                             Notification::make()
                                 ->title('This request is already reviewed.')
@@ -119,6 +135,7 @@ class RestaurantRegistrationRequestsTable
 
                         $record->update([
                             'status' => 'rejected',
+                            'rejection_reason' => $data['rejection_reason'],
                             'reviewed_by' => Auth::id(),
                             'reviewed_at' => now(),
                         ]);

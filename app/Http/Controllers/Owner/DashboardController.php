@@ -102,10 +102,15 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $restaurant = $user->restaurant;
-        $pendingRequest = $user->restaurantRegistrationRequests()
-            ->where('status', 'pending')
+
+        if (! $restaurant) {
+            return redirect()->route('partner.with.us');
+        }
+
+        $latestRequest = $user->restaurantRegistrationRequests()
             ->latest()
             ->first();
+        $pendingRequest = $latestRequest?->status === 'pending' ? $latestRequest : null;
 
         $stats = [
             'total_orders' => 0,
@@ -188,7 +193,22 @@ class DashboardController extends Controller
 
         }
         
-        return view('owner.dashboard', compact('restaurant', 'pendingRequest', 'stats'));
+        return view('owner.dashboard', compact('restaurant', 'latestRequest', 'pendingRequest', 'stats'));
+    }
+
+    public function showPartnerForm()
+    {
+        $user = Auth::user();
+
+        if ($user->restaurant) {
+            return redirect()->route('owner.dashboard');
+        }
+
+        $latestRequest = $user->restaurantRegistrationRequests()
+            ->latest()
+            ->first();
+
+        return view('owner.partner', compact('latestRequest'));
     }
 
     public function orders(Request $request)

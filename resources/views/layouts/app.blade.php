@@ -69,6 +69,13 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen flex flex-col text-gray-800 bg-gray-50 dark:bg-gray-900 overflow-x-hidden relative page-loading transition-theme">
+    @php
+        $hasActiveOrders = auth()->check()
+            ? \App\Models\Order::where('user_id', auth()->id())
+                ->whereIn('status', ['pending', 'accepted', 'preparing', 'out_for_delivery'])
+                ->exists()
+            : false;
+    @endphp
 
     <!-- Decorative background blobs -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -95,6 +102,14 @@
 
                     <div class="hidden lg:flex items-center ml-10 space-x-8">
                         <a href="{{ route('restaurants.index') }}" class="text-sm font-bold text-gray-600 hover:text-emerald-500 transition-colors uppercase tracking-widest">Explore</a>
+                        @auth
+                            <a href="{{ route('profile.orders') }}" class="relative text-sm font-bold text-gray-600 hover:text-emerald-500 transition-colors uppercase tracking-widest">
+                                Orders
+                                @if($hasActiveOrders)
+                                    <span class="absolute -top-1.5 -right-3 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white"></span>
+                                @endif
+                            </a>
+                        @endauth
                     </div>
                 </div>
                 
@@ -229,7 +244,8 @@
                     <div class="hidden md:flex items-center space-x-4">
                         @guest
                             <a href="{{ route('login') }}" class="font-semibold text-gray-600 hover:text-emerald-500 transition-colors">Log In</a>
-                            <a href="{{ route('register') }}" class="font-bold px-6 py-2.5 rounded-full bg-emerald-500 text-white hover:bg-emerald-400 hover:shadow-xl hover:shadow-emerald-500/40 transition-all transform hover:-translate-y-0.5 active:scale-95">Partner with us</a>
+                            <a href="{{ route('register') }}" class="font-semibold text-gray-600 hover:text-emerald-500 transition-colors">Register</a>
+                            <a href="{{ route('partner.with.us') }}" class="font-bold px-6 py-2.5 rounded-full bg-emerald-500 text-white hover:bg-emerald-400 hover:shadow-xl hover:shadow-emerald-500/40 transition-all transform hover:-translate-y-0.5 active:scale-95">Partner with us</a>
                         @else
                             <div class="relative" x-data="{ open: false }" @click.away="open = false">
                                 <button @click="open = !open" 
@@ -259,12 +275,31 @@
                                         My Profile
                                     </a>
 
-                                    @if(auth()->user()->role !== 'super_admin')
+                                    <a href="{{ route('profile.orders') }}" class="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-xl bg-gray-50 group-hover:bg-emerald-100 flex items-center justify-center text-gray-400 group-hover:text-emerald-600 transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                                            </div>
+                                            Orders
+                                        </div>
+                                        @if($hasActiveOrders)
+                                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                        @endif
+                                    </a>
+
+                                    @if(auth()->user()->role !== 'super_admin' && auth()->user()->restaurant)
                                     <a href="{{ route('owner.dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 transition-all group">
                                         <div class="w-8 h-8 rounded-xl bg-gray-50 group-hover:bg-indigo-100 flex items-center justify-center text-gray-400 group-hover:text-indigo-600 transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                                         </div>
                                         Dashboard
+                                    </a>
+                                    @elseif(auth()->user()->role !== 'super_admin')
+                                    <a href="{{ route('partner.with.us') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
+                                        <div class="w-8 h-8 rounded-xl bg-gray-50 group-hover:bg-emerald-100 flex items-center justify-center text-gray-400 group-hover:text-emerald-600 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                        </div>
+                                        Partner with us
                                     </a>
                                     @endif
 
@@ -486,6 +521,12 @@
                                 <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
                                 </div>
+                                Register
+                            </a>
+                            <a href="{{ route('partner.with.us') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                </div>
                                 Partner with us
                             </a>
                         @else
@@ -496,12 +537,31 @@
                                 Profile
                             </a>
 
-                            @if(auth()->user()->role !== 'super_admin')
+                            <a href="{{ route('profile.orders') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                                    </div>
+                                    Orders
+                                </div>
+                                @if($hasActiveOrders)
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                @endif
+                            </a>
+
+                            @if(auth()->user()->role !== 'super_admin' && auth()->user()->restaurant)
                                 <a href="{{ route('owner.dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold  hover:bg-indigo-100 transition-all group">
                                     <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-indigo-600 shadow-sm">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                                     </div>
                                     Dashboard
+                                </a>
+                            @elseif(auth()->user()->role !== 'super_admin')
+                                <a href="{{ route('partner.with.us') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
+                                    <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    </div>
+                                    Partner with us
                                 </a>
                             @endif
                             

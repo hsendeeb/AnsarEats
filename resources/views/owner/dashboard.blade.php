@@ -12,7 +12,7 @@
     showEditMenuItemModal: false,
     selectedCategoryId: null,
     editingCategory: { id: null, name: '' },
-    editingMenuItem: { id: null, name: '', description: '', price: '', category_id: null, image_url: '', variants: null, variant_type: '' },
+    editingMenuItem: { id: null, name: '', description: '', price: '', category_id: null, image_url: '', variants: null, variant_type: '', is_on_sale: false, sale_price: '' },
     isRestaurantOpen: {{ $restaurant && $restaurant->is_open ? 'true' : 'false' }},
     togglingStatus: false,
     async toggleRestaurantStatus() {
@@ -361,7 +361,15 @@
                                         </div>
                                         
                                         <div class="text-right flex-shrink-0">
-                                            <span class="font-black text-emerald-500 text-lg">${{ number_format($item->price, 2) }}</span>
+                                            @if($item->is_on_sale && $item->sale_price)
+                                                <div class="flex flex-col items-end">
+                                                    <span class="text-sm font-bold text-gray-400 line-through">${{ number_format($item->price, 2) }}</span>
+                                                    <span class="font-black text-emerald-500 text-lg">${{ number_format($item->sale_price, 2) }}</span>
+     
+                                                </div>
+                                            @else
+                                                <span class="font-black text-emerald-500 text-lg">${{ number_format($item->price, 2) }}</span>
+                                            @endif
                                         </div>
                                         
                                         <div class="hidden sm:flex items-center gap-2 flex-shrink-0">
@@ -373,7 +381,9 @@
                                                 category_id: {{ $item->menu_category_id }},
                                                 image_url: '{{ $item->image ? Storage::url($item->image) : '' }}',
                                                 variants: {{ Js::from($item->variants) }},
-                                                variant_type: {{ Js::from($item->variants['type'] ?? '') }}
+                                                variant_type: {{ Js::from($item->variants['type'] ?? '') }},
+                                                is_on_sale: {{ $item->is_on_sale ? 'true' : 'false' }},
+                                                sale_price: {{ Js::from($item->sale_price) }}
                                             }; showEditMenuItemModal = true" title="Edit item" class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-400 hover:bg-indigo-100 hover:text-indigo-600 flex items-center justify-center transition-colors">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                             </button>
@@ -446,7 +456,9 @@
                                                     category_id: {{ $item->menu_category_id }},
                                                     image_url: '{{ $item->image ? Storage::url($item->image) : '' }}',
                                                     variants: {{ Js::from($item->variants) }},
-                                                    variant_type: {{ Js::from($item->variants['type'] ?? '') }}
+                                                    variant_type: {{ Js::from($item->variants['type'] ?? '') }},
+                                                    is_on_sale: {{ $item->is_on_sale ? 'true' : 'false' }},
+                                                    sale_price: {{ Js::from($item->sale_price) }}
                                                 }; showEditMenuItemModal = true; open = false" class="w-full px-4 py-3 text-left text-sm font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center gap-2">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                                     Edit Item
@@ -814,6 +826,8 @@
             <form method="POST" action="{{ route('owner.menu-item.store') }}" enctype="multipart/form-data" class="p-6 space-y-4" x-data="{
                 imagePreview: null,
                 hasVariants: false,
+                isOnSale: false,
+                salePrice: '',
                 variants: [{ name: '', price: '' }],
                 handleFileSelect(event) {
                     const file = event.target.files[0];
@@ -846,6 +860,14 @@
                     } else {
                         this.variants[0] = { name: '', price: '' };
                     }
+                },
+                init() {
+                    this.$watch('hasVariants', (value) => {
+                        if (value) {
+                            this.isOnSale = false;
+                            this.salePrice = '';
+                        }
+                    });
                 }
             }">
                 @csrf
@@ -870,6 +892,36 @@
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Price ($)</label>
                     <input type="number" step="0.01" min="0" name="price" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 transition-all" placeholder="12.99">
+                </div>
+
+                <div class="pt-2 border-t border-gray-100 space-y-3">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-bold text-gray-700">On Sale</p>
+                            <p class="text-xs font-medium text-gray-400" x-text="hasVariants ? 'Sales are available for single-price items only.' : 'Show the old price and the discounted price on the restaurant page.'"></p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer" :class="hasVariants ? 'opacity-50 cursor-not-allowed' : ''">
+                            <input type="checkbox" name="is_on_sale" value="1" x-model="isOnSale" :disabled="hasVariants" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/20 peer-checked:bg-emerald-500 transition-colors relative">
+                                <div class="absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
+                                     :class="isOnSale ? 'translate-x-5' : 'translate-x-0'"></div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div x-show="isOnSale && !hasVariants" x-transition class="space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
+                        <label class="block text-xs font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Sale Price ($)</label>
+                        <input type="number"
+                               step="0.01"
+                               min="0"
+                               name="sale_price"
+                               x-model="salePrice"
+                               :required="isOnSale && !hasVariants"
+                               :disabled="!isOnSale || hasVariants"
+                               class="block w-full px-3 py-2.5 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                               placeholder="9.99">
+                        <p class="mt-1 text-[11px] text-emerald-600 font-medium">Set a lower price than the regular price so customers can see how much they save.</p>
+                    </div>
                 </div>
 
                 <!-- Variants Toggle -->
@@ -1020,6 +1072,8 @@
             <form method="POST" :action="`{{ route('owner.menu-item.update', 'ID') }}`.replace('ID', editingMenuItem.id)" enctype="multipart/form-data" class="p-6 space-y-4" x-data="{
                 newImagePreview: null,
                 editHasVariants: false,
+                editIsOnSale: false,
+                editSalePrice: '',
                 editVariantType: '',
                 editVariants: [{ name: '', price: '' }],
                 
@@ -1036,8 +1090,18 @@
                                 this.editVariantType = '';
                                 this.editVariants = [{ name: '', price: '' }];
                             }
+
+                            this.editIsOnSale = !!val.is_on_sale && !this.editHasVariants;
+                            this.editSalePrice = val.sale_price || '';
                         }
                     }, { immediate: true });
+
+                    this.$watch('editHasVariants', (value) => {
+                        if (value) {
+                            this.editIsOnSale = false;
+                            this.editSalePrice = '';
+                        }
+                    });
                 },
                 handleFileSelect(event) {
                     const file = event.target.files[0];
@@ -1075,6 +1139,36 @@
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Price ($)</label>
                     <input type="number" step="0.01" min="0" name="price" x-model="editingMenuItem.price" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="12.99">
+                </div>
+
+                <div class="pt-2 border-t border-gray-100 space-y-3">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-bold text-gray-700">On Sale</p>
+                            <p class="text-xs font-medium text-gray-400" x-text="editHasVariants ? 'Sales are available for single-price items only.' : 'Customers will see the old price, sale price, and savings.'"></p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer" :class="editHasVariants ? 'opacity-50 cursor-not-allowed' : ''">
+                            <input type="checkbox" name="is_on_sale" value="1" x-model="editIsOnSale" :disabled="editHasVariants" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/20 peer-checked:bg-emerald-500 transition-colors relative">
+                                <div class="absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
+                                     :class="editIsOnSale ? 'translate-x-5' : 'translate-x-0'"></div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div x-show="editIsOnSale && !editHasVariants" x-transition class="space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
+                        <label class="block text-xs font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Sale Price ($)</label>
+                        <input type="number"
+                               step="0.01"
+                               min="0"
+                               name="sale_price"
+                               x-model="editSalePrice"
+                               :required="editIsOnSale && !editHasVariants"
+                               :disabled="!editIsOnSale || editHasVariants"
+                               class="block w-full px-3 py-2.5 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                               placeholder="9.99">
+                        <p class="mt-1 text-[11px] text-emerald-600 font-medium">Set a lower price than the regular price so customers can see the discount.</p>
+                    </div>
                 </div>
 
                 <!-- Variants Toggle -->

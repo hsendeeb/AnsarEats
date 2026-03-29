@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
 use App\Models\MenuCategory;
 use App\Models\Order;
+use App\Support\PerformanceCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -228,30 +229,43 @@ class DashboardController extends Controller
                     : 'Please submit a restaurant registration request first.');
         }
 
-        $ordersQuery = Order::with(['user', 'orderItems'])
-            ->where('restaurant_id', $restaurant->id);
+        $orders = PerformanceCache::remember(
+            'owner-orders',
+            json_encode([
+                'restaurant_id' => $restaurant->id,
+                'filter' => (string) $request->get('filter', ''),
+                'status' => (string) $request->get('status', ''),
+                'sort' => (string) $request->get('sort', ''),
+                'page' => (int) $request->get('page', 1),
+            ]),
+            now()->addSeconds(config('performance.cache_ttl.owner_orders')),
+            function () use ($request, $restaurant) {
+                $ordersQuery = Order::with(['user', 'orderItems'])
+                    ->where('restaurant_id', $restaurant->id);
 
-        if ($request->has('filter')) {
-            if ($request->filter === 'day') {
-                $ordersQuery->whereDate('created_at', Carbon::today());
-            } elseif ($request->filter === 'week') {
-                $ordersQuery->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                if ($request->has('filter')) {
+                    if ($request->filter === 'day') {
+                        $ordersQuery->whereDate('created_at', Carbon::today());
+                    } elseif ($request->filter === 'week') {
+                        $ordersQuery->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                    }
+                }
+
+                if ($request->has('status')) {
+                    if (in_array($request->status, ['pending', 'accepted', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'])) {
+                        $ordersQuery->where('status', $request->status);
+                    }
+                }
+
+                if ($request->has('sort') && $request->sort === 'total') {
+                    $ordersQuery->orderByDesc('total');
+                } else {
+                    $ordersQuery->orderByDesc('created_at');
+                }
+
+                return $ordersQuery->paginate(5)->appends($request->query());
             }
-        }
-
-        if ($request->has('status')) {
-            if (in_array($request->status, ['pending', 'accepted', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'])) {
-                $ordersQuery->where('status', $request->status);
-            }
-        }
-
-        if ($request->has('sort') && $request->sort === 'total') {
-            $ordersQuery->orderByDesc('total');
-        } else {
-            $ordersQuery->orderByDesc('created_at');
-        }
-
-        $orders = $ordersQuery->paginate(5)->appends($request->query());
+        );
 
         return view('owner.orders', compact('restaurant', 'orders'));
     }
@@ -294,16 +308,12 @@ class DashboardController extends Controller
             $query->where('id', '>', $sinceId);
         }
 
-        $newOrders = $query->latest()->get(['id', 'created_at', 'total']);
+        $count = (clone $query)->count();
+        $latestId = (clone $query)->max('id') ?? $sinceId;
 
         return response()->json([
-            'count'     => $newOrders->count(),
-            'latest_id' => $newOrders->first()?->id ?? $sinceId,
-            'orders'    => $newOrders->map(fn($o) => [
-                'id'         => $o->id,
-                'total'      => number_format($o->total, 2),
-                'created_at' => $o->created_at->diffForHumans(),
-            ]),
+            'count'     => $count,
+            'latest_id' => $latestId,
         ]);
     }
 
@@ -320,7 +330,7 @@ class DashboardController extends Controller
 
         // Send Status Update Email
         try {
-            \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderStatusUpdatedMail($order));
+            \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderStatusUpdatedMail($order));
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
         }
@@ -340,7 +350,7 @@ class DashboardController extends Controller
 
         // Send Status Update Email
         try {
-            \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderStatusUpdatedMail($order));
+            \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderStatusUpdatedMail($order));
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
         }
@@ -360,7 +370,7 @@ class DashboardController extends Controller
 
         // Send Status Update Email
         try {
-            \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderStatusUpdatedMail($order));
+            \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderStatusUpdatedMail($order));
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
         }
@@ -385,7 +395,7 @@ class DashboardController extends Controller
 
         // Send Status Update Email
         try {
-            \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderStatusUpdatedMail($order));
+            \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderStatusUpdatedMail($order));
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
         }
@@ -407,7 +417,7 @@ class DashboardController extends Controller
 
         // Send Status Update Email
         try {
-            \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderStatusUpdatedMail($order));
+            \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderStatusUpdatedMail($order));
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
         }

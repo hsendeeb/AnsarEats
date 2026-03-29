@@ -72,9 +72,10 @@
     @php
         $hasActiveOrders = auth()->check()
             ? \App\Models\Order::where('user_id', auth()->id())
-                ->whereIn('status', ['pending', 'accepted', 'preparing', 'out_for_delivery'])
+                ->whereIn('status', ['pending', 'accepted', 'preparing'])
                 ->exists()
             : false;
+        $hasRestaurant = auth()->check() && auth()->user()->restaurant;
     @endphp
 
     <!-- Decorative background blobs -->
@@ -102,14 +103,9 @@
 
                     <div class="hidden lg:flex items-center ml-10 space-x-8">
                         <a href="{{ route('restaurants.index') }}" class="text-sm font-bold text-gray-600 hover:text-emerald-500 transition-colors uppercase tracking-widest">Explore</a>
-                        @auth
-                            <a href="{{ route('profile.orders') }}" class="relative text-sm font-bold text-gray-600 hover:text-emerald-500 transition-colors uppercase tracking-widest">
-                                Orders
-                                @if($hasActiveOrders)
-                                    <span class="absolute -top-1.5 -right-3 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white"></span>
-                                @endif
-                            </a>
-                        @endauth
+                        @if(! $hasRestaurant)
+                            <a href="{{ route('partner.with.us') }}" class="font-bold px-6 py-2.5 rounded-full text-black transition-all">Partner with us</a>
+                        @endif
                     </div>
                 </div>
                 
@@ -245,7 +241,7 @@
                         @guest
                             <a href="{{ route('login') }}" class="font-semibold text-gray-600 hover:text-emerald-500 transition-colors">Log In</a>
                             <a href="{{ route('register') }}" class="font-semibold text-gray-600 hover:text-emerald-500 transition-colors">Register</a>
-                            <a href="{{ route('partner.with.us') }}" class="font-bold px-6 py-2.5 rounded-full bg-emerald-500 text-white hover:bg-emerald-400 hover:shadow-xl hover:shadow-emerald-500/40 transition-all transform hover:-translate-y-0.5 active:scale-95">Partner with us</a>
+                          
                         @else
                             <div class="relative" x-data="{ open: false }" @click.away="open = false">
                                 <button @click="open = !open" 

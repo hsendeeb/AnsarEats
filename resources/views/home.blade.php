@@ -524,6 +524,7 @@
         </div>
         @endif
 
+        @if(!auth()->check() || !auth()->user()->restaurant)
         <div class="mt-28 w-full" x-data="{
             hasCounted: false,
             menuReady: 0,
@@ -646,6 +647,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 </section>
 @endsection

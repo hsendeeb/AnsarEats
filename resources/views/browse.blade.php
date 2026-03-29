@@ -37,7 +37,7 @@
              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 transition-opacity duration-300">
             @forelse($items as $meal)
                 <div id="browse-card-{{ $meal->id }}" class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow group overflow-hidden h-full"
-                     x-data="menuItemPricing({{ $meal->price }}, @js($meal->variants ?? []))">
+                     x-data="menuItemPricing({{ $meal->price }}, @js($meal->variants ?? []), {{ $meal->is_on_sale ? 'true' : 'false' }}, {{ Js::from($meal->sale_price) }})">
                     
                     <!-- Item Image -->
                     <div id="browse-img-{{ $meal->id }}" class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative">
@@ -78,9 +78,15 @@
                                         @endif
                                     </h4>
                                 </a>
-                                <span class="shrink-0 font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">
-                                    ${{ number_format($meal->price, 2) }}
-                                </span>
+                                <div class="shrink-0 text-right whitespace-nowrap">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>
+                                        <span class="font-black text-emerald-500" x-text="formattedPrice">
+                                            ${{ number_format($meal->price, 2) }}
+                                        </span>
+                                    </div>
+                                    <p x-show="hasActiveSale" x-cloak class="mt-0.5 text-[11px] font-bold text-rose-500" x-text="`Save ${formattedSavings}`"></p>
+                                </div>
                             </div>
 
                             <!-- Description (Alpine Responsive Collapse) -->
@@ -150,22 +156,39 @@
             @endforelse
         </div>
 
+        <!-- Loading Skeleton -->
+        <div id="loading-skeleton" class="hidden grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" aria-hidden="true">
+            @for ($i = 0; $i < 6; $i++)
+                <div class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 overflow-hidden h-full animate-pulse">
+                    <div class="w-24 h-24 flex-shrink-0 rounded-xl bg-gray-200"></div>
+                    <div class="flex-1 min-w-0 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="space-y-2 flex-1 min-w-0">
+                                    <div class="h-5 bg-gray-200 rounded-full w-3/4"></div>
+                                    <div class="h-4 bg-gray-200 rounded-full w-1/2"></div>
+                                </div>
+                                <div class="h-5 bg-gray-200 rounded-full w-16 flex-shrink-0"></div>
+                            </div>
+                            <div class="mt-3 space-y-2">
+                                <div class="h-3.5 bg-gray-200 rounded-full w-full"></div>
+                                <div class="h-3.5 bg-gray-200 rounded-full w-5/6"></div>
+                            </div>
+                        </div>
+                        <div class="flex justify-end mt-4">
+                            <div class="w-9 h-9 rounded-full bg-gray-200"></div>
+                        </div>
+                    </div>
+                </div>
+            @endfor
+        </div>
+
         <!-- Load More Button -->
         <div id="load-more-container" class="mt-12 text-center {{ $items->hasMorePages() ? '' : 'hidden' }}">
             <button id="load-more-btn" onclick="loadMoreItems()" class="inline-flex items-center gap-2 px-8 py-4 bg-emerald-50 text-emerald-600 font-black rounded-full hover:bg-emerald-500 hover:text-white transition-all shadow-sm hover:shadow-xl hover:shadow-emerald-500/30 group">
                 <span>Load More</span>
                 <svg class="w-5 h-5 group-hover:translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
-        </div>
-
-        <!-- Loading Skeleton -->
-        <div id="loading-skeleton" class="hidden grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 animate-pulse"><div class="h-56 bg-gray-200"></div><div class="p-6 space-y-3"><div class="h-4 bg-gray-200 rounded-full w-1/3"></div><div class="h-6 bg-gray-200 rounded-full w-3/4"></div><div class="h-4 bg-gray-200 rounded-full w-full"></div></div></div>
-            <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 animate-pulse"><div class="h-56 bg-gray-200"></div><div class="p-6 space-y-3"><div class="h-4 bg-gray-200 rounded-full w-1/3"></div><div class="h-6 bg-gray-200 rounded-full w-3/4"></div><div class="h-4 bg-gray-200 rounded-full w-full"></div></div></div>
-            <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 animate-pulse"><div class="h-56 bg-gray-200"></div><div class="p-6 space-y-3"><div class="h-4 bg-gray-200 rounded-full w-1/3"></div><div class="h-6 bg-gray-200 rounded-full w-3/4"></div><div class="h-4 bg-gray-200 rounded-full w-full"></div></div></div>
-            <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 animate-pulse"><div class="h-56 bg-gray-200"></div><div class="p-6 space-y-3"><div class="h-4 bg-gray-200 rounded-full w-1/3"></div><div class="h-6 bg-gray-200 rounded-full w-3/4"></div><div class="h-4 bg-gray-200 rounded-full w-full"></div></div></div>
-            <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 animate-pulse"><div class="h-56 bg-gray-200"></div><div class="p-6 space-y-3"><div class="h-4 bg-gray-200 rounded-full w-1/3"></div><div class="h-6 bg-gray-200 rounded-full w-3/4"></div><div class="h-4 bg-gray-200 rounded-full w-full"></div></div></div>
-            <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 animate-pulse"><div class="h-56 bg-gray-200"></div><div class="p-6 space-y-3"><div class="h-4 bg-gray-200 rounded-full w-1/3"></div><div class="h-6 bg-gray-200 rounded-full w-3/4"></div><div class="h-4 bg-gray-200 rounded-full w-full"></div></div></div>
         </div>
     </div>
 </div>
@@ -176,27 +199,51 @@
 @push('scripts')
 <script>
     // ========== Alpine Data Source ==========
-    window.menuItemPricing = function(basePrice, variants) {
+    window.menuItemPricing = function(basePrice, variants, isOnSale, salePrice) {
         return {
             basePrice: parseFloat(basePrice || 0),
             variants: variants && variants.options ? variants.options : [],
             variantType: variants && variants.type ? variants.type : null,
+            isOnSale: !!isOnSale,
+            salePrice: salePrice !== null && salePrice !== undefined && salePrice !== '' ? parseFloat(salePrice) : null,
             selectedIndex: 0,
             get hasVariants() {
                 return this.variants && this.variants.length > 0;
+            },
+            get hasActiveSale() {
+                return !this.hasVariants
+                    && this.isOnSale
+                    && this.salePrice !== null
+                    && !Number.isNaN(this.salePrice)
+                    && this.salePrice < this.basePrice;
             },
             get currentOption() {
                 if (!this.hasVariants) return null;
                 return this.variants[this.selectedIndex] || this.variants[0];
             },
             get currentPrice() {
+                if (this.hasActiveSale) {
+                    return this.salePrice;
+                }
                 if (this.currentOption && this.currentOption.price !== undefined && this.currentOption.price !== null) {
                     return parseFloat(this.currentOption.price);
                 }
                 return this.basePrice;
             },
+            get originalPrice() {
+                return this.hasActiveSale ? this.basePrice : null;
+            },
             get formattedPrice() {
                 return '$' + this.currentPrice.toFixed(2);
+            },
+            get formattedOriginalPrice() {
+                return this.originalPrice !== null ? '$' + this.originalPrice.toFixed(2) : '';
+            },
+            get savingsAmount() {
+                return this.hasActiveSale ? this.basePrice - this.salePrice : 0;
+            },
+            get formattedSavings() {
+                return '$' + this.savingsAmount.toFixed(2);
             },
             get currentLabel() {
                 return this.currentOption ? this.currentOption.label : null;
@@ -426,13 +473,18 @@
         url.searchParams.set('category', slug);
         window.history.pushState({}, '', url);
 
-        // Show skeleton, hide grid
+        // Show skeleton in place of the grid while the new category loads
         var grid     = document.getElementById('items-grid');
         var skeleton = document.getElementById('loading-skeleton');
+        var loadMoreContainer = document.getElementById('load-more-container');
+        grid.classList.add('hidden');
         grid.style.opacity = '0';
         grid.style.pointerEvents = 'none';
         skeleton.classList.remove('hidden');
         skeleton.classList.add('grid');
+        if (loadMoreContainer) {
+            loadMoreContainer.classList.add('hidden');
+        }
 
         // Fetch items via AJAX
         fetch(BROWSE_URL + '?category=' + encodeURIComponent(slug), {
@@ -448,8 +500,12 @@
         .catch(function() {
             skeleton.classList.add('hidden');
             skeleton.classList.remove('grid');
+            grid.classList.remove('hidden');
             grid.style.opacity = '1';
             grid.style.pointerEvents = '';
+            if (loadMoreContainer) {
+                loadMoreContainer.classList.toggle('hidden', !HAS_MORE);
+            }
         });
     }
 
@@ -489,6 +545,7 @@
 
         skeleton.classList.add('hidden');
         skeleton.classList.remove('grid');
+        grid.classList.remove('hidden');
 
         if (!append) {
             if (items.length === 0) {
@@ -553,7 +610,7 @@
         }
 
         var variantsJson = JSON.stringify(meal.variants || []);
-        var xDataStr = "menuItemPricing(" + meal.raw_price + ", " + variantsJson.replace(/"/g, '&quot;') + ")";
+        var xDataStr = "menuItemPricing(" + meal.raw_price + ", " + variantsJson.replace(/"/g, '&quot;') + ", " + (meal.is_on_sale ? 'true' : 'false') + ", " + (meal.raw_sale_price !== null ? meal.raw_sale_price : 'null') + ")";
 
         return '<div id="browse-card-' + meal.id + '" class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow group overflow-hidden h-full" x-data="' + xDataStr + '">' +
             '<!-- Item Image -->' +
@@ -578,7 +635,13 @@
                                 escHtml(meal.name) + ' ' + featuredHtml +
                             '</h4>' +
                         '</a>' +
-                        '<span class="shrink-0 font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">$' + escHtml(meal.price) + '</span>' +
+                        '<div class="shrink-0 text-right whitespace-nowrap">' +
+                            '<div class="flex items-center justify-end gap-2">' +
+                                '<span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>' +
+                                '<span class="font-black text-emerald-500" x-text="formattedPrice">$' + escHtml(meal.price) + '</span>' +
+                            '</div>' +
+                            '<p x-show="hasActiveSale" x-cloak class="mt-0.5 text-[11px] font-bold text-rose-500" x-text="`Save ${formattedSavings}`"></p>' +
+                        '</div>' +
                     '</div>' +
                     descHtml +
                 '</div>' +

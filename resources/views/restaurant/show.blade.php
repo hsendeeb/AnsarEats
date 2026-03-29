@@ -223,27 +223,51 @@
         };
     };
 
-    window.menuItemPricing = function(basePrice, variants) {
+    window.menuItemPricing = function(basePrice, variants, isOnSale, salePrice) {
         return {
             basePrice: parseFloat(basePrice || 0),
             variants: variants && variants.options ? variants.options : [],
             variantType: variants && variants.type ? variants.type : null,
+            isOnSale: !!isOnSale,
+            salePrice: salePrice !== null && salePrice !== undefined && salePrice !== '' ? parseFloat(salePrice) : null,
             selectedIndex: 0,
             get hasVariants() {
                 return this.variants && this.variants.length > 0;
+            },
+            get hasActiveSale() {
+                return !this.hasVariants
+                    && this.isOnSale
+                    && this.salePrice !== null
+                    && !Number.isNaN(this.salePrice)
+                    && this.salePrice < this.basePrice;
             },
             get currentOption() {
                 if (!this.hasVariants) return null;
                 return this.variants[this.selectedIndex] || this.variants[0];
             },
             get currentPrice() {
+                if (this.hasActiveSale) {
+                    return this.salePrice;
+                }
                 if (this.currentOption && this.currentOption.price !== undefined && this.currentOption.price !== null) {
                     return parseFloat(this.currentOption.price);
                 }
                 return this.basePrice;
             },
+            get originalPrice() {
+                return this.hasActiveSale ? this.basePrice : null;
+            },
             get formattedPrice() {
                 return '$' + this.currentPrice.toFixed(2);
+            },
+            get formattedOriginalPrice() {
+                return this.originalPrice !== null ? '$' + this.originalPrice.toFixed(2) : '';
+            },
+            get savingsAmount() {
+                return this.hasActiveSale ? this.basePrice - this.salePrice : 0;
+            },
+            get formattedSavings() {
+                return '$' + this.savingsAmount.toFixed(2);
             },
             get currentLabel() {
                 return this.currentOption ? this.currentOption.label : null;
@@ -549,7 +573,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             @foreach($category->menuItems as $item)
                                 <div id="item-card-{{ $item->id }}" class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow group {{ !$item->is_available ? 'opacity-60 grayscale' : '' }}"
-                                     x-data="menuItemPricing({{ $item->price }}, @js($item->variants))">
+                                     x-data="menuItemPricing({{ $item->price }}, @js($item->variants), {{ $item->is_on_sale ? 'true' : 'false' }}, {{ Js::from($item->sale_price) }})">
                                     <!-- Item Image -->
                                     <div id="item-img-{{ $item->id }}" class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative">
                                         @if($item->image)
@@ -577,9 +601,15 @@
                                                 <h4 class="min-w-0 flex-1 font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight break-words flex items-center gap-2">
                                                     {{ $item->name }}
                                                 </h4>
-                                                <span class="shrink-0 font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">
-                                                    ${{ number_format($item->price, 2) }}
-                                                </span>
+                                                <div class="shrink-0 text-right whitespace-nowrap">
+                                                    <div class="flex items-center justify-end gap-2">
+                                                        <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>
+                                                        <span class="font-black text-emerald-500" x-text="formattedPrice">
+                                                            ${{ number_format($item->price, 2) }}
+                                                        </span>
+                                                    </div>
+                                                    <p x-show="hasActiveSale" x-cloak class="mt-0.5 text-[11px] font-bold text-orange-500" x-text="`Save ${formattedSavings}`"></p>
+                                                </div>
                                             </div>
                                             <div class="mt-1" x-data="{
                                                 expanded: false,

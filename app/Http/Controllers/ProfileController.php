@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Order;
+use App\Support\PerformanceCache;
 use Carbon\Carbon;
 
 class ProfileController extends Controller
@@ -42,28 +43,37 @@ class ProfileController extends Controller
     public function orders(Request $request)
     {
         $user = Auth::user();
-        $query = Order::where('user_id', $user->id)->with('restaurant', 'orderItems.menuItem');
+        $activeFilter = $request->filter ?? 'all';
 
-        if ($request->filled('filter')) {
-            switch ($request->filter) {
-                case 'today':
-                    $query->whereDate('created_at', Carbon::today());
-                    break;
-                case 'week':
-                    $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-                    break;
-                case 'month':
-                    $query->whereMonth('created_at', Carbon::now()->month)
-                          ->whereYear('created_at', Carbon::now()->year);
-                    break;
+        $orders = PerformanceCache::remember(
+            'profile-orders',
+            json_encode(['user_id' => $user->id, 'filter' => $activeFilter]),
+            now()->addSeconds(config('performance.cache_ttl.profile_orders')),
+            function () use ($user, $request) {
+                $query = Order::where('user_id', $user->id)->with('restaurant', 'orderItems.menuItem');
+
+                if ($request->filled('filter')) {
+                    switch ($request->filter) {
+                        case 'today':
+                            $query->whereDate('created_at', Carbon::today());
+                            break;
+                        case 'week':
+                            $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                            break;
+                        case 'month':
+                            $query->whereMonth('created_at', Carbon::now()->month)
+                                ->whereYear('created_at', Carbon::now()->year);
+                            break;
+                    }
+                }
+
+                return $query->latest()->get();
             }
-        }
-
-        $orders = $query->latest()->get();
+        );
 
         return view('profile.orders', [
             'orders' => $orders,
-            'activeFilter' => $request->filter ?? 'all'
+            'activeFilter' => $activeFilter
         ]);
     }
 

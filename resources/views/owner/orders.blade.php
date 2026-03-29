@@ -135,7 +135,7 @@
                 {{-- Orders list container --}}
                 <div id="orders-list" class="relative">
                     {{-- Loading overlay --}}
-                    <div x-show="loading" x-transition.opacity.duration.200ms
+                    <div x-show="filterLoading" x-transition.opacity.duration.200ms
                          class="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-3xl"
                          style="min-height: 120px;" x-cloak>
                         <div class="flex flex-col items-center gap-3">
@@ -144,9 +144,13 @@
                         </div>
                     </div>
 
-                    <div id="orders-content" :class="loading ? 'opacity-40 scale-[0.99] pointer-events-none' : 'opacity-100 scale-100'" class="transition-all duration-300 grid grid-cols-1 gap-4">
+                    <div id="orders-content" :class="filterLoading ? 'opacity-40 scale-[0.99] pointer-events-none' : 'opacity-100 scale-100'" class="transition-all duration-300 grid grid-cols-1 gap-4">
                         @forelse($orders as $order)
-                            <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-emerald-500/5 transition-all group">
+                            <div
+                                data-order-id="{{ $order->id }}"
+                                :class="loadingOrderId === {{ $order->id }} ? 'opacity-70 pointer-events-none scale-[0.99]' : ''"
+                                class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-emerald-500/5 transition-all group"
+                            >
                                 <div class="p-5 md:p-6">
                                     <div class="flex flex-col lg:flex-row justify-between gap-6">
                                         <div class="flex flex-col sm:flex-row gap-5">
@@ -238,8 +242,11 @@
                                                             <option value="45">45 min prep</option>
                                                             <option value="60">60 min prep</option>
                                                         </select>
-                                                        <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-2 px-6 rounded-xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-2 text-sm whitespace-nowrap">
-                                                            Accept
+                                                        <button type="submit" data-loading-key="accept-{{ $order->id }}" :disabled="loadingOrderId === {{ $order->id }}" class="bg-emerald-500 hover:bg-emerald-400 disabled:hover:bg-emerald-500 text-white font-bold py-2 px-6 rounded-xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:transform-none disabled:opacity-80 flex items-center gap-2 text-sm whitespace-nowrap">
+                                                            <span>Accept</span>
+                                                            <span x-show="loadingButtonKey === 'accept-{{ $order->id }}'" x-cloak class="inline-flex">
+                                                                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                                                            </span>
                                                         </button>
                                                     </form>
                                                     
@@ -249,8 +256,11 @@
                                                         <button type="button" x-show="!showReason" @click="showReason = true" class="bg-white hover:bg-red-50 text-red-500 font-bold py-2 px-6 rounded-xl border border-red-100 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 text-sm">
                                                             Reject
                                                         </button>
-                                                        <button type="submit" x-show="showReason" x-cloak class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-xl shadow-lg shadow-red-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 text-sm whitespace-nowrap">
-                                                            Confirm Reject
+                                                        <button type="submit" data-loading-key="reject-{{ $order->id }}" :disabled="loadingOrderId === {{ $order->id }}" x-show="showReason" x-cloak class="bg-red-500 hover:bg-red-400 disabled:hover:bg-red-500 text-white font-bold py-2 px-4 rounded-xl shadow-lg shadow-red-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:transform-none disabled:opacity-80 flex items-center justify-center gap-2 text-sm whitespace-nowrap">
+                                                            <span>Confirm Reject</span>
+                                                            <span x-show="loadingButtonKey === 'reject-{{ $order->id }}'" x-cloak class="inline-flex">
+                                                                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                                                            </span>
                                                         </button>
                                                     </form>
                                                 </div>
@@ -258,9 +268,12 @@
                                                 <div class="flex items-center gap-2">
                                                     <form method="POST" action="{{ route('owner.order.prepare', $order) }}" class="order-status-form">
                                                         @csrf
-                                                        <button type="submit" class="bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-2 px-6 rounded-xl shadow-lg shadow-indigo-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-2 text-sm">
+                                                        <button type="submit" data-loading-key="prepare-{{ $order->id }}" :disabled="loadingOrderId === {{ $order->id }}" class="bg-indigo-500 hover:bg-indigo-400 disabled:hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-xl shadow-lg shadow-indigo-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:transform-none disabled:opacity-80 flex items-center gap-2 text-sm">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                                                            Start Preparing
+                                                            <span>Start Preparing</span>
+                                                            <span x-show="loadingButtonKey === 'prepare-{{ $order->id }}'" x-cloak class="inline-flex">
+                                                                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                                                            </span>
                                                         </button>
                                                     </form>
                                                 </div>
@@ -268,11 +281,14 @@
                                                 <div class="flex items-center gap-2">
                                                     <form method="POST" action="{{ route('owner.order.deliver', $order) }}" class="order-status-form">
                                                         @csrf
-                                                        <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black py-2.5 px-6 rounded-xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-2 text-sm">
+                                                        <button type="submit" data-loading-key="deliver-{{ $order->id }}" :disabled="loadingOrderId === {{ $order->id }}" class="bg-emerald-500 hover:bg-emerald-600 disabled:hover:bg-emerald-500 text-white font-black py-2.5 px-6 rounded-xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:transform-none disabled:opacity-80 flex items-center gap-2 text-sm">
                                                             <div class="w-5 h-5 bg-white/20 rounded-lg flex items-center justify-center">
                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                                                             </div>
-                                                            Mark Delivered
+                                                            <span>Mark Delivered</span>
+                                                            <span x-show="loadingButtonKey === 'deliver-{{ $order->id }}'" x-cloak class="inline-flex">
+                                                                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                                                            </span>
                                                         </button>
                                                     </form>
                                                 </div>
@@ -379,10 +395,19 @@
             <script>
                 function ordersFilter() {
                     return {
-                        loading: false,
+                        filterLoading: false,
+                        loadingOrderId: null,
+                        loadingButtonKey: null,
                         newOrderCount: 0,
                         latestOrderId: {{ $orders->isNotEmpty() ? $orders->first()->id : 0 }},
-                        pollInterval: null,
+                        pollTimer: null,
+                        pollInFlight: false,
+                        pollConfig: {
+                            visible: {{ (int) config('performance.polling.owner_visible_ms') }},
+                            hidden: {{ (int) config('performance.polling.owner_hidden_ms') }},
+                            retry: {{ (int) config('performance.polling.owner_retry_ms') }},
+                            focus: {{ (int) config('performance.polling.owner_focus_ms') }},
+                        },
 
                         init() {
                             // Handle browser back/forward buttons
@@ -393,17 +418,56 @@
                             // Intercept status forms
                             this.$nextTick(() => this.bindStatusForms());
 
-                            // Start polling for new orders every 8 seconds
-                            this.pollInterval = setInterval(() => this.checkNewOrders(), 8000);
+                            document.addEventListener('visibilitychange', () => {
+                                if (document.hidden) {
+                                    this.stopPolling();
+                                } else {
+                                    this.schedulePoll(this.pollConfig.focus);
+                                }
+                            });
+
+                            window.addEventListener('online', () => this.schedulePoll(this.pollConfig.focus));
+
+                            this.schedulePoll(this.pollConfig.visible);
+                        },
+
+                        currentPollDelay() {
+                            return document.hidden ? this.pollConfig.hidden : this.pollConfig.visible;
+                        },
+
+                        stopPolling() {
+                            if (this.pollTimer) {
+                                clearTimeout(this.pollTimer);
+                                this.pollTimer = null;
+                            }
+                        },
+
+                        schedulePoll(delay = null) {
+                            this.stopPolling();
+
+                            if (document.hidden || !navigator.onLine) {
+                                return;
+                            }
+
+                            this.pollTimer = setTimeout(() => this.checkNewOrders(), delay ?? this.currentPollDelay());
                         },
 
                         async checkNewOrders() {
+                            if (this.pollInFlight || this.filterLoading || this.loadingOrderId) {
+                                this.schedulePoll(this.currentPollDelay());
+                                return;
+                            }
+
+                            this.pollInFlight = true;
                             try {
                                 const url = '{{ route("owner.dashboard.poll-new-orders") }}?since_id=' + this.latestOrderId;
                                 const res = await fetch(url, {
                                     headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
                                 });
-                                if (!res.ok) return;
+                                if (!res.ok) {
+                                    this.schedulePoll(this.pollConfig.retry);
+                                    return;
+                                }
                                 const data = await res.json();
 
                                 if (data.count > 0) {
@@ -434,15 +498,20 @@
                                     } else {
                                         // Show the banner so they can switch tabs when they are ready
                                         this.newOrderCount += data.count;
+                                        this.schedulePoll(this.pollConfig.focus);
                                     }
+                                } else {
+                                    this.schedulePoll(this.currentPollDelay());
                                 }
                             } catch(e) {
-                                // Silently fail
+                                this.schedulePoll(this.pollConfig.retry);
+                            } finally {
+                                this.pollInFlight = false;
                             }
                         },
 
                         async refreshOrders() {
-                            if (this.loading) return;
+                            if (this.filterLoading) return;
                             this.newOrderCount = 0;
                             // Switch to pending view to show new orders
                             const url = '{{ route("owner.orders", ["status" => "pending"]) }}';
@@ -456,14 +525,14 @@
                                 if (form.dataset.bound) return;
                                 form.addEventListener('submit', (e) => {
                                     e.preventDefault();
-                                    this.submitStatusUpdate(form);
+                                    this.submitStatusUpdate(form, e.submitter);
                                 });
                                 form.dataset.bound = "true";
                             });
                         },
 
                         async applyFilter(url, pushState = true) {
-                            this.loading = true;
+                            this.filterLoading = true;
 
                             try {
                                 const res = await fetch(url, {
@@ -554,14 +623,81 @@
                                 window.location.href = url;
                             }
 
-                            this.loading = false;
+                            this.filterLoading = false;
+                            this.schedulePoll(this.currentPollDelay());
                         },
 
-                        async submitStatusUpdate(form) {
-                            this.loading = true;
+                        async refreshSingleOrder(orderId) {
+                            const container = document.getElementById('orders');
+                            if (!container) return;
+
+                            const res = await fetch(window.location.href, {
+                                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                            });
+                            const html = await res.text();
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const newOrders = doc.getElementById('orders');
+                            if (!newOrders) return;
+
+                            const currentContent = container.querySelector('#orders-content');
+                            const freshContent = newOrders.querySelector('#orders-content');
+                            const currentCard = container.querySelector('[data-order-id="' + orderId + '"]');
+                            const freshCard = newOrders.querySelector('[data-order-id="' + orderId + '"]');
+                            const freshHasCards = freshContent && freshContent.querySelector('[data-order-id]');
+
+                            if (currentContent && freshContent) {
+                                if (freshCard && currentCard) {
+                                    currentCard.replaceWith(freshCard);
+                                } else if (!freshCard) {
+                                    if (!freshHasCards) {
+                                        currentContent.innerHTML = freshContent.innerHTML;
+                                    } else if (currentCard) {
+                                        currentCard.remove();
+                                    }
+                                }
+                            }
+
+                            const newPagination = newOrders.querySelector('#orders-pagination');
+                            const currentPagination = container.querySelector('#orders-pagination');
+                            if (newPagination && currentPagination) {
+                                currentPagination.innerHTML = newPagination.innerHTML;
+                            } else if (newPagination && !currentPagination) {
+                                const listContainer = container.querySelector('#orders-list');
+                                if (listContainer) {
+                                    const paginationDiv = document.createElement('div');
+                                    paginationDiv.id = 'orders-pagination';
+                                    paginationDiv.className = newPagination.className;
+                                    paginationDiv.innerHTML = newPagination.innerHTML;
+                                    listContainer.appendChild(paginationDiv);
+                                }
+                            } else if (!newPagination && currentPagination) {
+                                currentPagination.remove();
+                            }
+
+                            this.$nextTick(() => {
+                                container.querySelectorAll('#orders-pagination .order-filter-link').forEach(link => {
+                                    link.addEventListener('click', (e) => {
+                                        e.preventDefault();
+                                        this.applyFilter(link.href);
+                                    });
+                                });
+                                this.bindStatusForms();
+                            });
+
+                            this.schedulePoll(this.currentPollDelay());
+                        },
+
+                        async submitStatusUpdate(form, submitter = null) {
+                            const orderCard = form.closest('[data-order-id]');
+                            const orderId = orderCard ? orderCard.getAttribute('data-order-id') : null;
+                            const loadingKey = submitter ? submitter.dataset.loadingKey || null : null;
+
+                            this.loadingOrderId = orderId;
+                            this.loadingButtonKey = loadingKey;
                             try {
                                 const formData = new FormData(form);
-                                await fetch(form.action, {
+                                const res = await fetch(form.action, {
                                     method: 'POST',
                                     headers: {
                                         'X-CSRF-TOKEN': formData.get('_token'),
@@ -571,11 +707,21 @@
                                     body: formData
                                 });
 
-                                // After update, reload current filters to show new state
-                                await this.applyFilter(window.location.href, false);
+                                if (!res.ok) {
+                                    throw new Error('Status update request failed');
+                                }
+
+                                if (orderId) {
+                                    await this.refreshSingleOrder(orderId);
+                                } else {
+                                    await this.applyFilter(window.location.href, false);
+                                }
                             } catch (err) {
                                 console.error('Status update failed:', err);
                                 form.submit();
+                            } finally {
+                                this.loadingOrderId = null;
+                                this.loadingButtonKey = null;
                             }
                         }
                     };

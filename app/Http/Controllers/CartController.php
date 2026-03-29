@@ -17,12 +17,106 @@ class CartController extends Controller
         return $menuItemId . '|' . mb_strtolower($label) . '|' . number_format($price, 2, '.', '');
     }
 
+    private function canonicalPriceForItem(MenuItem $menuItem, ?string $variantLabel): ?float
+    {
+        return $variantLabel
+            ? $menuItem->variantPrice($variantLabel)
+            : $menuItem->effectivePrice();
+    }
+
+    private function syncCart(array $cart): array
+    {
+        $items = $cart['items'] ?? [];
+
+        if (empty($items)) {
+            return array_merge([
+                'restaurant_id' => null,
+                'restaurant_name' => null,
+                'items' => [],
+                'promo' => null,
+            ], $cart);
+        }
+
+        $menuItems = MenuItem::query()
+            ->whereIn('id', collect($items)->pluck('id')->filter()->unique())
+            ->get()
+            ->keyBy('id');
+
+        $syncedItems = [];
+
+        foreach ($items as $item) {
+            $menuItem = $menuItems->get($item['id'] ?? null);
+
+            if (!$menuItem) {
+                continue;
+            }
+
+            $variantLabel = $item['variant'] ?? null;
+            $price = $this->canonicalPriceForItem($menuItem, $variantLabel);
+
+            if ($price === null) {
+                continue;
+            }
+
+            $newKey = $this->cartItemKey($menuItem->id, $variantLabel, $price);
+
+            if (isset($syncedItems[$newKey])) {
+                $syncedItems[$newKey]['quantity'] += (int) ($item['quantity'] ?? 0);
+                continue;
+            }
+
+            $syncedItems[$newKey] = [
+                'key' => $newKey,
+                'id' => $menuItem->id,
+                'name' => $menuItem->name,
+                'price' => $price,
+                'image' => $menuItem->image,
+                'quantity' => (int) ($item['quantity'] ?? 0),
+                'variant' => $variantLabel,
+            ];
+        }
+
+        $cart['items'] = $syncedItems;
+
+        if (empty($cart['items'])) {
+            $cart['restaurant_id'] = null;
+            $cart['restaurant_name'] = null;
+            $cart['promo'] = null;
+        }
+
+        return $cart;
+    }
+
+    private function resolveCartItemKey(array $cart, string $requestedKey): ?string
+    {
+        if (isset($cart['items'][$requestedKey])) {
+            return $requestedKey;
+        }
+
+        [$requestedId, $requestedLabel] = array_pad(explode('|', $requestedKey, 3), 3, '');
+        $requestedId = (int) $requestedId;
+        $requestedLabel = mb_strtolower(trim($requestedLabel));
+
+        foreach ($cart['items'] as $key => $item) {
+            $itemLabel = mb_strtolower(trim((string) ($item['variant'] ?? '')));
+
+            if ((int) ($item['id'] ?? 0) === $requestedId && $itemLabel === $requestedLabel) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Get cart contents (JSON for Alpine.js)
      */
     public function index()
     {
-        $cart = session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => [], 'promo' => null]);
+        $cart = $this->syncCart(
+            session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => [], 'promo' => null])
+        );
+        session(['cart' => $cart]);
         
         $subtotal = collect($cart['items'])->sum(fn($item) => $item['price'] * $item['quantity']);
         $discountAmount = 0;
@@ -80,8 +174,11 @@ class CartController extends Controller
         $cart['restaurant_name'] = $restaurant->name;
 
         $variantLabel = $request->input('variant_label');
-        $variantPrice = $request->input('variant_price');
-        $price = $variantPrice !== null ? (float) $variantPrice : (float) $menuItem->price;
+        $price = $this->canonicalPriceForItem($menuItem, $variantLabel);
+
+        if ($variantLabel && $price === null) {
+            return response()->json(['message' => 'The selected item option is no longer available.'], 422);
+        }
 
         $itemKey = $this->cartItemKey($menuItem->id, $variantLabel, $price);
 
@@ -120,8 +217,12 @@ class CartController extends Controller
             'quantity' => 'required|integer|min:0|max:20',
         ]);
 
-        $cart = session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => []]);
-        $itemKey = (string) $request->item_key;
+        $cart = $this->syncCart(session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => []]));
+        $itemKey = $this->resolveCartItemKey($cart, (string) $request->item_key);
+
+        if ($itemKey === null) {
+            return response()->json(['message' => 'Cart item not found.'], 404);
+        }
 
         if ($request->quantity === 0) {
             unset($cart['items'][$itemKey]);
@@ -152,8 +253,12 @@ class CartController extends Controller
             'item_key' => 'required|string',
         ]);
 
-        $cart = session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => []]);
-        $itemKey = (string) $request->item_key;
+        $cart = $this->syncCart(session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => []]));
+        $itemKey = $this->resolveCartItemKey($cart, (string) $request->item_key);
+
+        if ($itemKey === null) {
+            return response()->json(['message' => 'Cart item not found.'], 404);
+        }
 
         unset($cart['items'][$itemKey]);
 
@@ -184,7 +289,7 @@ class CartController extends Controller
     {
         $request->validate(['code' => 'required|string']);
         
-        $cart = session('cart', ['restaurant_id' => null, 'items' => []]);
+        $cart = $this->syncCart(session('cart', ['restaurant_id' => null, 'items' => []]));
         
         if (!$cart['restaurant_id']) {
             return response()->json(['message' => 'Your cart is empty.'], 422);
@@ -285,7 +390,7 @@ class CartController extends Controller
 
         // Send Order Confirmation Email
         try {
-            \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderPlacedMail($order));
+            \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderPlacedMail($order));
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to send order placement email: ' . $e->getMessage());
         }

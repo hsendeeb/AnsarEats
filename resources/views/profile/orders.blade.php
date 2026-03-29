@@ -348,14 +348,16 @@ function ordersTracker() {
     const ORDER_STEPS = ['pending', 'accepted', 'preparing', 'out_for_delivery', 'delivered'];
     const TERMINAL    = ['delivered', 'cancelled'];
 
-    // Collect all active order IDs from the page
-    const activeIds = Array.from(document.querySelectorAll('[data-order-status]'))
-        .filter(el => !TERMINAL.includes(el.dataset.orderStatus))
-        .map(el => el.dataset.orderId);
-
     return {
         statuses: {},   // map of orderId => status
-        pollInterval: null,
+        pollTimer: null,
+        pollInFlight: false,
+        pollConfig: {
+            visible: {{ (int) config('performance.polling.profile_visible_ms') }},
+            hidden: {{ (int) config('performance.polling.profile_hidden_ms') }},
+            retry: {{ (int) config('performance.polling.profile_retry_ms') }},
+            focus: {{ (int) config('performance.polling.profile_focus_ms') }},
+        },
 
         init() {
             // Seed initial statuses from data attributes
@@ -363,8 +365,18 @@ function ordersTracker() {
                 this.statuses[el.dataset.orderId] = el.dataset.orderStatus;
             });
 
-            if (activeIds.length > 0) {
-                this.pollInterval = setInterval(() => this.pollStatuses(), 6000);
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    this.stopPolling();
+                } else {
+                    this.schedulePoll(this.pollConfig.focus);
+                }
+            });
+
+            window.addEventListener('online', () => this.schedulePoll(this.pollConfig.focus));
+
+            if (this.getActiveIds().length > 0) {
+                this.schedulePoll(this.pollConfig.visible);
             }
         },
 
@@ -372,18 +384,56 @@ function ordersTracker() {
             return this.statuses[id] ?? fallback;
         },
 
+        getActiveIds() {
+            return Object.entries(this.statuses)
+                .filter(([, status]) => !TERMINAL.includes(status))
+                .map(([id]) => id);
+        },
+
+        currentPollDelay() {
+            return document.hidden ? this.pollConfig.hidden : this.pollConfig.visible;
+        },
+
+        stopPolling() {
+            if (this.pollTimer) {
+                clearTimeout(this.pollTimer);
+                this.pollTimer = null;
+            }
+        },
+
+        schedulePoll(delay = null) {
+            this.stopPolling();
+
+            if (document.hidden || !navigator.onLine || this.getActiveIds().length === 0) {
+                return;
+            }
+
+            this.pollTimer = setTimeout(() => this.pollStatuses(), delay ?? this.currentPollDelay());
+        },
+
         async pollStatuses() {
-            if (activeIds.length === 0) return;
+            const activeIds = this.getActiveIds();
+            if (activeIds.length === 0 || this.pollInFlight) return;
+
+            this.pollInFlight = true;
             try {
                 const res = await fetch('{{ route("orders.batch-status") }}?ids=' + activeIds.join(','), {
                     headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
                 });
-                if (!res.ok) return;
+                if (!res.ok) {
+                    this.schedulePoll(this.pollConfig.retry);
+                    return;
+                }
                 const data = await res.json();
                 Object.entries(data).forEach(([id, info]) => {
                     this.statuses[id] = info.status;
                 });
-            } catch(e) {}
+                this.schedulePoll(this.currentPollDelay());
+            } catch(e) {
+                this.schedulePoll(this.pollConfig.retry);
+            } finally {
+                this.pollInFlight = false;
+            }
         },
 
         isStepDone(stepIndex, currentStatus) {
@@ -412,10 +462,9 @@ function ordersTracker() {
         },
 
         destroy() {
-            if (this.pollInterval) clearInterval(this.pollInterval);
+            this.stopPolling();
         }
     };
 }
 </script>
 @endpush
-

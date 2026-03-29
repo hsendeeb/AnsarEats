@@ -25,6 +25,8 @@ class MenuItemController extends Controller
             'variant_names.*' => 'nullable|string|max:255',
             'variant_prices' => 'required_if:has_variants,1|nullable|array',
             'variant_prices.*' => 'nullable|numeric|min:0',
+            'is_on_sale' => 'sometimes|boolean',
+            'sale_price' => 'nullable|required_if:is_on_sale,1|numeric|min:0|lt:price',
         ]);
 
         $category = MenuCategory::findOrFail($request->menu_category_id);
@@ -35,6 +37,7 @@ class MenuItemController extends Controller
         }
 
         $data = $request->only('name', 'description', 'price');
+        $hasAppliedVariants = false;
 
         if ($request->boolean('has_variants')) {
             $names = $request->input('variant_names', []);
@@ -56,12 +59,16 @@ class MenuItemController extends Controller
             }
 
             if (!empty($options)) {
+                $hasAppliedVariants = true;
                 $data['variants'] = [
                     'type' => $request->input('variant_type'),
                     'options' => $options,
                 ];
             }
         }
+
+        $data['is_on_sale'] = $request->boolean('is_on_sale') && ! $hasAppliedVariants;
+        $data['sale_price'] = $data['is_on_sale'] ? $request->input('sale_price') : null;
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('menu-items', 'public');
@@ -100,11 +107,14 @@ class MenuItemController extends Controller
             'variant_names.*' => 'nullable|string|max:255',
             'variant_prices' => 'required_if:has_variants,1|nullable|array',
             'variant_prices.*' => 'nullable|numeric|min:0',
+            'is_on_sale' => 'sometimes|boolean',
+            'sale_price' => 'nullable|required_if:is_on_sale,1|numeric|min:0|lt:price',
         ]);
 
         $data = $request->only('name', 'description', 'price');
 
         $data['variants'] = null;
+        $hasAppliedVariants = false;
         if ($request->boolean('has_variants')) {
             $names = $request->input('variant_names', []);
             $prices = $request->input('variant_prices', []);
@@ -125,12 +135,16 @@ class MenuItemController extends Controller
             }
 
             if (!empty($options)) {
+                $hasAppliedVariants = true;
                 $data['variants'] = [
                     'type' => $request->input('variant_type'),
                     'options' => $options,
                 ];
             }
         }
+
+        $data['is_on_sale'] = $request->boolean('is_on_sale') && ! $hasAppliedVariants;
+        $data['sale_price'] = $data['is_on_sale'] ? $request->input('sale_price') : null;
 
         if ($request->hasFile('image')) {
             // Delete old image if exists

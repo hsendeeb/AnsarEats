@@ -15,6 +15,7 @@ class OrderFactory extends Factory
             'restaurant_id' => Restaurant::factory(),
             'delivery_address' => $this->faker->address(),
             'phone' => $this->faker->phoneNumber(),
+            'delivery_fee' => 0,
             'total' => $this->faker->randomFloat(2, 20, 200),
             'status' => 'pending',
         ];

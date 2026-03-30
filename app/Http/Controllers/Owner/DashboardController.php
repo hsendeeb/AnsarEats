@@ -323,17 +323,14 @@ class DashboardController extends Controller
             abort(403);
         }
 
+        $previousStatus = $order->status;
         $order->update([
             'status' => 'accepted',
             'estimated_prep_time' => $request->input('estimated_prep_time')
         ]);
 
-        // Send Status Update Email
-        try {
-            \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderStatusUpdatedMail($order));
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
-        }
+        $this->sendOrderStatusUpdateEmail($order);
+        $order->broadcastRealtimeUpdate('status_updated', $previousStatus);
 
         if (request()->ajax()) {
             return response()->json(['success' => true, 'message' => 'Order #' . $order->id . ' has been accepted!']);
@@ -345,15 +342,12 @@ class DashboardController extends Controller
     public function prepareOrder(\App\Models\Order $order)
     {
         if ($order->restaurant->user_id !== Auth::id()) abort(403);
-        
+
+        $previousStatus = $order->status;
         $order->update(['status' => 'preparing']);
 
-        // Send Status Update Email
-        try {
-            \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderStatusUpdatedMail($order));
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
-        }
+        $this->sendOrderStatusUpdateEmail($order);
+        $order->broadcastRealtimeUpdate('status_updated', $previousStatus);
 
         if (request()->ajax()) {
             return response()->json(['success' => true, 'message' => 'Order #' . $order->id . ' is now being prepared!']);
@@ -365,15 +359,12 @@ class DashboardController extends Controller
     public function outForDeliveryOrder(\App\Models\Order $order)
     {
         if ($order->restaurant->user_id !== Auth::id()) abort(403);
-        
+
+        $previousStatus = $order->status;
         $order->update(['status' => 'out_for_delivery']);
 
-        // Send Status Update Email
-        try {
-            \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderStatusUpdatedMail($order));
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
-        }
+        $this->sendOrderStatusUpdateEmail($order);
+        $order->broadcastRealtimeUpdate('status_updated', $previousStatus);
 
         if (request()->ajax()) {
             return response()->json(['success' => true, 'message' => 'Order #' . $order->id . ' is out for delivery!']);
@@ -388,17 +379,14 @@ class DashboardController extends Controller
             abort(403);
         }
 
+        $previousStatus = $order->status;
         $order->update([
             'status' => 'cancelled',
             'rejection_reason' => $request->input('rejection_reason', 'Cancelled by restaurant')
         ]);
 
-        // Send Status Update Email
-        try {
-            \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderStatusUpdatedMail($order));
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
-        }
+        $this->sendOrderStatusUpdateEmail($order);
+        $order->broadcastRealtimeUpdate('status_updated', $previousStatus);
 
         if (request()->ajax()) {
             return response()->json(['success' => true, 'message' => 'Order #' . $order->id . ' has been rejected.']);
@@ -413,14 +401,11 @@ class DashboardController extends Controller
             abort(403);
         }
 
+        $previousStatus = $order->status;
         $order->update(['status' => 'delivered']);
 
-        // Send Status Update Email
-        try {
-            \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderStatusUpdatedMail($order));
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
-        }
+        $this->sendOrderStatusUpdateEmail($order);
+        $order->broadcastRealtimeUpdate('status_updated', $previousStatus);
 
         if (request()->ajax()) {
             return response()->json(['success' => true, 'message' => 'Order #' . $order->id . ' has been marked as delivered!']);
@@ -448,6 +433,8 @@ class DashboardController extends Controller
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'phone' => 'required|string|max:50',
+            'free_delivery' => 'sometimes|boolean',
+            'delivery_fee' => 'nullable|required_unless:free_delivery,1|numeric|min:0',
             'is_open' => 'sometimes|boolean',
             'logo' => 'nullable|image|max:2048',
             'cover_image' => 'nullable|image|max:4096',
@@ -455,6 +442,10 @@ class DashboardController extends Controller
         ]);
 
         $data['is_open'] = $request->has('is_open');
+        $data['delivery_fee'] = $request->boolean('free_delivery')
+            ? 0
+            : (float) $request->input('delivery_fee', 0);
+        unset($data['free_delivery']);
 
         $user = Auth::user();
         $restaurant = $user->restaurant;
@@ -611,5 +602,14 @@ class DashboardController extends Controller
         if ($promotion->restaurant->user_id !== Auth::id()) abort(403);
         $promotion->delete();
         return back()->with('success', 'Promotion removed!');
+    }
+
+    private function sendOrderStatusUpdateEmail(Order $order): void
+    {
+        try {
+            \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderStatusUpdatedMail($order));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
+        }
     }
 }

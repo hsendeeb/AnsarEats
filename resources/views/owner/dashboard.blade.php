@@ -129,6 +129,7 @@
                 </a>
             </div>
 
+            <div id="dashboard-live-sections">
             <!-- Analytics Overview -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
                 <!-- Total Revenue -->
@@ -300,6 +301,7 @@
                     View Orders
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                 </a>
+            </div>
             </div>
 
             <!-- Categories & Items List -->
@@ -623,6 +625,7 @@
             <form method="POST" action="{{ route('owner.restaurant.store') }}" enctype="multipart/form-data" class="p-6 space-y-4" x-data="{
                 logoPreview: '{{ $restaurantDraft && $restaurantDraft->logo ? Storage::url($restaurantDraft->logo) : '' }}',
                 coverPreview: '{{ $restaurantDraft && $restaurantDraft->cover_image ? Storage::url($restaurantDraft->cover_image) : '' }}',
+                deliveryFeeEnabled: {{ old('free_delivery', $restaurantDraft ? (((float) (optional($restaurantDraft)->delivery_fee ?? 0) <= 0) ? 1 : 0) : 0) ? 'false' : 'true' }},
                 handleLogoSelect(event) {
                     const file = event.target.files[0];
                     if (file) {
@@ -740,6 +743,46 @@
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Phone</label>
                     <input type="text" name="phone" value="{{ old('phone') ?? optional($restaurantDraft)->phone }}" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="+961 1 234 567">
+                </div>
+
+                <div class="space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-bold text-gray-700">Delivery Fee</p>
+                            <p class="text-xs font-medium text-gray-400">Turn this on only if you want to charge customers for delivery.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="hidden" name="free_delivery" :value="deliveryFeeEnabled ? 0 : 1">
+                            <input type="checkbox" x-model="deliveryFeeEnabled" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/20 peer-checked:bg-emerald-500 transition-colors relative">
+                                <div class="absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
+                                     :class="deliveryFeeEnabled ? 'translate-x-5' : 'translate-x-0'"></div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between gap-3 rounded-2xl border border-white/80 bg-white/80 px-4 py-3">
+                        <div>
+                            <p class="text-xs font-black uppercase tracking-widest text-emerald-700">Delivery Status</p>
+                            <p class="text-[11px] font-medium text-emerald-600" x-text="deliveryFeeEnabled ? 'Customers will see this fee during checkout.' : 'Turn the switch on if you want to charge for delivery.'"></p>
+                        </div>
+                        <span class="text-sm font-black" :class="deliveryFeeEnabled ? 'text-emerald-600' : 'text-gray-400'" x-text="deliveryFeeEnabled ? 'On' : 'Off'"></span>
+                    </div>
+                    <div x-show="!deliveryFeeEnabled" x-transition class="rounded-xl border border-dashed border-emerald-200 bg-white/70 px-4 py-3">
+                        <p class="text-[11px] font-bold text-emerald-600 uppercase tracking-widest">Free Delivery</p>
+                        <p class="mt-1 text-xs font-medium text-gray-500">No delivery fee will be added at checkout.</p>
+                    </div>
+                    <div x-show="deliveryFeeEnabled" x-transition>
+                        <label class="block text-xs font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Fee Amount ($)</label>
+                        <input type="number"
+                               step="0.01"
+                               min="0"
+                               name="delivery_fee"
+                               value="{{ old('delivery_fee', optional($restaurantDraft)->delivery_fee) }}"
+                               :required="deliveryFeeEnabled"
+                               :disabled="!deliveryFeeEnabled"
+                               class="block w-full px-4 py-3 bg-white border border-emerald-200 rounded-2xl font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                               placeholder="3.50">
+                    </div>
                 </div>
 
                 <div>
@@ -1271,25 +1314,52 @@
     </div>
     <script>
         (function() {
-            const stats = @json($stats);
+            const initialStats = @json($stats);
+            const restaurantChannel = 'restaurant.{{ $restaurant->id }}.orders';
 
-            function initDashboard() {
-                // Sparklines for metric cards
+            window.dashboardCharts = window.dashboardCharts || {
+                sparklines: [],
+                bar: null,
+                pie: null,
+                activePeriod: 'week',
+            };
+
+            window.destroyDashboardCharts = function() {
+                if (Array.isArray(window.dashboardCharts.sparklines)) {
+                    window.dashboardCharts.sparklines.forEach((chart) => chart?.destroy?.());
+                }
+
+                window.dashboardCharts.sparklines = [];
+                window.dashboardCharts.bar?.destroy?.();
+                window.dashboardCharts.pie?.destroy?.();
+                window.dashboardCharts.bar = null;
+                window.dashboardCharts.pie = null;
+            };
+
+            window.initDashboard = function(selectedPeriod = null, statsPayload = null) {
+                const stats = statsPayload ?? initialStats;
+                const activePeriod = selectedPeriod ?? window.dashboardCharts.activePeriod ?? 'week';
+
+                window.destroyDashboardCharts();
+                window.dashboardCharts.activePeriod = activePeriod;
+
                 const sparkCanvases = Array.from(document.querySelectorAll('.sparkline'));
                 sparkCanvases.forEach((canvas) => {
                     const raw = canvas.getAttribute('data-sparkline');
                     const color = canvas.getAttribute('data-color') || '#10b981';
                     let series = [];
+
                     try {
                         series = raw ? JSON.parse(raw) : [];
                     } catch (e) {
                         series = [];
                     }
 
-                    if (!Array.isArray(series) || series.length === 0) return;
+                    if (!Array.isArray(series) || series.length === 0) {
+                        return;
+                    }
 
-                    const ctx = canvas.getContext('2d');
-                    new Chart(ctx, {
+                    const chart = new Chart(canvas.getContext('2d'), {
                         type: 'line',
                         data: {
                             labels: series.map((_, i) => i + 1),
@@ -1319,13 +1389,40 @@
                             }
                         }
                     });
+
+                    window.dashboardCharts.sparklines.push(chart);
                 });
 
-                // Orders Line Chart
                 const barCanvas = document.getElementById('barChart');
                 if (barCanvas) {
-                    const barCtx = barCanvas.getContext('2d');
-                    const barChart = new Chart(barCtx, {
+                    const chartWrap = barCanvas.closest('[data-chart-url]');
+                    const chartUrl = chartWrap?.getAttribute('data-chart-url');
+                    const titleEl = document.getElementById('barChartTitle');
+                    const loaderEl = document.getElementById('barChartLoader');
+                    const buttons = Array.from(document.querySelectorAll('.chart-period-btn'));
+
+                    const setActiveBtn = (period) => {
+                        window.dashboardCharts.activePeriod = period;
+
+                        buttons.forEach((button) => {
+                            const isActive = button.getAttribute('data-period') === period;
+                            button.classList.toggle('bg-white', isActive);
+                            button.classList.toggle('text-emerald-600', isActive);
+                            button.classList.toggle('shadow-sm', isActive);
+                            button.classList.toggle('text-gray-500', !isActive);
+                        });
+                    };
+
+                    const setLoading = (isLoading) => {
+                        if (!loaderEl) {
+                            return;
+                        }
+
+                        loaderEl.classList.toggle('opacity-0', !isLoading);
+                        loaderEl.classList.toggle('pointer-events-none', !isLoading);
+                    };
+
+                    window.dashboardCharts.bar = new Chart(barCanvas.getContext('2d'), {
                         type: 'line',
                         data: {
                             labels: stats.chart_data.bar.labels,
@@ -1359,44 +1456,30 @@
                         }
                     });
 
-                    // Dynamic period filters
-                    const chartWrap = barCanvas.closest('[data-chart-url]');
-                    const chartUrl = chartWrap?.getAttribute('data-chart-url');
-                    const titleEl = document.getElementById('barChartTitle');
-                    const loaderEl = document.getElementById('barChartLoader');
-                    const buttons = Array.from(document.querySelectorAll('.chart-period-btn'));
-
-                    const setActiveBtn = (period) => {
-                        buttons.forEach((b) => {
-                            const isActive = b.getAttribute('data-period') === period;
-                            b.classList.toggle('bg-white', isActive);
-                            b.classList.toggle('text-emerald-600', isActive);
-                            b.classList.toggle('shadow-sm', isActive);
-                            b.classList.toggle('text-gray-500', !isActive);
-                        });
-                    };
-
-                    const setLoading = (isLoading) => {
-                        if (!loaderEl) return;
-                        loaderEl.classList.toggle('opacity-0', !isLoading);
-                        loaderEl.classList.toggle('pointer-events-none', !isLoading);
-                    };
-
                     const updateBarChart = async (period) => {
-                        if (!chartUrl) return;
+                        if (!chartUrl || !window.dashboardCharts.bar) {
+                            return;
+                        }
+
                         setActiveBtn(period);
                         setLoading(true);
+
                         try {
                             const res = await fetch(`${chartUrl}?period=${encodeURIComponent(period)}`, {
                                 headers: { 'Accept': 'application/json' }
                             });
                             const data = await res.json();
-                            if (!res.ok) throw new Error(data?.message || 'Failed to load chart data');
+                            if (!res.ok) {
+                                throw new Error(data?.message || 'Failed to load chart data');
+                            }
 
-                            if (titleEl && data.title) titleEl.textContent = data.title;
-                            barChart.data.labels = data.labels || [];
-                            barChart.data.datasets[0].data = data.data || [];
-                            barChart.update();
+                            if (titleEl && data.title) {
+                                titleEl.textContent = data.title;
+                            }
+
+                            window.dashboardCharts.bar.data.labels = data.labels || [];
+                            window.dashboardCharts.bar.data.datasets[0].data = data.data || [];
+                            window.dashboardCharts.bar.update();
                         } catch (e) {
                             console.error('Chart update failed', e);
                         } finally {
@@ -1404,29 +1487,32 @@
                         }
                     };
 
-                    buttons.forEach((btn) => {
-                        btn.addEventListener('click', () => {
-                            updateBarChart(btn.getAttribute('data-period') || 'week');
+                    buttons.forEach((button) => {
+                        button.addEventListener('click', () => {
+                            updateBarChart(button.getAttribute('data-period') || 'week');
                         });
                     });
+
+                    setActiveBtn(activePeriod);
+                    if (activePeriod !== 'week') {
+                        updateBarChart(activePeriod);
+                    }
                 }
 
-                // Pie Chart
                 const pieCanvas = document.getElementById('pieChart');
                 if (pieCanvas) {
-                    const pieCtx = pieCanvas.getContext('2d');
-                    new Chart(pieCtx, {
+                    window.dashboardCharts.pie = new Chart(pieCanvas.getContext('2d'), {
                         type: 'doughnut',
                         data: {
                             labels: stats.chart_data.pie.labels,
                             datasets: [{
                                 data: stats.chart_data.pie.data,
                                 backgroundColor: [
-                                    '#fbbf24', // amber
-                                    '#10b981', // emerald
-                                    '#ef4444', // red
-                                    '#3b82f6', // blue
-                                    '#8b5cf6'  // violet
+                                    '#fbbf24',
+                                    '#10b981',
+                                    '#ef4444',
+                                    '#3b82f6',
+                                    '#8b5cf6'
                                 ],
                                 borderWidth: 0,
                                 hoverOffset: 10
@@ -1449,10 +1535,59 @@
                         }
                     });
                 }
+            };
+
+            if (!window.ownerDashboardRealtimeInitialized) {
+                window.ownerDashboardRealtimeInitialized = true;
+
+                let refreshInFlight = false;
+
+                window.refreshOwnerDashboardLiveSections = async function() {
+                    if (refreshInFlight) {
+                        return;
+                    }
+
+                    const wrapper = document.getElementById('dashboard-live-sections');
+                    if (!wrapper) {
+                        return;
+                    }
+
+                    refreshInFlight = true;
+                    const activePeriod = window.dashboardCharts.activePeriod ?? 'week';
+
+                    try {
+                        const res = await fetch(window.location.href, {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                        const html = await res.text();
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const nextWrapper = doc.getElementById('dashboard-live-sections');
+
+                        if (!nextWrapper) {
+                            return;
+                        }
+
+                        wrapper.innerHTML = nextWrapper.innerHTML;
+                        window.initDashboard(activePeriod);
+                    } catch (error) {
+                        console.error('Failed to refresh dashboard widgets', error);
+                    } finally {
+                        refreshInFlight = false;
+                    }
+                };
+
+                if (window.Echo) {
+                    try {
+                        window.Echo.private(restaurantChannel)
+                            .listen('.order.updated', () => window.refreshOwnerDashboardLiveSections());
+                    } catch (error) {
+                        console.warn('Realtime owner dashboard updates unavailable.', error);
+                    }
+                }
             }
 
-            // Run immediately for Swup transitions
-            initDashboard();
+            window.initDashboard();
         })();
     </script>
 @endsection

@@ -399,6 +399,7 @@
                         loadingOrderId: null,
                         loadingButtonKey: null,
                         newOrderCount: 0,
+                        usingEcho: false,
                         latestOrderId: {{ $orders->isNotEmpty() ? $orders->first()->id : 0 }},
                         pollTimer: null,
                         pollInFlight: false,
@@ -418,6 +419,12 @@
                             // Intercept status forms
                             this.$nextTick(() => this.bindStatusForms());
 
+                            this.usingEcho = this.subscribeToRealtime();
+
+                            if (this.usingEcho) {
+                                return;
+                            }
+
                             document.addEventListener('visibilitychange', () => {
                                 if (document.hidden) {
                                     this.stopPolling();
@@ -429,6 +436,64 @@
                             window.addEventListener('online', () => this.schedulePoll(this.pollConfig.focus));
 
                             this.schedulePoll(this.pollConfig.visible);
+                        },
+
+                        subscribeToRealtime() {
+                            if (!window.Echo) {
+                                return false;
+                            }
+
+                            try {
+                                window.Echo.private('restaurant.{{ $restaurant->id }}.orders')
+                                    .listen('.order.updated', (payload) => this.handleRealtimeUpdate(payload));
+
+                                return true;
+                            } catch (error) {
+                                console.warn('Realtime owner updates unavailable, falling back to polling.', error);
+                                return false;
+                            }
+                        },
+
+                        async handleRealtimeUpdate(payload) {
+                            const order = payload?.order;
+                            if (!order?.id) {
+                                return;
+                            }
+
+                            this.latestOrderId = Math.max(this.latestOrderId, Number(order.id));
+
+                            if (payload.type === 'created') {
+                                this.playNotificationSound();
+
+                                const currentUrl = new URL(window.location.href);
+                                const status = currentUrl.searchParams.get('status');
+
+                                if (!status || status === 'pending') {
+                                    await this.applyFilter(window.location.href, false);
+                                } else {
+                                    this.newOrderCount += 1;
+                                }
+
+                                return;
+                            }
+
+                            await this.applyFilter(window.location.href, false);
+                        },
+
+                        playNotificationSound() {
+                            try {
+                                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                                const osc = ctx.createOscillator();
+                                const gain = ctx.createGain();
+                                osc.connect(gain);
+                                gain.connect(ctx.destination);
+                                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                                osc.frequency.setValueAtTime(660, ctx.currentTime + 0.15);
+                                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                                osc.start();
+                                osc.stop(ctx.currentTime + 0.4);
+                            } catch(e) {}
                         },
 
                         currentPollDelay() {
@@ -473,20 +538,7 @@
                                 if (data.count > 0) {
                                     this.latestOrderId = data.latest_id;
 
-                                    // Play a subtle notification sound if available
-                                    try {
-                                        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                                        const osc = ctx.createOscillator();
-                                        const gain = ctx.createGain();
-                                        osc.connect(gain);
-                                        gain.connect(ctx.destination);
-                                        osc.frequency.setValueAtTime(880, ctx.currentTime);
-                                        osc.frequency.setValueAtTime(660, ctx.currentTime + 0.15);
-                                        gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-                                        osc.start();
-                                        osc.stop(ctx.currentTime + 0.4);
-                                    } catch(e) {}
+                                    this.playNotificationSound();
 
                                     // Fully real-time: auto-refresh if looking at Pending tab
                                     const currentUrl = new URL(window.location.href);
@@ -624,7 +676,10 @@
                             }
 
                             this.filterLoading = false;
-                            this.schedulePoll(this.currentPollDelay());
+
+                            if (!this.usingEcho) {
+                                this.schedulePoll(this.currentPollDelay());
+                            }
                         },
 
                         async refreshSingleOrder(orderId) {
@@ -685,7 +740,9 @@
                                 this.bindStatusForms();
                             });
 
-                            this.schedulePoll(this.currentPollDelay());
+                            if (!this.usingEcho) {
+                                this.schedulePoll(this.currentPollDelay());
+                            }
                         },
 
                         async submitStatusUpdate(form, submitter = null) {
@@ -702,7 +759,8 @@
                                     headers: {
                                         'X-CSRF-TOKEN': formData.get('_token'),
                                         'X-Requested-With': 'XMLHttpRequest',
-                                        'Accept': 'application/json'
+                                        'Accept': 'application/json',
+                                        'X-Socket-ID': window.Echo?.socketId() ?? ''
                                     },
                                     body: formData
                                 });
@@ -723,6 +781,11 @@
                                 this.loadingOrderId = null;
                                 this.loadingButtonKey = null;
                             }
+                        },
+
+                        destroy() {
+                            this.stopPolling();
+                            window.Echo?.leaveChannel('private-restaurant.{{ $restaurant->id }}.orders');
                         }
                     };
                 }

@@ -108,16 +108,23 @@ class CartController extends Controller
         return null;
     }
 
-    /**
-     * Get cart contents (JSON for Alpine.js)
-     */
-    public function index()
+    private function buildCartPayload(array $cart): array
     {
-        $cart = $this->syncCart(
-            session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => [], 'promo' => null])
-        );
-        session(['cart' => $cart]);
-        
+        $cart = $this->syncCart($cart);
+        $restaurant = !empty($cart['restaurant_id'])
+            ? Restaurant::find($cart['restaurant_id'])
+            : null;
+
+        if (!$restaurant && empty($cart['items'])) {
+            $cart['restaurant_id'] = null;
+            $cart['restaurant_name'] = null;
+            $cart['promo'] = null;
+        }
+
+        if ($restaurant) {
+            $cart['restaurant_name'] = $restaurant->name;
+        }
+
         $subtotal = collect($cart['items'])->sum(fn($item) => $item['price'] * $item['quantity']);
         $discountAmount = 0;
 
@@ -125,10 +132,26 @@ class CartController extends Controller
             $discountAmount = ($subtotal * $cart['promo']['discount_percentage']) / 100;
         }
 
+        $deliveryFee = $restaurant ? (float) ($restaurant->delivery_fee ?? 0) : 0.0;
+
         $cart['subtotal'] = $subtotal;
         $cart['discount'] = $discountAmount;
-        $cart['total'] = $subtotal - $discountAmount;
+        $cart['delivery_fee'] = $deliveryFee;
+        $cart['total'] = max(0, $subtotal - $discountAmount) + $deliveryFee;
         $cart['count'] = collect($cart['items'])->sum('quantity');
+
+        return $cart;
+    }
+
+    /**
+     * Get cart contents (JSON for Alpine.js)
+     */
+    public function index()
+    {
+        $cart = $this->buildCartPayload(
+            session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => [], 'promo' => null])
+        );
+        session(['cart' => $cart]);
 
         return response()->json($cart);
     }
@@ -197,9 +220,8 @@ class CartController extends Controller
         }
 
         session(['cart' => $cart]);
-
-        $cart['total'] = collect($cart['items'])->sum(fn($item) => $item['price'] * $item['quantity']);
-        $cart['count'] = collect($cart['items'])->sum('quantity');
+        $cart = $this->buildCartPayload($cart);
+        session(['cart' => $cart]);
 
         return response()->json([
             'message' => $menuItem->name . ' added to cart!',
@@ -237,9 +259,8 @@ class CartController extends Controller
         }
 
         session(['cart' => $cart]);
-
-        $cart['total'] = collect($cart['items'])->sum(fn($item) => $item['price'] * $item['quantity']);
-        $cart['count'] = collect($cart['items'])->sum('quantity');
+        $cart = $this->buildCartPayload($cart);
+        session(['cart' => $cart]);
 
         return response()->json(['cart' => $cart]);
     }
@@ -268,9 +289,8 @@ class CartController extends Controller
         }
 
         session(['cart' => $cart]);
-
-        $cart['total'] = collect($cart['items'])->sum(fn($item) => $item['price'] * $item['quantity']);
-        $cart['count'] = collect($cart['items'])->sum('quantity');
+        $cart = $this->buildCartPayload($cart);
+        session(['cart' => $cart]);
 
         return response()->json(['cart' => $cart]);
     }
@@ -282,7 +302,7 @@ class CartController extends Controller
     {
         session()->forget('cart');
 
-        return response()->json(['cart' => ['restaurant_id' => null, 'restaurant_name' => null, 'items' => [], 'total' => 0, 'subtotal' => 0, 'discount' => 0, 'count' => 0, 'promo' => null]]);
+        return response()->json(['cart' => ['restaurant_id' => null, 'restaurant_name' => null, 'items' => [], 'total' => 0, 'subtotal' => 0, 'discount' => 0, 'delivery_fee' => 0, 'count' => 0, 'promo' => null]]);
     }
 
     public function applyPromo(Request $request)
@@ -314,8 +334,10 @@ class CartController extends Controller
         ];
 
         session(['cart' => $cart]);
+        $cart = $this->buildCartPayload($cart);
+        session(['cart' => $cart]);
 
-        return $this->index();
+        return response()->json($cart);
     }
 
     /**
@@ -366,6 +388,7 @@ class CartController extends Controller
             'phone' => $request->phone,
             'notes' => $request->notes,
             'total' => $cartData['total'],
+            'delivery_fee' => $cartData['delivery_fee'],
             'discount_amount' => $cartData['discount'],
             'promotion_id' => $cartData['promo']['id'] ?? null,
             'status' => 'pending',
@@ -394,6 +417,8 @@ class CartController extends Controller
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to send order placement email: ' . $e->getMessage());
         }
+
+        $order->broadcastRealtimeUpdate('created');
 
         return redirect()->route('order.confirmation', $order)->with('success', 'Order placed successfully! 🎉');
     }

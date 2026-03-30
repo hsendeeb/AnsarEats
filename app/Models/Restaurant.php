@@ -14,6 +14,7 @@ class Restaurant extends Model
     protected $casts = [
         'operating_hours' => 'array',
         'is_open' => 'boolean',
+        'delivery_fee' => 'decimal:2',
     ];
 
     public function user()

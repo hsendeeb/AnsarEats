@@ -240,9 +240,9 @@
                      class="border-t border-gray-50">
 
                 {{-- Compact Live Progress Stepper (only for active orders) --}}
-                @php $activeStatuses = ['pending','accepted','preparing','out_for_delivery']; @endphp
-                @if(in_array($order->status, $activeStatuses))
-                <div x-data="{ openTracker: false }" class="border-b border-emerald-50 overflow-hidden">
+                <div x-data="{ openTracker: false }"
+                     x-show="isLiveStatus(getStatus({{ $order->id }}, '{{ $order->status }}'))"
+                     class="border-b border-emerald-50 overflow-hidden">
                     <!-- Accordion Toggle Button -->
                     <button @click="openTracker = !openTracker" class="w-full px-6 py-4 bg-gradient-to-r from-emerald-50/40 to-teal-50/40 hover:from-emerald-50 hover:to-teal-50 transition-all flex items-center justify-between group cursor-pointer focus:outline-none">
                         <div class="flex items-center gap-3">
@@ -298,7 +298,6 @@
                         </div>
                     </div>
                 </div>
-                @endif
 
                 <div class="p-6 bg-gray-50/50">
                     <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Items Ordered</p>
@@ -349,7 +348,9 @@ function ordersTracker() {
     const TERMINAL    = ['delivered', 'cancelled'];
 
     return {
-        statuses: {},   // map of orderId => status
+        statuses: {},
+        channels: {},
+        usingEcho: false,
         pollTimer: null,
         pollInFlight: false,
         pollConfig: {
@@ -360,10 +361,15 @@ function ordersTracker() {
         },
 
         init() {
-            // Seed initial statuses from data attributes
             document.querySelectorAll('[data-order-id]').forEach(el => {
                 this.statuses[el.dataset.orderId] = el.dataset.orderStatus;
             });
+
+            this.usingEcho = this.subscribeToRealtime();
+
+            if (this.usingEcho) {
+                return;
+            }
 
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden) {
@@ -388,6 +394,48 @@ function ordersTracker() {
             return Object.entries(this.statuses)
                 .filter(([, status]) => !TERMINAL.includes(status))
                 .map(([id]) => id);
+        },
+
+        isLiveStatus(status) {
+            return !TERMINAL.includes(status);
+        },
+
+        subscribeToRealtime() {
+            if (!window.Echo) {
+                return false;
+            }
+
+            try {
+                Object.keys(this.statuses).forEach((orderId) => this.subscribeToOrder(orderId));
+                return true;
+            } catch (error) {
+                console.warn('Realtime order subscriptions unavailable, falling back to polling.', error);
+                return false;
+            }
+        },
+
+        subscribeToOrder(orderId) {
+            if (this.channels[orderId] || !window.Echo) {
+                return;
+            }
+
+            this.channels[orderId] = window.Echo.private(`order.${orderId}`)
+                .listen('.order.updated', (payload) => this.handleRealtimeUpdate(payload));
+        },
+
+        handleRealtimeUpdate(payload) {
+            const order = payload?.order;
+
+            if (!order?.id) {
+                return;
+            }
+
+            this.statuses[order.id] = order.status;
+
+            const orderCard = document.querySelector(`[data-order-id="${order.id}"]`);
+            if (orderCard) {
+                orderCard.dataset.orderStatus = order.status;
+            }
         },
 
         currentPollDelay() {
@@ -463,6 +511,9 @@ function ordersTracker() {
 
         destroy() {
             this.stopPolling();
+            Object.keys(this.channels).forEach((orderId) => {
+                window.Echo?.leaveChannel(`private-order.${orderId}`);
+            });
         }
     };
 }

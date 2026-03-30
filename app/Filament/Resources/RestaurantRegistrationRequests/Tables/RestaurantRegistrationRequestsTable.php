@@ -93,6 +93,7 @@ class RestaurantRegistrationRequestsTable
                                 'latitude' => $record->latitude,
                                 'longitude' => $record->longitude,
                                 'phone' => $record->phone,
+                                'delivery_fee' => $record->delivery_fee,
                                 'is_open' => $record->is_open,
                                 'operating_hours' => $record->operating_hours,
                             ]);

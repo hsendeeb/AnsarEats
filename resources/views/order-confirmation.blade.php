@@ -88,17 +88,17 @@
                     </div>
                 </div>
 
-                @if($order->estimated_prep_time && in_array($order->status, ['accepted','preparing','out_for_delivery']))
-                <div class="mb-6 bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                <div x-show="estimatedPrepTime && ['accepted', 'preparing', 'out_for_delivery'].includes(status)"
+                     x-cloak
+                     class="mb-6 bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
                     <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 flex-shrink-0">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
                     <div>
                         <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-0.5">Est. Prep Time</p>
-                        <p class="text-xl font-black outfit text-gray-900">{{ $order->estimated_prep_time }} Minutes</p>
+                        <p class="text-xl font-black outfit text-gray-900"><span x-text="estimatedPrepTime"></span> Minutes</p>
                     </div>
                 </div>
-                @endif
 
                 <!-- Live Order Progress Stepper -->
                 <div class="mb-8">
@@ -212,13 +212,48 @@ function orderTracker() {
     return {
         show: false,
         status: '{{ $order->status }}',
+        estimatedPrepTime: @js($order->estimated_prep_time),
+        usingEcho: false,
         pollInterval: null,
         terminalStatuses: ['delivered', 'cancelled'],
 
         init() {
             setTimeout(() => this.show = true, 100);
-            if (!this.terminalStatuses.includes(this.status)) {
+            this.usingEcho = this.subscribeToRealtime();
+
+            if (!this.usingEcho && !this.terminalStatuses.includes(this.status)) {
                 this.startPolling();
+            }
+        },
+
+        subscribeToRealtime() {
+            if (!window.Echo) {
+                return false;
+            }
+
+            try {
+                window.Echo.private('order.{{ $order->id }}')
+                    .listen('.order.updated', (payload) => this.handleRealtimeUpdate(payload));
+
+                return true;
+            } catch (error) {
+                console.warn('Realtime order tracking unavailable, falling back to polling.', error);
+                return false;
+            }
+        },
+
+        handleRealtimeUpdate(payload) {
+            const order = payload?.order;
+
+            if (!order?.id) {
+                return;
+            }
+
+            this.status = order.status;
+            this.estimatedPrepTime = order.estimated_prep_time;
+
+            if (this.terminalStatuses.includes(order.status)) {
+                this.stopPolling();
             }
         },
 
@@ -245,11 +280,9 @@ function orderTracker() {
 
                 if (newStatus !== this.status) {
                     this.status = newStatus;
-                    if (newStatus === 'accepted' && data.estimated_prep_time) {
-                        window.location.reload();
-                        return;
-                    }
                 }
+
+                this.estimatedPrepTime = data.estimated_prep_time;
 
                 if (this.terminalStatuses.includes(newStatus)) {
                     this.stopPolling();
@@ -275,6 +308,7 @@ function orderTracker() {
 
         destroy() {
             this.stopPolling();
+            window.Echo?.leaveChannel('private-order.{{ $order->id }}');
         }
     };
 }

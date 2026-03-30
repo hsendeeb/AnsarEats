@@ -15,6 +15,7 @@ class RestaurantFactory extends Factory
             'description' => $this->faker->paragraph(),
             'address' => $this->faker->address(),
             'phone' => $this->faker->phoneNumber(),
+            'delivery_fee' => 0,
             'is_open' => true,
         ];
     }

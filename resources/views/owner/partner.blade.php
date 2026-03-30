@@ -46,6 +46,7 @@
             <form method="POST" action="{{ route('owner.restaurant.store') }}" enctype="multipart/form-data" class="p-6 space-y-5" x-data="{
                 logoPreview: @js($restaurantDraft && $restaurantDraft->logo ? Storage::url($restaurantDraft->logo) : ''),
                 coverPreview: @js($restaurantDraft && $restaurantDraft->cover_image ? Storage::url($restaurantDraft->cover_image) : ''),
+                deliveryFeeEnabled: {{ old('free_delivery', $restaurantDraft ? (((float) (optional($restaurantDraft)->delivery_fee ?? 0) <= 0) ? 1 : 0) : 0) ? 'false' : 'true' }},
                 handleLogoSelect(event) {
                     const file = event.target.files[0];
                     if (file) {
@@ -156,6 +157,46 @@
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">Phone</label>
                     <input type="text" name="phone" value="{{ old('phone') ?? optional($restaurantDraft)->phone }}" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all" placeholder="+961 1 234 567">
+                </div>
+
+                <div class="space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-bold text-gray-700">Delivery Fee</p>
+                            <p class="text-xs font-medium text-gray-400">Turn this on only if you want to charge customers for delivery.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="hidden" name="free_delivery" :value="deliveryFeeEnabled ? 0 : 1">
+                            <input type="checkbox" x-model="deliveryFeeEnabled" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/20 peer-checked:bg-emerald-500 transition-colors relative">
+                                <div class="absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
+                                     :class="deliveryFeeEnabled ? 'translate-x-5' : 'translate-x-0'"></div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between gap-3 rounded-2xl border border-white/80 bg-white/80 px-4 py-3">
+                        <div>
+                            <p class="text-xs font-black uppercase tracking-widest text-emerald-700">Delivery Status</p>
+                            <p class="text-[11px] font-medium text-emerald-600" x-text="deliveryFeeEnabled ? 'Customers will see this fee during checkout.' : 'Turn the switch on if you want to charge for delivery.'"></p>
+                        </div>
+                        <span class="text-sm font-black" :class="deliveryFeeEnabled ? 'text-emerald-600' : 'text-gray-400'" x-text="deliveryFeeEnabled ? 'On' : 'Off'"></span>
+                    </div>
+                    <div x-show="!deliveryFeeEnabled" x-transition class="rounded-xl border border-dashed border-emerald-200 bg-white/70 px-4 py-3">
+                        <p class="text-[11px] font-bold text-emerald-600 uppercase tracking-widest">Free Delivery</p>
+                        <p class="mt-1 text-xs font-medium text-gray-500">No delivery fee will be added at checkout.</p>
+                    </div>
+                    <div x-show="deliveryFeeEnabled" x-transition>
+                        <label class="block text-xs font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Fee Amount ($)</label>
+                        <input type="number"
+                               step="0.01"
+                               min="0"
+                               name="delivery_fee"
+                               value="{{ old('delivery_fee', optional($restaurantDraft)->delivery_fee) }}"
+                               :required="deliveryFeeEnabled"
+                               :disabled="!deliveryFeeEnabled"
+                               class="block w-full px-4 py-3 bg-white border border-emerald-200 rounded-2xl font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                               placeholder="3.50">
+                    </div>
                 </div>
 
                 <div>

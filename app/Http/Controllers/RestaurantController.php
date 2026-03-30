@@ -11,13 +11,18 @@ class RestaurantController extends Controller
 {
     public function index(Request $request)
     {
-        $sort = $request->get('sort', 'recommended');
+        $sort = $request->get('sort');
+
+        if (!in_array($sort, ['rating_desc', 'rating_asc'], true)) {
+            $sort = null;
+        }
+
         $restaurants = PerformanceCache::remember(
             'restaurants',
             json_encode([
                 'q' => (string) $request->get('q', ''),
                 'location' => (string) $request->get('location', ''),
-                'sort' => $sort,
+                'sort' => $sort ?? '',
             ]),
             now()->addSeconds(config('performance.cache_ttl.restaurants')),
             function () use ($request, $sort) {

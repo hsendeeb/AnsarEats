@@ -117,4 +117,46 @@ class CartPricingTest extends TestCase
         $this->assertCount(1, $cart);
         $this->assertEquals(15.0, array_values($cart)[0]['price']);
     }
+
+    public function test_cart_total_includes_restaurant_delivery_fee(): void
+    {
+        $owner = User::factory()->create(['role' => 'owner']);
+        $customer = User::factory()->create();
+        $restaurant = Restaurant::factory()->create([
+            'user_id' => $owner->id,
+            'is_open' => true,
+            'delivery_fee' => 3.75,
+        ]);
+        $category = MenuCategory::factory()->create(['restaurant_id' => $restaurant->id]);
+        $menuItem = MenuItem::factory()->create([
+            'menu_category_id' => $category->id,
+            'price' => 12.00,
+        ]);
+
+        $this->withSession([
+            'cart' => [
+                'restaurant_id' => $restaurant->id,
+                'restaurant_name' => $restaurant->name,
+                'items' => [
+                    $menuItem->id . '||12.00' => [
+                        'key' => $menuItem->id . '||12.00',
+                        'id' => $menuItem->id,
+                        'name' => $menuItem->name,
+                        'price' => 12.00,
+                        'image' => $menuItem->image,
+                        'quantity' => 2,
+                        'variant' => null,
+                    ],
+                ],
+                'promo' => null,
+            ],
+        ]);
+
+        $response = $this->actingAs($customer)->getJson(route('cart.index'));
+
+        $response->assertOk();
+        $response->assertJsonPath('subtotal', 24);
+        $response->assertJsonPath('delivery_fee', 3.75);
+        $response->assertJsonPath('total', 27.75);
+    }
 }

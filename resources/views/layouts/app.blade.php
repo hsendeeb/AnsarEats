@@ -139,7 +139,7 @@
                          class="relative hidden md:flex items-center">
                         
                         <div class="flex items-center bg-gray-100 rounded-2xl transition-all duration-500 ease-in-out overflow-hidden h-11"
-                             :class="expanded ? 'w-40 sm:w-64 px-4 ring-2 ring-emerald-500/20' : 'w-11 justify-center cursor-pointer hover:bg-emerald-50 hover:text-emerald-500'"
+                             :class="expanded ? 'w-40 sm:w-64 px-4' : 'w-11 justify-center cursor-pointer hover:bg-emerald-50 hover:text-emerald-500'"
                              @click="if(!expanded) { expanded = true; $nextTick(() => $refs.navSearchInput.focus()); }">
                             
                             <svg class="w-5 h-5 flex-shrink-0 transition-colors" :class="expanded ? 'text-emerald-500' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -154,7 +154,8 @@
                                    @focus="if(query.length >= 2) show = true"
                                    type="text"
                                    placeholder="Search..."
-                                   class="bg-transparent border-none focus:ring-0 text-sm font-bold text-gray-900 w-full placeholder-gray-400 ml-2 py-0">
+                                   class="bg-transparent border-none shadow-none focus:outline-none focus:ring-0 focus:border-transparent focus:shadow-none text-sm font-bold text-gray-900 w-full placeholder-gray-400 ml-2 py-0"
+                                   style="outline: none !important; box-shadow: none !important; -webkit-box-shadow: none !important;">
 
                             <div x-show="loading && expanded" class="ml-2">
                                 <svg class="animate-spin h-4 w-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -240,7 +241,7 @@
                     <div class="hidden md:flex items-center space-x-4">
                         @guest
                             <a href="{{ route('login') }}" class="font-semibold text-gray-600 hover:text-emerald-500 transition-colors">Log In</a>
-                            <a href="{{ route('register') }}" class="font-semibold text-gray-600 hover:text-emerald-500 transition-colors">Register</a>
+                            <a href="{{ route('register') }}" class="bg-emerald-500 px-4 py-2 font-semibold text-white rounded-md transition-colors">Register</a>
                           
                         @else
                             <div class="relative" x-data="{ open: false }" @click.away="open = false">
@@ -407,14 +408,15 @@
                          @click.away="show = false">
                         
                         <div class="relative">
-                            <div class="flex items-center bg-gray-100 rounded-2xl px-4 h-12 border border-transparent focus-within:border-emerald-500/20 focus-within:ring-4 focus-within:ring-emerald-500/10 transition-all">
+                            <div class="flex items-center bg-gray-100 rounded-2xl px-4 h-12 border border-transparent transition-all">
                                 <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                 <input x-model="query"
                                        @input.debounce.300ms="fetchSuggestions()"
                                        @focus="if(query.length >= 2) show = true"
                                        type="text"
                                        placeholder="Search for food..."
-                                       class="bg-transparent border-none focus:ring-0 text-sm font-bold text-gray-900 w-full placeholder-gray-400 ml-2 py-0">
+                                       class="bg-transparent border-none shadow-none focus:outline-none focus:ring-0 focus:border-transparent focus:shadow-none text-sm font-bold text-gray-900 w-full placeholder-gray-400 ml-2 py-0"
+                                       style="outline: none !important; box-shadow: none !important; -webkit-box-shadow: none !important;">
                                 
                                 <div x-show="loading">
                                     <svg class="animate-spin h-4 w-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

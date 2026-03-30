@@ -175,7 +175,9 @@
                         @endif
                         <div class="flex justify-between items-center text-sm text-gray-500 font-medium mb-2">
                             <span>Delivery</span>
-                            <span class="text-emerald-500 font-bold">Free</span>
+                            <span class="font-bold {{ $cart['delivery_fee'] > 0 ? 'text-gray-900' : 'text-emerald-500' }}">
+                                {{ $cart['delivery_fee'] > 0 ? '$' . number_format($cart['delivery_fee'], 2) : 'Free' }}
+                            </span>
                         </div>
                         <div class="flex justify-between items-center mt-3">
                             <span class="text-lg font-black outfit text-gray-900">Total</span>

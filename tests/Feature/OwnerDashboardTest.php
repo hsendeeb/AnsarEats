@@ -34,6 +34,22 @@ class OwnerDashboardTest extends TestCase
         $this->assertEquals(!$initialStatus, $this->restaurant->fresh()->is_open);
     }
 
+    public function test_owner_can_update_restaurant_delivery_fee()
+    {
+        $response = $this->actingAs($this->owner)->post(route('owner.restaurant.store'), [
+            'name' => $this->restaurant->name,
+            'description' => $this->restaurant->description,
+            'address' => $this->restaurant->address,
+            'phone' => $this->restaurant->phone,
+            'delivery_fee' => 4.50,
+            'operating_hours' => [],
+            'is_open' => 1,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertEquals(4.5, (float) $this->restaurant->fresh()->delivery_fee);
+    }
+
     public function test_owner_can_accept_order_with_prep_time()
     {
         $order = Order::factory()->create([
@@ -71,7 +87,7 @@ class OwnerDashboardTest extends TestCase
     public function test_owner_can_toggle_category_visibility()
     {
         $category = MenuCategory::factory()->create(['restaurant_id' => $this->restaurant->id]);
-        $initialVisibility = $category->is_visible;
+        $initialVisibility = $category->fresh()->is_visible;
 
         $response = $this->actingAs($this->owner)->post(route('owner.category.toggle-visibility', $category));
 
@@ -131,12 +147,13 @@ class OwnerDashboardTest extends TestCase
             'restaurant_id' => $this->restaurant->id,
             'restaurant_name' => $this->restaurant->name,
             'items' => [
-                '1|small|100.00' => [
+                $item->id . '||100.00' => [
+                    'key' => $item->id . '||100.00',
                     'id' => $item->id,
                     'name' => 'Pizza',
                     'price' => 100,
                     'quantity' => 1,
-                    'variant' => 'small'
+                    'variant' => null
                 ]
             ]
         ]]);

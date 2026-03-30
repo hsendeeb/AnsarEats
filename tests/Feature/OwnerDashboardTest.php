@@ -7,6 +7,7 @@ use App\Models\Restaurant;
 use App\Models\MenuCategory;
 use App\Models\MenuItem;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Promotion;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -169,5 +170,62 @@ class OwnerDashboardTest extends TestCase
         $responseData = $response->json();
         $this->assertEquals(90, $responseData['total']);
         $this->assertEquals(10, $responseData['discount']);
+    }
+
+    public function test_owner_can_delete_a_single_order(): void
+    {
+        $order = Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+        ]);
+
+        $orderItem = OrderItem::create([
+            'order_id' => $order->id,
+            'menu_item_id' => null,
+            'name' => 'Test Meal',
+            'price' => 12.00,
+            'quantity' => 2,
+        ]);
+
+        $response = $this->actingAs($this->owner)->delete(route('owner.order.destroy', $order));
+
+        $response->assertRedirect();
+        $this->assertDatabaseMissing('orders', ['id' => $order->id]);
+        $this->assertDatabaseMissing('order_items', ['id' => $orderItem->id]);
+    }
+
+    public function test_owner_can_clear_all_restaurant_orders(): void
+    {
+        $orderOne = Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+        ]);
+
+        $orderTwo = Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+        ]);
+
+        OrderItem::create([
+            'order_id' => $orderOne->id,
+            'menu_item_id' => null,
+            'name' => 'Meal One',
+            'price' => 10.00,
+            'quantity' => 1,
+        ]);
+
+        OrderItem::create([
+            'order_id' => $orderTwo->id,
+            'menu_item_id' => null,
+            'name' => 'Meal Two',
+            'price' => 15.00,
+            'quantity' => 1,
+        ]);
+
+        $otherRestaurantOrder = Order::factory()->create();
+
+        $response = $this->actingAs($this->owner)->delete(route('owner.orders.clear'));
+
+        $response->assertRedirect();
+        $this->assertSame(0, Order::where('restaurant_id', $this->restaurant->id)->count());
+        $this->assertSame(0, OrderItem::whereIn('order_id', [$orderOne->id, $orderTwo->id])->count());
+        $this->assertDatabaseHas('orders', ['id' => $otherRestaurantOrder->id]);
     }
 }

@@ -48,7 +48,7 @@
 
     <div class="max-w-7xl mx-auto">
         <!-- Welcome Banner -->
-        <div class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-[2rem] p-8 md:p-12 mb-10 text-white relative overflow-hidden shadow-2xl shadow-purple-500/30">
+        <div class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-[2rem] p-8 md:p-12 mb-10 text-white relative overflow-hidden">
             <div class="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full"></div>
             <div class="absolute -bottom-12 -left-12 w-48 h-48 bg-white/10 rounded-full"></div>
             <div class="absolute top-8 right-8 w-12 h-12 bg-white/20 rounded-xl rotate-12 animate-bounce" style="animation-duration: 3s;"></div>
@@ -85,7 +85,7 @@
 
         @if(!$restaurant)
             <!-- Empty State -->
-            <div class="bg-white rounded-[2rem] border border-gray-100 shadow-xl p-16 text-center">
+            <div class="bg-white rounded-[2rem] border border-gray-100 p-16 text-center">
                 @if($latestRequest?->status === 'pending')
                     <div class="max-w-xl mx-auto mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800 font-bold text-sm">
                         Your registration request is pending super admin approval.
@@ -133,7 +133,7 @@
             <!-- Analytics Overview -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
                 <!-- Total Revenue -->
-                <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-emerald-500/10 transition-all relative overflow-hidden">
+                <div class="bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zM12 4v16m8-8H4"></path></svg>
@@ -150,7 +150,7 @@
                 </div>
 
                 <!-- Avg Order Value -->
-                <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-teal-500/10 transition-all relative overflow-hidden">
+                <div class="bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-teal-100 rounded-2xl flex items-center justify-center text-teal-500 group-hover:scale-110 transition-transform">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
@@ -167,7 +167,7 @@
                 </div>
 
                 <!-- Total Orders -->
-                <a href="{{ route('owner.orders') }}" class="block bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-indigo-500/10 transition-all text-left cursor-pointer relative overflow-hidden">
+                <a href="{{ route('owner.orders') }}" class="block bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
@@ -184,7 +184,7 @@
                 </a>
 
                 <!-- Pending Orders -->
-                <a href="{{ route('owner.orders', ['status' => 'pending']) }}" class="block bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-amber-500/10 transition-all text-left cursor-pointer relative overflow-hidden">
+                <a href="{{ route('owner.orders', ['status' => 'pending']) }}" class="block bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -201,7 +201,7 @@
                 </a>
 
                 <!-- Completed Orders -->
-                <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" class="block bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 group hover:shadow-xl hover:shadow-blue-500/10 transition-all text-left cursor-pointer relative overflow-hidden">
+                <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" class="block bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -221,7 +221,7 @@
             <!-- Charts & Popular Items Section -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
                 <!-- Bar Chart -->
-                <div class="lg:col-span-2 bg-white rounded-[2.5rem] border border-gray-100 shadow-xl p-8">
+                <div class="lg:col-span-2 bg-white rounded-[2.5rem] border border-gray-100 p-8">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                         <h3 class="text-xl font-black outfit text-gray-900 flex items-center gap-2">
                             <span class="w-2 h-8 bg-indigo-500 rounded-full"></span>
@@ -250,7 +250,7 @@
                 </div>
 
                 <!-- Popular Items -->
-                <div class="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl p-8">
+                <div class="bg-white rounded-[2.5rem] border border-gray-100 p-8">
                     <h3 class="text-xl font-black outfit text-gray-900 mb-6 flex items-center gap-2">
                         <span class="w-2 h-8 bg-emerald-500 rounded-full"></span>
                         Top Selling Items
@@ -277,7 +277,7 @@
                 </div>
 
                 <!-- Pie Chart -->
-                <div class="lg:col-span-3 bg-white rounded-[2.5rem] border border-gray-100 shadow-xl p-8">
+                <div class="lg:col-span-3 bg-white rounded-[2.5rem] border border-gray-100 p-8">
                     <h3 class="text-xl font-black outfit text-gray-900 mb-6 flex items-center gap-2">
                         <span class="w-2 h-8 bg-pink-500 rounded-full"></span>
                         Order Status Breakdown
@@ -289,7 +289,7 @@
             </div>
 
             <!-- Orders Management Link -->
-            <div class="mb-16 bg-white rounded-3xl border border-gray-100 shadow-sm p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="mb-16 bg-white rounded-3xl border border-gray-100 p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h3 class="text-2xl font-black outfit text-gray-900 flex items-center gap-3">
                         <span class="w-2 h-8 bg-emerald-500 rounded-full"></span>
@@ -307,7 +307,7 @@
             <!-- Categories & Items List -->
             <div class="space-y-8">
                 @foreach($restaurant->menuCategories as $category)
-                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden" x-data="{ open: true }">
+                    <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden" x-data="{ open: true }">
                         <div class="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors">
                             <div class="flex items-center gap-4 cursor-pointer" @click="open = !open">
                                 <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-indigo-500/20">
@@ -538,7 +538,7 @@
             </div>
             
             <!-- Promotions Section -->
-            <div class="mt-12 bg-white rounded-[2.5rem] border border-gray-100 shadow-xl p-8 mb-10">
+            <div class="mt-12 bg-white rounded-[2.5rem] border border-gray-100 p-8 mb-10">
                 <div class="flex items-center justify-between mb-8">
                     <h3 class="text-2xl font-black outfit text-gray-900 flex items-center gap-3">
                         <span class="w-2 h-10 bg-amber-500 rounded-full"></span>
@@ -572,7 +572,7 @@
                     <div class="lg:col-span-2 space-y-4">
                         <h4 class="text-lg font-black text-gray-900 mb-4">Active Promotions</h4>
                         @forelse($restaurant->promotions as $promo)
-                            <div class="bg-white border border-gray-100 rounded-2xl p-5 flex items-center justify-between group hover:shadow-lg transition-shadow">
+                            <div class="bg-white border border-gray-100 rounded-2xl p-5 flex items-center justify-between group transition-shadow">
                                 <div class="flex items-center gap-4">
                                     <div class="w-14 h-14 bg-emerald-50 text-emerald-500 font-black text-xl rounded-2xl flex items-center justify-center border border-emerald-100 shadow-inner">
                                         {{ $promo->discount_percentage }}%

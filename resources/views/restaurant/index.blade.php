@@ -4,6 +4,8 @@
 <div class="bg-white py-12 border-b border-gray-50">
     <div class="container mx-auto px-4">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-8">
+             <h1 class="text-4xl font-black outfit text-gray-900">Explore Restaurants</h1>
+           
             
             <div class="bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center min-w-[300px]">
                 <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-500 shadow-sm">
@@ -35,16 +37,15 @@
         @endphp
 
         <!-- Top Filters Bar -->
-        <div class="mb-12 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6">
-            <div class="flex w-full md:w-auto items-center gap-3">
-                <div class="relative flex-1 md:flex-none" x-data="{ open: false }" @click.outside="open = false">
+        <div class="mb-12 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 overflow-visible">
+            <div class="flex w-full md:w-auto items-center justify-end gap-4 md:gap-6 overflow-visible relative z-20">
+                <div class="relative" x-data="{ open: false }" @click.outside="open = false">
                     <button @click="open = !open"
                             type="button"
-                            class="w-full md:w-auto inline-flex items-center justify-center md:justify-between gap-2 px-4 md:px-5 py-3 rounded-2xl text-sm font-bold transition-all {{ $activeSort ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                            class="inline-flex items-center justify-end gap-2 text-sm font-semibold transition-colors {{ $activeSort ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 6h18M6 12h12M10 18h4"></path></svg>
-                        <span class="hidden md:inline">{{ $sortLabels[$activeSort] ?? 'Sort By' }}</span>
-                        <span class="sr-only md:hidden">Sort restaurants</span>
-                        <svg class="hidden md:block w-3.5 h-3.5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                        <span>{{ $sortLabels[$activeSort] ?? 'Sort By' }}</span>
+                        <svg class="w-3.5 h-3.5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
 
                     <div x-show="open"
@@ -55,7 +56,7 @@
                          x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                          x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
                          x-cloak
-                         class="absolute left-0 mt-3 w-64 max-w-[85vw] bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 py-2 z-50 overflow-hidden">
+                         class="absolute left-0 mt-3 w-56 max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 py-2 z-50 overflow-hidden">
                         <p class="px-4 pt-2 pb-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Sort By</p>
                         <a href="{{ route('restaurants.index', array_filter($sortBaseParams + ['sort' => 'rating_desc'])) }}"
                            class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ $activeSort === 'rating_desc' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-600 hover:bg-gray-50' }}">
@@ -84,14 +85,13 @@
                     </div>
                 </div>
 
-                <div class="relative flex-1 md:flex-none" x-data="restaurantLocationFilter(@js($locations))" @click.outside="close()">
+                <div class="relative" x-data="restaurantLocationFilter(@js($locations))" @click.outside="close()">
                     <button @click="toggle()"
                             type="button"
-                            class="w-full md:w-auto inline-flex items-center justify-center md:justify-between gap-2 px-4 md:px-5 py-3 rounded-2xl text-sm font-bold transition-all {{ request('location') ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                            class="inline-flex items-center justify-end gap-2 text-sm font-semibold transition-colors {{ request('location') ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        <span class="hidden md:inline truncate max-w-[10rem]">{{ request('location') ?: 'Select Location' }}</span>
-                        <span class="sr-only md:hidden">Filter by location</span>
-                        <svg class="hidden md:block w-3.5 h-3.5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                        <span class="truncate max-w-[9rem] md:max-w-[10rem]">{{ request('location') ?: 'Location' }}</span>
+                        <svg class="w-3.5 h-3.5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
 
                     <div x-show="open"
@@ -103,7 +103,7 @@
                          x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                          x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
                          x-cloak
-                         class="absolute right-0 mt-3 w-72 max-w-[90vw] bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 py-2 z-50 overflow-hidden">
+                         class="absolute right-0 mt-3 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 py-2 z-50 overflow-hidden">
                         <p class="px-4 pt-2 pb-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Locations</p>
                         <div class="px-3 pb-3">
                             <label for="location-search" class="sr-only">Search locations</label>

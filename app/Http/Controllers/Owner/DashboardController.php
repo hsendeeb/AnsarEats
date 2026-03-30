@@ -229,6 +229,22 @@ class DashboardController extends Controller
                     : 'Please submit a restaurant registration request first.');
         }
 
+        $baseOrdersQuery = Order::query()->where('restaurant_id', $restaurant->id);
+
+        if ($request->has('filter')) {
+            if ($request->filter === 'day') {
+                $baseOrdersQuery->whereDate('created_at', Carbon::today());
+            } elseif ($request->filter === 'week') {
+                $baseOrdersQuery->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+            }
+        }
+
+        $statusCounts = [
+            'pending' => (clone $baseOrdersQuery)->where('status', 'pending')->count(),
+            'accepted' => (clone $baseOrdersQuery)->where('status', 'accepted')->count(),
+            'delivered' => (clone $baseOrdersQuery)->where('status', 'delivered')->count(),
+        ];
+
         $orders = PerformanceCache::remember(
             'owner-orders',
             json_encode([
@@ -263,11 +279,11 @@ class DashboardController extends Controller
                     $ordersQuery->orderByDesc('created_at');
                 }
 
-                return $ordersQuery->paginate(5)->appends($request->query());
+                return $ordersQuery->paginate(10)->appends($request->query());
             }
         );
 
-        return view('owner.orders', compact('restaurant', 'orders'));
+        return view('owner.orders', compact('restaurant', 'orders', 'statusCounts'));
     }
 
     public function chartData(Request $request)
@@ -422,6 +438,56 @@ class DashboardController extends Controller
 
         $order->load(['restaurant', 'user', 'orderItems']);
         return view('owner.print-order', compact('order'));
+    }
+
+    public function destroyOrder(Request $request, \App\Models\Order $order)
+    {
+        if ($order->restaurant->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        DB::transaction(function () use ($order) {
+            $order->orderItems()->delete();
+            $order->delete();
+        });
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Order deleted successfully.',
+            ]);
+        }
+
+        return back()->with('success', 'Order deleted successfully.');
+    }
+
+    public function clearOrders(Request $request)
+    {
+        $restaurant = Auth::user()->restaurant;
+
+        if (! $restaurant) {
+            abort(404);
+        }
+
+        DB::transaction(function () use ($restaurant) {
+            $orderIds = Order::where('restaurant_id', $restaurant->id)->pluck('id');
+
+            if ($orderIds->isEmpty()) {
+                return;
+            }
+
+            \App\Models\OrderItem::whereIn('order_id', $orderIds)->delete();
+            Order::whereIn('id', $orderIds)->delete();
+        });
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'All orders were cleared successfully.',
+            ]);
+        }
+
+        return back()->with('success', 'All orders were cleared successfully.');
     }
 
     public function storeOrUpdate(Request $request)

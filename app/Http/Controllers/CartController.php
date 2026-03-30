@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\PlaceOrderFromCart;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\Restaurant;
@@ -358,7 +359,7 @@ class CartController extends Controller
     /**
      * Place the order (auth required)
      */
-    public function placeOrder(Request $request)
+    public function placeOrder(Request $request, PlaceOrderFromCart $placeOrderFromCart)
     {
         $request->validate([
             'delivery_address' => 'required|string|max:255',
@@ -381,33 +382,11 @@ class CartController extends Controller
         $response = $this->index();
         $cartData = $response->getData(true);
 
-        $order = Order::create([
-            'user_id' => Auth::id(),
-            'restaurant_id' => $cartData['restaurant_id'],
+        $order = $placeOrderFromCart->handle(Auth::user(), $cartData, [
             'delivery_address' => $request->delivery_address,
             'phone' => $request->phone,
             'notes' => $request->notes,
-            'total' => $cartData['total'],
-            'delivery_fee' => $cartData['delivery_fee'],
-            'discount_amount' => $cartData['discount'],
-            'promotion_id' => $cartData['promo']['id'] ?? null,
-            'status' => 'pending',
         ]);
-
-        foreach ($cartData['items'] as $item) {
-            $displayName = $item['name'];
-            if (!empty($item['variant'])) {
-                $displayName .= ' (' . $item['variant'] . ')';
-            }
-
-            $order->orderItems()->create([
-                'menu_item_id' => $item['id'],
-                'name' => $item['name'],
-                'variant_label' => $item['variant'],
-                'price' => $item['price'],
-                'quantity' => $item['quantity'],
-            ]);
-        }
 
         session()->forget('cart');
 

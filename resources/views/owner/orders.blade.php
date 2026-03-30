@@ -1,17 +1,54 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 py-10 px-4">
+<div class="min-h-screen bg-gray-50 py-10 px-4" x-data="ordersFilter()" x-init="init()">
+    <div x-show="toast.open"
+         x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 translate-y-0"
+         x-transition:leave-end="opacity-0 translate-y-2"
+         class="fixed bottom-4 left-4 right-4 z-[90] sm:left-auto sm:right-4 sm:w-[22rem]">
+        <div class="flex items-start gap-3 rounded-[1.5rem] border border-emerald-100 bg-white px-4 py-4 shadow-2xl shadow-emerald-500/15">
+            <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-500">Success</p>
+                <p class="mt-1 text-sm font-semibold text-gray-700" x-text="toast.message"></p>
+            </div>
+            <button type="button"
+                    @click="hideToast()"
+                    class="flex h-8 w-8 items-center justify-center rounded-xl text-gray-300 transition-colors hover:bg-gray-50 hover:text-gray-500">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+    </div>
+
     <div class="max-w-7xl mx-auto">
-        <div class="mb-6">
+        <div class="mb-6 flex justify-between">
             <a href="{{ route('owner.dashboard') }}" class="inline-flex items-center gap-2 text-gray-500 hover:text-emerald-600 font-bold transition-colors bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 Back to Dashboard
             </a>
+            <button type="button"
+                                @click="openDeleteDialog({
+                                    type: 'clear-all',
+                                    title: 'Clear all orders?',
+                                    message: 'This will permanently remove every order for this restaurant. This action cannot be undone.',
+                                    action: '{{ route('owner.orders.clear') }}',
+                                    buttonLabel: 'Clear All Orders'
+                                })"
+                                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold text-red-500 bg-white border border-red-100 hover:bg-red-50 transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 7h16m-10 4v6m4-6v6M9 7V4h6v3m-7 0h8l-1 13a2 2 0 01-2 2h-2a2 2 0 01-2-2L8 7z"></path></svg>
+                            Clear All
+                        </button>
         </div>
 
 <!-- Orders Management -->
-            <div class="mb-16 relative overflow-visible" id="orders" x-data="ordersFilter()" x-init="init()">
+            <div class="mb-16 relative overflow-visible" id="orders">
 
                 <!-- New Order Notification Banner -->
                 <div
@@ -46,7 +83,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 overflow-visible">
                     <div>
                         <h3 class="text-3xl font-black outfit text-gray-900 flex items-center gap-3">
                             <span class="w-2 h-10 bg-emerald-500 rounded-full"></span>
@@ -57,9 +94,18 @@
                     
                     <div class="flex flex-wrap items-center gap-2 relative z-30 overflow-visible w-full md:w-auto" id="orders-filters">
                         {{-- Status pills --}}
-                        <a href="{{ route('owner.orders', ['status' => 'pending']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">Pending</a>
-                        <a href="{{ route('owner.orders', ['status' => 'accepted']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'accepted' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">Accepted</a>
-                        <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'delivered' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">Delivered</a>
+                        <a href="{{ route('owner.orders', ['status' => 'pending']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                            <span>Pending</span>
+                            <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-50 text-amber-600' }}">{{ $statusCounts['pending'] ?? 0 }}</span>
+                        </a>
+                        <a href="{{ route('owner.orders', ['status' => 'accepted']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'accepted' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                            <span>Accepted</span>
+                            <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'accepted' ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-600' }}">{{ $statusCounts['accepted'] ?? 0 }}</span>
+                        </a>
+                        <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'delivered' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                            <span>Delivered</span>
+                            <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'delivered' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600' }}">{{ $statusCounts['delivered'] ?? 0 }}</span>
+                        </a>
 
                         <div class="w-px h-10 bg-gray-200 mx-1 hidden md:block"></div>
 
@@ -88,7 +134,7 @@
                                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                                  x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
                                  x-cloak
-                                 class="absolute left-0 sm:left-auto sm:right-0 mt-2 w-56 max-w-[90vw] bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 py-2 z-50 overflow-hidden">
+                                 class="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 py-2 z-50 overflow-hidden">
 
                                 <p class="px-4 pt-2 pb-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date Range</p>
                                 <a href="{{ route('owner.orders', ['filter' => 'day']) }}" @click.prevent="applyFilter($el.href); open = false"
@@ -129,6 +175,8 @@
                                 Clear
                             </a>
                         @endif
+
+                        
                     </div>
                 </div>
 
@@ -178,6 +226,19 @@
                                                     <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest {{ $order->status === 'pending' ? 'bg-amber-100 text-amber-600' : ($order->status === 'accepted' ? 'bg-emerald-100 text-emerald-600' : (in_array($order->status, ['preparing', 'out_for_delivery']) ? 'bg-indigo-100 text-indigo-600' : ($order->status === 'delivered' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'))) }}">
                                                         {{ $statusLabel }}
                                                     </span>
+                                                    <button type="button"
+                                                            @click="openDeleteDialog({
+                                                                type: 'single-order',
+                                                                title: 'Delete this order?',
+                                                                message: 'Order #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }} and its items will be permanently removed.',
+                                                                action: '{{ route('owner.order.destroy', $order) }}',
+                                                                orderId: {{ $order->id }},
+                                                                buttonLabel: 'Delete'
+                                                            })"
+                                                            class="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-white text-red-500 transition-all hover:bg-red-50"
+                                                            title="Delete order">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                    </button>
                                                 </div>
                                                 <div class="flex items-center gap-4 mb-4">
                                                     <p class="text-xs font-bold text-gray-400">{{ $order->created_at->format('M d • h:i A') }}</p>
@@ -226,23 +287,23 @@
                                             </div>
                                         </div>
 
-                                        <div class="flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-4 border-t lg:border-t-0 pt-4 lg:pt-0">
+                                        <div class="flex w-full flex-col gap-4 border-t pt-4 sm:flex-row sm:items-center sm:justify-between lg:w-auto lg:flex-col lg:items-end lg:justify-center lg:border-t-0 lg:pt-0">
                                             <div class="lg:text-right">
                                                 <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total</p>
                                                 <p class="text-2xl font-black outfit text-emerald-500">${{ number_format($order->total, 2) }}</p>
                                             </div>
                                             
                                             @if($order->status === 'pending')
-                                                <div class="flex flex-col gap-2">
-                                                    <form method="POST" action="{{ route('owner.order.accept', $order) }}" class="order-status-form flex gap-2 w-full justify-end">
+                                                <div class="flex w-full flex-col gap-2 sm:w-auto">
+                                                    <form method="POST" action="{{ route('owner.order.accept', $order) }}" class="order-status-form flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
                                                         @csrf
-                                                        <select name="estimated_prep_time" class="text-sm border-0 bg-gray-50 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 text-gray-700 font-bold py-2 px-3">
+                                                        <select name="estimated_prep_time" class="w-full text-sm border-0 bg-gray-50 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 text-gray-700 font-bold py-2 px-3 sm:w-auto">
                                                             <option value="15">15 min prep</option>
                                                             <option value="30">30 min prep</option>
                                                             <option value="45">45 min prep</option>
                                                             <option value="60">60 min prep</option>
                                                         </select>
-                                                        <button type="submit" data-loading-key="accept-{{ $order->id }}" :disabled="loadingOrderId === {{ $order->id }}" class="bg-emerald-500 hover:bg-emerald-400 disabled:hover:bg-emerald-500 text-white font-bold py-2 px-6 rounded-xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:transform-none disabled:opacity-80 flex items-center gap-2 text-sm whitespace-nowrap">
+                                                        <button type="submit" data-loading-key="accept-{{ $order->id }}" :disabled="loadingOrderId === {{ $order->id }}" class="w-full justify-center bg-emerald-500 hover:bg-emerald-400 disabled:hover:bg-emerald-500 text-white font-bold py-2 px-6 rounded-xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:transform-none disabled:opacity-80 flex items-center gap-2 text-sm whitespace-nowrap sm:w-auto">
                                                             <span>Accept</span>
                                                             <span x-show="loadingButtonKey === 'accept-{{ $order->id }}'" x-cloak class="inline-flex">
                                                                 <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
@@ -250,13 +311,13 @@
                                                         </button>
                                                     </form>
                                                     
-                                                    <form method="POST" action="{{ route('owner.order.reject', $order) }}" class="order-status-form flex gap-2 w-full justify-end" x-data="{ showReason: false }">
+                                                    <form method="POST" action="{{ route('owner.order.reject', $order) }}" class="order-status-form flex w-full flex-col gap-2 sm:flex-row sm:justify-end" x-data="{ showReason: false }">
                                                         @csrf
-                                                        <input x-show="showReason" x-transition type="text" name="rejection_reason" placeholder="Reason (Optional)" class="text-sm border-0 bg-red-50 text-red-600 placeholder-red-300 rounded-xl focus:ring-red-500 focus:border-red-500 py-2 px-3 w-32">
-                                                        <button type="button" x-show="!showReason" @click="showReason = true" class="bg-white hover:bg-red-50 text-red-500 font-bold py-2 px-6 rounded-xl border border-red-100 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 text-sm">
+                                                        <input x-show="showReason" x-transition type="text" name="rejection_reason" placeholder="Reason (Optional)" class="w-full text-sm border-0 bg-red-50 text-red-600 placeholder-red-300 rounded-xl focus:ring-red-500 focus:border-red-500 py-2 px-3 sm:w-40">
+                                                        <button type="button" x-show="!showReason" @click="showReason = true" class="w-full bg-white hover:bg-red-50 text-red-500 font-bold py-2 px-6 rounded-xl border border-red-100 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 text-sm sm:w-auto">
                                                             Reject
                                                         </button>
-                                                        <button type="submit" data-loading-key="reject-{{ $order->id }}" :disabled="loadingOrderId === {{ $order->id }}" x-show="showReason" x-cloak class="bg-red-500 hover:bg-red-400 disabled:hover:bg-red-500 text-white font-bold py-2 px-4 rounded-xl shadow-lg shadow-red-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:transform-none disabled:opacity-80 flex items-center justify-center gap-2 text-sm whitespace-nowrap">
+                                                        <button type="submit" data-loading-key="reject-{{ $order->id }}" :disabled="loadingOrderId === {{ $order->id }}" x-show="showReason" x-cloak class="w-full bg-red-500 hover:bg-red-400 disabled:hover:bg-red-500 text-white font-bold py-2 px-4 rounded-xl shadow-lg shadow-red-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:transform-none disabled:opacity-80 flex items-center justify-center gap-2 text-sm whitespace-nowrap sm:w-auto">
                                                             <span>Confirm Reject</span>
                                                             <span x-show="loadingButtonKey === 'reject-{{ $order->id }}'" x-cloak class="inline-flex">
                                                                 <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
@@ -392,6 +453,56 @@
                 </div>
             </div>
 
+            <div x-show="deleteDialog.open"
+                 x-cloak
+                 x-transition.opacity.duration.200ms
+                 class="fixed inset-0 z-[80] flex items-center justify-center px-4">
+                <div class="absolute inset-0 bg-gray-950/50 backdrop-blur-sm" @click="closeDeleteDialog()"></div>
+
+                <div x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+                     class="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-white/60 bg-white shadow-2xl shadow-gray-900/20">
+                    <div class="absolute inset-x-0 top-0 h-28 bg-gradient-to-r from-red-500 via-rose-500 to-orange-400 opacity-95"></div>
+                    <div class="relative p-6 sm:p-7">
+                        <div class="mb-5 flex items-start gap-4">
+                            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-red-500 shadow-lg shadow-red-500/20">
+                                <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M4 7h16m-10 4v6m4-6v6M9 7V4h6v3m-7 0h8l-1 13a2 2 0 01-2 2h-2a2 2 0 01-2-2L8 7z"></path></svg>
+                            </div>
+                            <div class="pt-1">
+                                <p class="text-[11px] font-black uppercase tracking-[0.3em] text-red-100">Confirm Action</p>
+                                <h4 class="mt-2 text-2xl font-black text-white" x-text="deleteDialog.title"></h4>
+                            </div>
+                        </div>
+
+                        <div class="rounded-[1.5rem] bg-gray-50 px-5 py-4">
+                            <p class="text-sm font-medium leading-6 text-gray-600" x-text="deleteDialog.message"></p>
+                        </div>
+
+                        <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                            <button type="button"
+                                    @click="closeDeleteDialog()"
+                                    class="inline-flex items-center justify-center rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm font-bold text-gray-500 transition-all hover:bg-gray-50 hover:text-gray-900">
+                                Keep Orders
+                            </button>
+                            <button type="button"
+                                    @click="confirmDelete()"
+                                    :disabled="deleteDialog.submitting"
+                                    class="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-500/20 transition-all hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-70">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                <span x-text="deleteDialog.buttonLabel"></span>
+                                <span x-show="deleteDialog.submitting" x-cloak class="inline-flex">
+                                    <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <script>
                 function ordersFilter() {
                     return {
@@ -400,6 +511,21 @@
                         loadingButtonKey: null,
                         newOrderCount: 0,
                         usingEcho: false,
+                        deleteDialog: {
+                            open: false,
+                            type: null,
+                            title: '',
+                            message: '',
+                            action: '',
+                            orderId: null,
+                            buttonLabel: 'Delete',
+                            submitting: false,
+                        },
+                        toast: {
+                            open: false,
+                            message: '',
+                            timeoutId: null,
+                        },
                         latestOrderId: {{ $orders->isNotEmpty() ? $orders->first()->id : 0 }},
                         pollTimer: null,
                         pollInFlight: false,
@@ -570,6 +696,135 @@
                             await this.applyFilter(url);
                         },
 
+                        openDeleteDialog(config) {
+                            this.deleteDialog = {
+                                open: true,
+                                type: config.type ?? 'single-order',
+                                title: config.title ?? 'Delete this order?',
+                                message: config.message ?? 'This action cannot be undone.',
+                                action: config.action ?? '',
+                                orderId: config.orderId ?? null,
+                                buttonLabel: config.buttonLabel ?? 'Delete',
+                                submitting: false,
+                            };
+                        },
+
+                        closeDeleteDialog(force = false) {
+                            if (this.deleteDialog.submitting && !force) {
+                                return;
+                            }
+
+                            this.deleteDialog = {
+                                open: false,
+                                type: null,
+                                title: '',
+                                message: '',
+                                action: '',
+                                orderId: null,
+                                buttonLabel: 'Delete',
+                                submitting: false,
+                            };
+                        },
+
+                        showToast(message) {
+                            if (!message) {
+                                return;
+                            }
+
+                            if (this.toast.timeoutId) {
+                                clearTimeout(this.toast.timeoutId);
+                            }
+
+                            this.toast.open = true;
+                            this.toast.message = message;
+                            this.toast.timeoutId = setTimeout(() => this.hideToast(), 2600);
+                        },
+
+                        hideToast() {
+                            if (this.toast.timeoutId) {
+                                clearTimeout(this.toast.timeoutId);
+                            }
+
+                            this.toast.open = false;
+                            this.toast.message = '';
+                            this.toast.timeoutId = null;
+                        },
+
+                        async confirmDelete() {
+                            if (!this.deleteDialog.action || this.deleteDialog.submitting) {
+                                return;
+                            }
+
+                            this.deleteDialog.submitting = true;
+
+                            if (this.deleteDialog.type === 'single-order' && this.deleteDialog.orderId) {
+                                this.loadingOrderId = String(this.deleteDialog.orderId);
+                            } else {
+                                this.filterLoading = true;
+                            }
+
+                            try {
+                                const res = await fetch(this.deleteDialog.action, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json',
+                                    },
+                                });
+
+                                if (!res.ok) {
+                                    throw new Error('Delete request failed');
+                                }
+
+                                const data = await res.json();
+                                const currentUrl = new URL(window.location.href);
+                                currentUrl.searchParams.delete('page');
+                                this.closeDeleteDialog(true);
+                                this.showToast(data.message ?? 'Order deleted successfully.');
+                                await this.applyFilter(currentUrl.toString());
+                            } catch (error) {
+                                console.error('Delete action failed:', error);
+                                this.submitDeleteFallback();
+                            } finally {
+                                this.loadingOrderId = null;
+                                this.filterLoading = false;
+                                this.deleteDialog.submitting = false;
+                            }
+                        },
+
+                        submitDeleteFallback() {
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = this.deleteDialog.action;
+                            form.className = 'hidden';
+
+                            const token = document.createElement('input');
+                            token.type = 'hidden';
+                            token.name = '_token';
+                            token.value = '{{ csrf_token() }}';
+
+                            const method = document.createElement('input');
+                            method.type = 'hidden';
+                            method.name = '_method';
+                            method.value = 'DELETE';
+
+                            form.appendChild(token);
+                            form.appendChild(method);
+                            document.body.appendChild(form);
+                            form.submit();
+                        },
+
+                        initInteractiveSections(sections = []) {
+                            if (!window.Alpine) {
+                                return;
+                            }
+
+                            sections
+                                .filter(Boolean)
+                                .forEach((section) => window.Alpine.initTree(section));
+                        },
+
                         bindStatusForms() {
                             const container = document.getElementById('orders');
                             if (!container) return;
@@ -641,6 +896,12 @@
 
                                     // Re-bind Alpine click handlers on new filter links
                                     this.$nextTick(() => {
+                                        this.initInteractiveSections([
+                                            currentFilters,
+                                            currentContent,
+                                            container.querySelector('#orders-pagination'),
+                                        ]);
+
                                         container.querySelectorAll('#orders-filters .order-filter-link').forEach(link => {
                                             link.addEventListener('click', (e) => {
                                                 e.preventDefault();
@@ -731,6 +992,11 @@
                             }
 
                             this.$nextTick(() => {
+                                this.initInteractiveSections([
+                                    currentContent,
+                                    container.querySelector('#orders-pagination'),
+                                ]);
+
                                 container.querySelectorAll('#orders-pagination .order-filter-link').forEach(link => {
                                     link.addEventListener('click', (e) => {
                                         e.preventDefault();

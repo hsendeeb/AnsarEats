@@ -18,6 +18,7 @@ class Order extends Model
         'total' => 'decimal:2',
         'delivery_fee' => 'decimal:2',
         'discount_amount' => 'decimal:2',
+        'archived_at' => 'datetime',
     ];
 
     public function user()
@@ -38,6 +39,11 @@ class Order extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function scopeUnarchived($query)
+    {
+        return $query->whereNull('archived_at');
     }
 
     public function statusLabel(): string

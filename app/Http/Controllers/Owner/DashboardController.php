@@ -229,7 +229,9 @@ class DashboardController extends Controller
                     : 'Please submit a restaurant registration request first.');
         }
 
-        $baseOrdersQuery = Order::query()->where('restaurant_id', $restaurant->id);
+        $baseOrdersQuery = Order::query()
+            ->where('restaurant_id', $restaurant->id)
+            ->unarchived();
 
         if ($request->has('filter')) {
             if ($request->filter === 'day') {
@@ -257,7 +259,8 @@ class DashboardController extends Controller
             now()->addSeconds(config('performance.cache_ttl.owner_orders')),
             function () use ($request, $restaurant) {
                 $ordersQuery = Order::with(['user', 'orderItems'])
-                    ->where('restaurant_id', $restaurant->id);
+                    ->where('restaurant_id', $restaurant->id)
+                    ->unarchived();
 
                 if ($request->has('filter')) {
                     if ($request->filter === 'day') {
@@ -318,7 +321,8 @@ class DashboardController extends Controller
         $sinceId = (int) $request->input('since_id', 0);
 
         $query = Order::where('restaurant_id', $restaurant->id)
-                      ->where('status', 'pending');
+                      ->where('status', 'pending')
+                      ->unarchived();
 
         if ($sinceId > 0) {
             $query->where('id', '>', $sinceId);
@@ -446,19 +450,18 @@ class DashboardController extends Controller
             abort(403);
         }
 
-        DB::transaction(function () use ($order) {
-            $order->orderItems()->delete();
-            $order->delete();
-        });
+        $order->update([
+            'archived_at' => now(),
+        ]);
 
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Order deleted successfully.',
+                'message' => 'Order archived successfully.',
             ]);
         }
 
-        return back()->with('success', 'Order deleted successfully.');
+        return back()->with('success', 'Order archived successfully.');
     }
 
     public function clearOrders(Request $request)
@@ -469,25 +472,20 @@ class DashboardController extends Controller
             abort(404);
         }
 
-        DB::transaction(function () use ($restaurant) {
-            $orderIds = Order::where('restaurant_id', $restaurant->id)->pluck('id');
-
-            if ($orderIds->isEmpty()) {
-                return;
-            }
-
-            \App\Models\OrderItem::whereIn('order_id', $orderIds)->delete();
-            Order::whereIn('id', $orderIds)->delete();
-        });
+        Order::where('restaurant_id', $restaurant->id)
+            ->unarchived()
+            ->update([
+                'archived_at' => now(),
+            ]);
 
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'All orders were cleared successfully.',
+                'message' => 'All visible orders were archived successfully.',
             ]);
         }
 
-        return back()->with('success', 'All orders were cleared successfully.');
+        return back()->with('success', 'All visible orders were archived successfully.');
     }
 
     public function storeOrUpdate(Request $request)

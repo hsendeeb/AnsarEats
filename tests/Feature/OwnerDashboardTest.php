@@ -172,7 +172,7 @@ class OwnerDashboardTest extends TestCase
         $this->assertEquals(10, $responseData['discount']);
     }
 
-    public function test_owner_can_delete_a_single_order(): void
+    public function test_owner_can_archive_a_single_order(): void
     {
         $order = Order::factory()->create([
             'restaurant_id' => $this->restaurant->id,
@@ -189,18 +189,23 @@ class OwnerDashboardTest extends TestCase
         $response = $this->actingAs($this->owner)->delete(route('owner.order.destroy', $order));
 
         $response->assertRedirect();
-        $this->assertDatabaseMissing('orders', ['id' => $order->id]);
-        $this->assertDatabaseMissing('order_items', ['id' => $orderItem->id]);
+        $this->assertNotNull($order->fresh()->archived_at);
+        $this->assertDatabaseHas('orders', ['id' => $order->id]);
+        $this->assertDatabaseHas('order_items', ['id' => $orderItem->id]);
     }
 
-    public function test_owner_can_clear_all_restaurant_orders(): void
+    public function test_owner_can_archive_all_visible_restaurant_orders_without_removing_metrics_data(): void
     {
         $orderOne = Order::factory()->create([
             'restaurant_id' => $this->restaurant->id,
+            'status' => 'delivered',
+            'total' => 10,
         ]);
 
         $orderTwo = Order::factory()->create([
             'restaurant_id' => $this->restaurant->id,
+            'status' => 'delivered',
+            'total' => 15,
         ]);
 
         OrderItem::create([
@@ -219,13 +224,23 @@ class OwnerDashboardTest extends TestCase
             'quantity' => 1,
         ]);
 
-        $otherRestaurantOrder = Order::factory()->create();
+        $otherRestaurantOrder = Order::factory()->create([
+            'status' => 'delivered',
+            'total' => 99,
+        ]);
 
         $response = $this->actingAs($this->owner)->delete(route('owner.orders.clear'));
 
         $response->assertRedirect();
-        $this->assertSame(0, Order::where('restaurant_id', $this->restaurant->id)->count());
-        $this->assertSame(0, OrderItem::whereIn('order_id', [$orderOne->id, $orderTwo->id])->count());
+        $this->assertNotNull($orderOne->fresh()->archived_at);
+        $this->assertNotNull($orderTwo->fresh()->archived_at);
+        $this->assertSame(0, Order::where('restaurant_id', $this->restaurant->id)->unarchived()->count());
+        $this->assertSame(2, OrderItem::whereIn('order_id', [$orderOne->id, $orderTwo->id])->count());
         $this->assertDatabaseHas('orders', ['id' => $otherRestaurantOrder->id]);
+
+        $dashboardResponse = $this->actingAs($this->owner)->get(route('owner.dashboard'));
+        $dashboardResponse->assertOk();
+        $dashboardResponse->assertSee('$25.00', false);
+        $dashboardResponse->assertSee('$12.50', false);
     }
 }

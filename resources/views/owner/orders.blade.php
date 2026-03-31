@@ -36,14 +36,14 @@
             <button type="button"
                                 @click="openDeleteDialog({
                                     type: 'clear-all',
-                                    title: 'Clear all orders?',
-                                    message: 'This will permanently remove every order for this restaurant. This action cannot be undone.',
+                                    title: 'Archive all visible orders?',
+                                    message: 'This will remove all visible orders from the active list, but keep them in your analytics and historical records.',
                                     action: '{{ route('owner.orders.clear') }}',
-                                    buttonLabel: 'Clear All Orders'
+                                    buttonLabel: 'Archive All Orders'
                                 })"
                                 class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold text-red-500 bg-white border border-red-100 hover:bg-red-50 transition-all">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 7h16m-10 4v6m4-6v6M9 7V4h6v3m-7 0h8l-1 13a2 2 0 01-2 2h-2a2 2 0 01-2-2L8 7z"></path></svg>
-                            Clear All
+                            Archive All
                         </button>
         </div>
 
@@ -229,14 +229,14 @@
                                                     <button type="button"
                                                             @click="openDeleteDialog({
                                                                 type: 'single-order',
-                                                                title: 'Delete this order?',
-                                                                message: 'Order #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }} and its items will be permanently removed.',
+                                                                title: 'Archive this order?',
+                                                                message: 'Order #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }} will be removed from the active inbox but kept for analytics and order history.',
                                                                 action: '{{ route('owner.order.destroy', $order) }}',
                                                                 orderId: {{ $order->id }},
-                                                                buttonLabel: 'Delete'
+                                                                buttonLabel: 'Archive Order'
                                                             })"
                                                             class="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-white text-red-500 transition-all hover:bg-red-50"
-                                                            title="Delete order">
+                                                            title="Archive order">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                                                     </button>
                                                 </div>
@@ -479,8 +479,8 @@
                         </div>
 
                         <div class="rounded-[1.5rem] bg-gray-50 px-5 py-4">
-                            <p class="text-sm font-medium leading-6 text-gray-600" x-text="deleteDialog.message"></p>
-                        </div>
+                                <p class="text-sm font-medium leading-6 text-gray-600" x-text="deleteDialog.message"></p>
+                            </div>
 
                         <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                             <button type="button"
@@ -518,7 +518,7 @@
                             message: '',
                             action: '',
                             orderId: null,
-                            buttonLabel: 'Delete',
+                            buttonLabel: 'Archive',
                             submitting: false,
                         },
                         toast: {
@@ -700,11 +700,11 @@
                             this.deleteDialog = {
                                 open: true,
                                 type: config.type ?? 'single-order',
-                                title: config.title ?? 'Delete this order?',
-                                message: config.message ?? 'This action cannot be undone.',
+                                title: config.title ?? 'Archive this order?',
+                                message: config.message ?? 'This will remove the order from the active inbox but keep it in analytics and history.',
                                 action: config.action ?? '',
                                 orderId: config.orderId ?? null,
-                                buttonLabel: config.buttonLabel ?? 'Delete',
+                                buttonLabel: config.buttonLabel ?? 'Archive',
                                 submitting: false,
                             };
                         },
@@ -721,7 +721,7 @@
                                 message: '',
                                 action: '',
                                 orderId: null,
-                                buttonLabel: 'Delete',
+                                buttonLabel: 'Archive',
                                 submitting: false,
                             };
                         },
@@ -774,17 +774,17 @@
                                 });
 
                                 if (!res.ok) {
-                                    throw new Error('Delete request failed');
+                                    throw new Error('Archive request failed');
                                 }
 
                                 const data = await res.json();
                                 const currentUrl = new URL(window.location.href);
                                 currentUrl.searchParams.delete('page');
                                 this.closeDeleteDialog(true);
-                                this.showToast(data.message ?? 'Order deleted successfully.');
+                                this.showToast(data.message ?? 'Order archived successfully.');
                                 await this.applyFilter(currentUrl.toString());
                             } catch (error) {
-                                console.error('Delete action failed:', error);
+                                console.error('Archive action failed:', error);
                                 this.submitDeleteFallback();
                             } finally {
                                 this.loadingOrderId = null;

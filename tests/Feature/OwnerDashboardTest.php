@@ -194,6 +194,79 @@ class OwnerDashboardTest extends TestCase
         $this->assertDatabaseHas('order_items', ['id' => $orderItem->id]);
     }
 
+    public function test_owner_dashboard_revenue_only_counts_accepted_workflow_orders(): void
+    {
+        Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'status' => 'pending',
+            'total' => 10,
+        ]);
+
+        Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'status' => 'accepted',
+            'total' => 25,
+        ]);
+
+        Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'status' => 'preparing',
+            'total' => 30,
+        ]);
+
+        Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'status' => 'delivered',
+            'total' => 45,
+        ]);
+
+        Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'status' => 'cancelled',
+            'total' => 60,
+        ]);
+
+        $dashboardResponse = $this->actingAs($this->owner)->get(route('owner.dashboard'));
+
+        $dashboardResponse->assertOk();
+        $dashboardResponse->assertViewHas('stats', function (array $stats) {
+            return (float) $stats['total_revenue'] === 100.0
+                && (float) $stats['avg_order_value'] === (100.0 / 3);
+        });
+        $dashboardResponse->assertSee('$100.00', false);
+        $dashboardResponse->assertSee('$33.33', false);
+    }
+
+    public function test_owner_orders_preparing_filter_includes_preparing_and_out_for_delivery_orders(): void
+    {
+        $preparingOrder = Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'status' => 'preparing',
+        ]);
+
+        $outForDeliveryOrder = Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'status' => 'out_for_delivery',
+        ]);
+
+        Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'status' => 'accepted',
+        ]);
+
+        $response = $this->actingAs($this->owner)->get(route('owner.orders', ['status' => 'preparing']));
+
+        $response->assertOk();
+        $response->assertViewHas('statusCounts', function (array $statusCounts) {
+            return ($statusCounts['preparing'] ?? 0) === 2;
+        });
+        $response->assertViewHas('orders', function ($orders) use ($preparingOrder, $outForDeliveryOrder) {
+            $ids = collect($orders->items())->pluck('id')->sort()->values()->all();
+
+            return $ids === collect([$preparingOrder->id, $outForDeliveryOrder->id])->sort()->values()->all();
+        });
+    }
+
     public function test_owner_can_archive_all_visible_restaurant_orders_without_removing_metrics_data(): void
     {
         $orderOne = Order::factory()->create([

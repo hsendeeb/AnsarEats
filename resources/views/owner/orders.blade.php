@@ -93,19 +93,86 @@
                     </div>
                     
                     <div class="flex flex-wrap items-center gap-2 relative z-30 overflow-visible w-full md:w-auto" id="orders-filters">
-                        {{-- Status pills --}}
-                        <a href="{{ route('owner.orders', ['status' => 'pending']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
-                            <span>Pending</span>
-                            <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-50 text-amber-600' }}">{{ $statusCounts['pending'] ?? 0 }}</span>
-                        </a>
-                        <a href="{{ route('owner.orders', ['status' => 'accepted']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'accepted' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
-                            <span>Accepted</span>
-                            <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'accepted' ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-600' }}">{{ $statusCounts['accepted'] ?? 0 }}</span>
-                        </a>
-                        <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'delivered' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
-                            <span>Delivered</span>
-                            <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'delivered' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600' }}">{{ $statusCounts['delivered'] ?? 0 }}</span>
-                        </a>
+                        @php
+                            $activeStatusLabel = match (request('status')) {
+                                'pending' => 'Pending',
+                                'accepted' => 'Accepted',
+                                'preparing' => 'Preparing',
+                                'delivered' => 'Delivered',
+                                default => null,
+                            };
+                        @endphp
+
+                        {{-- Mobile status dropdown --}}
+                        <div class="relative z-40 w-full md:hidden" x-data="{ open: false }" @click.outside="open = false">
+                            <button @click="open = !open" type="button"
+                                class="w-full inline-flex items-center justify-between gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ $activeStatusLabel ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                                <span class="inline-flex items-center gap-2">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                                    <span>{{ $activeStatusLabel ?? 'Order Status' }}</span>
+                                </span>
+                                <span class="inline-flex items-center gap-2">
+                                    @if($activeStatusLabel)
+                                        <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black bg-white/20 text-white">
+                                            {{ $statusCounts[request('status')] ?? 0 }}
+                                        </span>
+                                    @endif
+                                    <svg class="w-3.5 h-3.5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                                </span>
+                            </button>
+
+                            <div x-show="open"
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                 x-cloak
+                                 class="absolute left-0 right-0 mt-2 bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 py-2 z-50 overflow-hidden">
+                                <p class="px-4 pt-2 pb-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Order Status</p>
+                                <a href="{{ route('owner.orders', ['status' => 'pending']) }}" @click.prevent="applyFilter($el.href); open = false"
+                                   class="order-filter-link flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ request('status') === 'pending' ? 'bg-amber-50 text-amber-600' : 'text-gray-600 hover:bg-gray-50' }}">
+                                    <span>Pending</span>
+                                    <span class="ml-auto inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'pending' ? 'bg-amber-100 text-amber-600' : 'bg-amber-50 text-amber-600' }}">{{ $statusCounts['pending'] ?? 0 }}</span>
+                                </a>
+                                <a href="{{ route('owner.orders', ['status' => 'accepted']) }}" @click.prevent="applyFilter($el.href); open = false"
+                                   class="order-filter-link flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ request('status') === 'accepted' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-600 hover:bg-gray-50' }}">
+                                    <span>Accepted</span>
+                                    <span class="ml-auto inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'accepted' ? 'bg-emerald-100 text-emerald-600' : 'bg-emerald-50 text-emerald-600' }}">{{ $statusCounts['accepted'] ?? 0 }}</span>
+                                </a>
+                                <a href="{{ route('owner.orders', ['status' => 'preparing']) }}" @click.prevent="applyFilter($el.href); open = false"
+                                   class="order-filter-link flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ request('status') === 'preparing' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50' }}">
+                                    <span>Preparing</span>
+                                    <span class="ml-auto inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'preparing' ? 'bg-indigo-100 text-indigo-600' : 'bg-indigo-50 text-indigo-600' }}">{{ $statusCounts['preparing'] ?? 0 }}</span>
+                                </a>
+                                <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" @click.prevent="applyFilter($el.href); open = false"
+                                   class="order-filter-link flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ request('status') === 'delivered' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }}">
+                                    <span>Delivered</span>
+                                    <span class="ml-auto inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'delivered' ? 'bg-blue-100 text-blue-600' : 'bg-blue-50 text-blue-600' }}">{{ $statusCounts['delivered'] ?? 0 }}</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        {{-- Desktop status pills --}}
+                        <div class="hidden md:flex md:flex-wrap md:items-center md:gap-2">
+                            <a href="{{ route('owner.orders', ['status' => 'pending']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                                <span>Pending</span>
+                                <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-50 text-amber-600' }}">{{ $statusCounts['pending'] ?? 0 }}</span>
+                            </a>
+                            <a href="{{ route('owner.orders', ['status' => 'accepted']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'accepted' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                                <span>Accepted</span>
+                                <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'accepted' ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-600' }}">{{ $statusCounts['accepted'] ?? 0 }}</span>
+                            </a>
+                            <a href="{{ route('owner.orders', ['status' => 'preparing']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'preparing' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                                <span>Preparing</span>
+                                <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'preparing' ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-600' }}">{{ $statusCounts['preparing'] ?? 0 }}</span>
+                            </a>
+                            <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'delivered' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                                <span>Delivered</span>
+                                <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'delivered' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600' }}">{{ $statusCounts['delivered'] ?? 0 }}</span>
+                            </a>
+                        </div>
 
                         <div class="w-px h-10 bg-gray-200 mx-1 hidden md:block"></div>
 

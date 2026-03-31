@@ -15,6 +15,13 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    private const REVENUE_ELIGIBLE_STATUSES = [
+        'accepted',
+        'preparing',
+        'out_for_delivery',
+        'delivered',
+    ];
+
     private function buildOrdersBarChartData(int $restaurantId, string $period): array
     {
         $period = in_array($period, ['day', 'week', 'month'], true) ? $period : 'week';
@@ -128,12 +135,15 @@ class DashboardController extends Controller
             $restaurant->load('menuCategories.menuItems');
 
             $orders = Order::where('restaurant_id', '=', $restaurant->id)->get();
+            $revenueOrders = $orders->whereIn('status', self::REVENUE_ELIGIBLE_STATUSES);
             
             $stats['total_orders'] = $orders->count();
-            $stats['total_revenue'] = $orders->where('status', '!=', 'cancelled')->sum('total');
+            $stats['total_revenue'] = $revenueOrders->sum('total');
             $stats['pending_orders'] = $orders->where('status', 'pending')->count();
             $stats['completed_orders'] = $orders->whereIn('status', ['delivered'])->count();
-            $stats['avg_order_value'] = $stats['total_orders'] > 0 ? $stats['total_revenue'] / $stats['total_orders'] : 0;
+            $stats['avg_order_value'] = $revenueOrders->count() > 0
+                ? $stats['total_revenue'] / $revenueOrders->count()
+                : 0;
 
             // Bar Chart default: weekly (last 7 days)
             $bar = $this->buildOrdersBarChartData($restaurant->id, 'week');
@@ -168,8 +178,9 @@ class DashboardController extends Controller
 
             foreach ($sparkDates as $date) {
                 $dayOrders = $ordersByDate[$date] ?? collect();
+                $dayRevenueOrders = $dayOrders->whereIn('status', self::REVENUE_ELIGIBLE_STATUSES);
                 $dayTotalOrders = $dayOrders->count();
-                $dayRevenue = $dayOrders->where('status', '!=', 'cancelled')->sum('total');
+                $dayRevenue = $dayRevenueOrders->sum('total');
                 $dayPending = $dayOrders->where('status', 'pending')->count();
                 $dayCompleted = $dayOrders->where('status', 'delivered')->count();
 
@@ -177,7 +188,9 @@ class DashboardController extends Controller
                 $sparkline['pending_orders'][] = $dayPending;
                 $sparkline['completed_orders'][] = $dayCompleted;
                 $sparkline['revenue'][] = (float) $dayRevenue;
-                $sparkline['avg_order_value'][] = $dayTotalOrders > 0 ? (float) ($dayRevenue / $dayTotalOrders) : 0.0;
+                $sparkline['avg_order_value'][] = $dayRevenueOrders->count() > 0
+                    ? (float) ($dayRevenue / $dayRevenueOrders->count())
+                    : 0.0;
             }
 
             $stats['sparklines'] = $sparkline;
@@ -244,6 +257,7 @@ class DashboardController extends Controller
         $statusCounts = [
             'pending' => (clone $baseOrdersQuery)->where('status', 'pending')->count(),
             'accepted' => (clone $baseOrdersQuery)->where('status', 'accepted')->count(),
+            'preparing' => (clone $baseOrdersQuery)->whereIn('status', ['preparing', 'out_for_delivery'])->count(),
             'delivered' => (clone $baseOrdersQuery)->where('status', 'delivered')->count(),
         ];
 
@@ -271,7 +285,9 @@ class DashboardController extends Controller
                 }
 
                 if ($request->has('status')) {
-                    if (in_array($request->status, ['pending', 'accepted', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'])) {
+                    if ($request->status === 'preparing') {
+                        $ordersQuery->whereIn('status', ['preparing', 'out_for_delivery']);
+                    } elseif (in_array($request->status, ['pending', 'accepted', 'out_for_delivery', 'delivered', 'cancelled'])) {
                         $ordersQuery->where('status', $request->status);
                     }
                 }

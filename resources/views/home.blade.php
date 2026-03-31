@@ -574,14 +574,14 @@
                     <div class="absolute -bottom-16 -left-10 w-56 h-56 rounded-full bg-cyan-300/30 blur-3xl"></div>
 
                     <div class="relative h-full flex items-center justify-center">
-                        <div class="w-full max-w-3xl">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+                        <div class="w-full max-w-2xl">
+                            <div class="grid grid-cols-1 gap-6 items-stretch">
                                 <div class="rounded-[2rem] bg-white/75 backdrop-blur-md shadow-[0_20px_50px_-25px_rgba(15,23,42,0.35)] p-4 sm:p-5 flex flex-col">
                                     <div class="mb-3">
                                         <p class="text-xs font-black uppercase tracking-[0.3em] text-emerald-600">Watch Your Metrics</p>
                                         <h3 class="mt-2 text-xl font-black outfit text-gray-900">Track growth as your restaurant scales.</h3>
                                     </div>
-                                    <dotlottie-player src="https://lottie.host/ac464139-d495-41a2-95b6-62404745f9d8/BwZr3VLDTK.lottie" background="transparent" speed="1" class="w-full h-[300px] sm:h-[340px] md:h-[320px]" loop autoplay></dotlottie-player>
+                                    <dotlottie-player src="https://lottie.host/ac464139-d495-41a2-95b6-62404745f9d8/BwZr3VLDTK.lottie" background="transparent" speed="1" class="w-full h-[260px] sm:h-[300px] md:h-[320px]" loop autoplay></dotlottie-player>
                                 </div>
 
                                 <div class="relative">

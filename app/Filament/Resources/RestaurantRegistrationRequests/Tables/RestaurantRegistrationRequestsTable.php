@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\RestaurantRegistrationRequests\Tables;
 
+use App\Mail\RestaurantCreatedMail;
 use App\Models\Restaurant;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -10,6 +11,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class RestaurantRegistrationRequestsTable
 {
@@ -82,8 +84,10 @@ class RestaurantRegistrationRequestsTable
                             return;
                         }
 
-                        if (! $record->user?->restaurant) {
-                            Restaurant::create([
+                        $restaurant = $record->user?->restaurant;
+
+                        if (! $restaurant) {
+                            $restaurant = Restaurant::create([
                                 'user_id' => $record->user_id,
                                 'name' => $record->restaurant_name,
                                 'description' => $record->description,
@@ -107,6 +111,12 @@ class RestaurantRegistrationRequestsTable
                             'reviewed_by' => Auth::id(),
                             'reviewed_at' => now(),
                         ]);
+
+                        if ($record->user && $restaurant) {
+                            Mail::to($record->user->email)->queue(
+                                new RestaurantCreatedMail($record->user, $restaurant)
+                            );
+                        }
 
                         Notification::make()
                             ->title('Restaurant request approved.')

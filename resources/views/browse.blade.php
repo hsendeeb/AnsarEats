@@ -10,17 +10,20 @@
             <!-- Horizontal Category Pills -->
             <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1"
                  id="category-pills-container">
+                 
+         
                 @foreach($categories as $cat)
                     <button
                         onclick="selectCategory('{{ $cat['slug'] }}')"
                         id="pill-{{ $cat['slug'] }}"
                         class="category-pill flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-200 border whitespace-nowrap
                                {{ $category === $cat['slug']
-                                  ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/25'
+                                  ? 'bg-emerald-500/10 text-white border-emerald-500'
                                   : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-400 hover:text-emerald-600 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700' }}">
                         <span>{{ $cat['emoji'] }}</span>
                         <span>{{ $cat['label'] }}</span>
                     </button>
+                    
                 @endforeach
             </div>
         </div>

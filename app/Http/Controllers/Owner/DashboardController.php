@@ -22,6 +22,79 @@ class DashboardController extends Controller
         'delivered',
     ];
 
+    private function applyOwnerOrderDateFilter($query, Request $request): void
+    {
+        if (! $request->filled('filter')) {
+            return;
+        }
+
+        if ($request->filter === 'day') {
+            $query->whereDate('created_at', Carbon::today());
+        } elseif ($request->filter === 'week') {
+            $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+        }
+    }
+
+    private function applyOwnerOrderStatusFilter($query, Request $request): void
+    {
+        if (! $request->filled('status')) {
+            return;
+        }
+
+        if ($request->status === 'preparing') {
+            $query->whereIn('status', ['preparing', 'out_for_delivery']);
+        } elseif (in_array($request->status, ['pending', 'accepted', 'out_for_delivery', 'delivered', 'cancelled'], true)) {
+            $query->where('status', $request->status);
+        }
+    }
+
+    private function applyOwnerOrderSearchFilter($query, Request $request): void
+    {
+        $search = trim((string) $request->get('q', ''));
+
+        if ($search === '') {
+            return;
+        }
+
+        $isOrderNumberSearch = preg_match('/^#?\s*\d+\s*$/', $search) === 1;
+        $orderNumber = $isOrderNumberSearch
+            ? (int) preg_replace('/\D+/', '', $search)
+            : null;
+
+        $query->where(function ($searchQuery) use ($search, $orderNumber) {
+            $searchQuery->whereHas('user', function ($userQuery) use ($search) {
+                $userQuery->where('name', 'like', '%'.$search.'%');
+            });
+
+            if ($orderNumber) {
+                $searchQuery->orWhere('id', $orderNumber);
+            }
+        });
+    }
+
+    private function applyOwnerOrderSorting($query, Request $request): void
+    {
+        if ($request->get('sort') === 'total') {
+            $query->orderByDesc('total');
+            return;
+        }
+
+        $query->orderByDesc('created_at');
+    }
+
+    private function ownerOrderClearScopeLabel(Request $request): string
+    {
+        return match ($request->get('status')) {
+            'pending' => 'pending',
+            'accepted' => 'accepted',
+            'preparing' => 'preparing',
+            'out_for_delivery' => 'out for delivery',
+            'delivered' => 'delivered',
+            'cancelled' => 'cancelled',
+            default => 'visible',
+        };
+    }
+
     private function buildOrdersBarChartData(int $restaurantId, string $period): array
     {
         $period = in_array($period, ['day', 'week', 'month'], true) ? $period : 'week';
@@ -246,13 +319,8 @@ class DashboardController extends Controller
             ->where('restaurant_id', $restaurant->id)
             ->unarchived();
 
-        if ($request->has('filter')) {
-            if ($request->filter === 'day') {
-                $baseOrdersQuery->whereDate('created_at', Carbon::today());
-            } elseif ($request->filter === 'week') {
-                $baseOrdersQuery->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-            }
-        }
+        $this->applyOwnerOrderDateFilter($baseOrdersQuery, $request);
+        $this->applyOwnerOrderSearchFilter($baseOrdersQuery, $request);
 
         $statusCounts = [
             'pending' => (clone $baseOrdersQuery)->where('status', 'pending')->count(),
@@ -267,6 +335,7 @@ class DashboardController extends Controller
                 'restaurant_id' => $restaurant->id,
                 'filter' => (string) $request->get('filter', ''),
                 'status' => (string) $request->get('status', ''),
+                'q' => (string) $request->get('q', ''),
                 'sort' => (string) $request->get('sort', ''),
                 'page' => (int) $request->get('page', 1),
             ]),
@@ -276,27 +345,10 @@ class DashboardController extends Controller
                     ->where('restaurant_id', $restaurant->id)
                     ->unarchived();
 
-                if ($request->has('filter')) {
-                    if ($request->filter === 'day') {
-                        $ordersQuery->whereDate('created_at', Carbon::today());
-                    } elseif ($request->filter === 'week') {
-                        $ordersQuery->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-                    }
-                }
-
-                if ($request->has('status')) {
-                    if ($request->status === 'preparing') {
-                        $ordersQuery->whereIn('status', ['preparing', 'out_for_delivery']);
-                    } elseif (in_array($request->status, ['pending', 'accepted', 'out_for_delivery', 'delivered', 'cancelled'])) {
-                        $ordersQuery->where('status', $request->status);
-                    }
-                }
-
-                if ($request->has('sort') && $request->sort === 'total') {
-                    $ordersQuery->orderByDesc('total');
-                } else {
-                    $ordersQuery->orderByDesc('created_at');
-                }
+                $this->applyOwnerOrderDateFilter($ordersQuery, $request);
+                $this->applyOwnerOrderStatusFilter($ordersQuery, $request);
+                $this->applyOwnerOrderSearchFilter($ordersQuery, $request);
+                $this->applyOwnerOrderSorting($ordersQuery, $request);
 
                 return $ordersQuery->paginate(10)->appends($request->query());
             }
@@ -488,20 +540,74 @@ class DashboardController extends Controller
             abort(404);
         }
 
-        Order::where('restaurant_id', $restaurant->id)
-            ->unarchived()
-            ->update([
-                'archived_at' => now(),
-            ]);
+        $ordersQuery = Order::where('restaurant_id', $restaurant->id)
+            ->unarchived();
+
+        $this->applyOwnerOrderDateFilter($ordersQuery, $request);
+        $this->applyOwnerOrderStatusFilter($ordersQuery, $request);
+        $this->applyOwnerOrderSearchFilter($ordersQuery, $request);
+
+        $deletedCount = $ordersQuery->delete();
+        $scopeLabel = $this->ownerOrderClearScopeLabel($request);
+
+        if ($deletedCount === 0) {
+            $message = 'No orders matched the current filters.';
+        } elseif ($deletedCount === 1) {
+            $message = '1 '.$scopeLabel.' order was cleared successfully.';
+        } else {
+            $message = $deletedCount.' '.$scopeLabel.' orders were cleared successfully.';
+        }
 
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'All visible orders were archived successfully.',
+                'message' => $message,
             ]);
         }
 
-        return back()->with('success', 'All visible orders were archived successfully.');
+        return back()->with('success', $message);
+    }
+
+    public function destroySelectedOrders(Request $request)
+    {
+        $restaurant = Auth::user()->restaurant;
+
+        if (! $restaurant) {
+            abort(404);
+        }
+
+        $data = $request->validate([
+            'order_ids' => ['required', 'array', 'min:1'],
+            'order_ids.*' => ['integer'],
+        ]);
+
+        $orderIds = collect($data['order_ids'])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $deletedCount = Order::where('restaurant_id', $restaurant->id)
+            ->unarchived()
+            ->whereIn('id', $orderIds)
+            ->delete();
+
+        if ($deletedCount === 0) {
+            $message = 'No selected orders could be deleted.';
+        } elseif ($deletedCount === 1) {
+            $message = '1 selected order was deleted successfully.';
+        } else {
+            $message = $deletedCount.' selected orders were deleted successfully.';
+        }
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'deleted_count' => $deletedCount,
+            ]);
+        }
+
+        return back()->with('success', $message);
     }
 
     public function storeOrUpdate(Request $request)

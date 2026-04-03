@@ -20,6 +20,7 @@ class KfcStressOrderCommandTest extends TestCase
             '--quantity' => 2,
             '--driver' => 'sync',
         ])
+        
             ->expectsOutputToContain('Running 5 orders against KFC for owner hsendeeb2@gmail.com using the sync driver...')
             ->expectsOutputToContain('KFC stress run completed without recorded failures.')
             ->assertExitCode(0);

@@ -36,14 +36,14 @@
             <button type="button"
                                 @click="openDeleteDialog({
                                     type: 'clear-all',
-                                    title: 'Archive all visible orders?',
-                                    message: 'This will remove all visible orders from the active list, but keep them in your analytics and historical records.',
+                                    title: 'Clear all orders?',
+                                    message: 'This will permanently delete only the orders that match the filters you currently selected.',
                                     action: '{{ route('owner.orders.clear') }}',
-                                    buttonLabel: 'Archive All Orders'
+                                    buttonLabel: 'Clear All Orders'
                                 })"
                                 class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold text-red-500 bg-white border border-red-100 hover:bg-red-50 transition-all">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 7h16m-10 4v6m4-6v6M9 7V4h6v3m-7 0h8l-1 13a2 2 0 01-2 2h-2a2 2 0 01-2-2L8 7z"></path></svg>
-                            Archive All
+                            Clear All
                         </button>
         </div>
 
@@ -84,15 +84,29 @@
                     </div>
                 </div>
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 overflow-visible">
-                    <div>
-                        <h3 class="text-3xl font-black outfit text-gray-900 flex items-center gap-3">
-                            <span class="w-2 h-10 bg-emerald-500 rounded-full"></span>
-                            Incoming Orders
-                        </h3>
-                        <p class="text-gray-500 font-medium mt-1">Manage and track your restaurant's orders in real-time.</p>
-                    </div>
-                    
-                    <div class="flex flex-wrap items-center gap-2 relative z-30 overflow-visible w-full md:w-auto" id="orders-filters">
+            
+
+                    <div class="w-full lg:max-w-4xl" id="orders-filters">
+                        <div class="flex flex-col gap-3 lg:items-end">
+                        <form @submit.prevent="applySearch($refs.orderSearchInput.value)"
+                              class="relative w-full lg:w-[24rem]">
+                            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="m21 21-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </span>
+                            <input type="search"
+                                   name="q"
+                                   x-ref="orderSearchInput"
+                                   value="{{ request('q') }}"
+                                   placeholder="Search order # or customer name"
+                                   class="w-full rounded-2xl border border-gray-100 bg-white py-2.5 pl-11 pr-24 text-sm font-semibold text-gray-700 placeholder:text-gray-400 shadow-sm transition-all focus:border-emerald-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10">
+                            <button type="submit"
+                                    class="absolute inset-y-1.5 right-1.5 inline-flex items-center rounded-xl bg-gray-900 px-3.5 text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-emerald-500">
+                                Search
+                            </button>
+                        </form>
+
+                        <div class="flex flex-wrap items-center gap-2 relative z-30 overflow-visible w-full lg:justify-end">
+
                         @php
                             $activeStatusLabel = match (request('status')) {
                                 'pending' => 'Pending',
@@ -236,14 +250,15 @@
                         </div>
 
                         {{-- Clear Filters (only visible when any filter is active) --}}
-                        @if(request('filter') || request('sort') || request('status'))
-                            <a href="{{ route('owner.orders') }}" @click.prevent="applyFilter($el.href)" class="order-filter-link px-5 py-2.5 rounded-2xl text-sm font-bold transition-all bg-white text-gray-500 hover:bg-red-50 hover:text-red-500 border border-gray-100 flex items-center gap-1.5">
+                        @if(request('filter') || request('sort') || request('status') || request('q'))
+                            <a href="{{ route('owner.orders') }}" @click.prevent="applyFilter($el.href, true, { preserveSearch: false })" class="order-filter-link px-5 py-2.5 rounded-2xl text-sm font-bold transition-all bg-white text-gray-500 hover:bg-red-50 hover:text-red-500 border border-gray-100 flex items-center gap-1.5">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 Clear
                             </a>
                         @endif
 
-                        
+                        </div>
+                        </div>
                     </div>
                 </div>
 
@@ -259,16 +274,68 @@
                         </div>
                     </div>
 
+                    <div class="mb-4 rounded-[2rem] border border-gray-100 bg-white/90 px-4 py-4 shadow-sm backdrop-blur-sm">
+                        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <label class="inline-flex items-center gap-3 text-sm font-semibold text-gray-600">
+                                    <input type="checkbox"
+                                           class="h-4 w-4 rounded border-gray-300 text-emerald-500 focus:ring-emerald-500"
+                                           :checked="areAllVisibleSelected()"
+                                           :disabled="visibleOrderIds().length === 0"
+                                           @change="toggleSelectAllVisible($event.target.checked)">
+                                    <span>Select all on this page</span>
+                                </label>
+                                <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-gray-500"
+                                      x-text="visibleOrderIds().length ? visibleOrderIds().length + ' visible' : 'No visible orders'"></span>
+                            </div>
+
+                            <div x-show="selectedOrderIds.length > 0"
+                                 x-cloak
+                                 class="flex flex-wrap items-center gap-2">
+                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600"
+                                      x-text="selectedOrderIds.length + ' selected'"></span>
+                                <button type="button"
+                                        @click="clearSelection()"
+                                        class="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-500 transition-all hover:bg-gray-50 hover:text-gray-800">
+                                    Clear Selection
+                                </button>
+                                <button type="button"
+                                        @click="openDeleteDialog({
+                                            type: 'selected-orders',
+                                            title: 'Delete selected orders?',
+                                            message: 'This will permanently delete the checked orders from your restaurant inbox.',
+                                            action: '{{ route('owner.orders.destroy-selected') }}',
+                                            orderIds: selectedOrderIds,
+                                            buttonLabel: 'Delete Selected'
+                                        })"
+                                        class="inline-flex items-center gap-2 rounded-2xl bg-red-500 px-4 py-2 text-sm font-black text-white shadow-lg shadow-red-500/20 transition-all hover:bg-red-400">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    Delete Selected
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="orders-content" :class="filterLoading ? 'opacity-40 scale-[0.99] pointer-events-none' : 'opacity-100 scale-100'" class="transition-all duration-300 grid grid-cols-1 gap-4">
                         @forelse($orders as $order)
                             <div
                                 data-order-id="{{ $order->id }}"
-                                :class="loadingOrderId === {{ $order->id }} ? 'opacity-70 pointer-events-none scale-[0.99]' : ''"
+                                :class="[
+                                    loadingOrderId === {{ $order->id }} ? 'opacity-70 pointer-events-none scale-[0.99]' : '',
+                                    isOrderSelected({{ $order->id }}) ? 'border-emerald-200 ring-2 ring-emerald-100 bg-emerald-50/20' : ''
+                                ]"
                                 class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-emerald-500/5 transition-all group"
                             >
                                 <div class="p-5 md:p-6">
                                     <div class="flex flex-col lg:flex-row justify-between gap-6">
                                         <div class="flex flex-col sm:flex-row gap-5">
+                                            <label class="mt-1 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:border-emerald-200 hover:bg-emerald-50">
+                                                <input type="checkbox"
+                                                       class="h-4 w-4 rounded border-gray-300 text-emerald-500 focus:ring-emerald-500"
+                                                       x-model="selectedOrderIds"
+                                                       value="{{ $order->id }}">
+                                            </label>
+
                                             <!-- Order Status Icon -->
                                             <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 {{ $order->status === 'pending' ? 'bg-amber-100 text-amber-500' : ($order->status === 'accepted' ? 'bg-emerald-100 text-emerald-500' : (in_array($order->status, ['preparing', 'out_for_delivery']) ? 'bg-indigo-100 text-indigo-500' : ($order->status === 'delivered' ? 'bg-blue-100 text-blue-500' : 'bg-gray-100 text-gray-400'))) }}">
                                                 @if($order->status === 'pending')
@@ -578,6 +645,7 @@
                         loadingButtonKey: null,
                         newOrderCount: 0,
                         usingEcho: false,
+                        selectedOrderIds: [],
                         deleteDialog: {
                             open: false,
                             type: null,
@@ -585,7 +653,8 @@
                             message: '',
                             action: '',
                             orderId: null,
-                            buttonLabel: 'Archive',
+                            orderIds: [],
+                            buttonLabel: 'Confirm',
                             submitting: false,
                         },
                         toast: {
@@ -610,7 +679,10 @@
                             });
 
                             // Intercept status forms
-                            this.$nextTick(() => this.bindStatusForms());
+                            this.$nextTick(() => {
+                                this.bindStatusForms();
+                                this.syncSelectionWithVisibleOrders();
+                            });
 
                             this.usingEcho = this.subscribeToRealtime();
 
@@ -763,6 +835,51 @@
                             await this.applyFilter(url);
                         },
 
+                        visibleOrderIds() {
+                            return Array.from(document.querySelectorAll('#orders-content [data-order-id]'))
+                                .map((card) => String(card.getAttribute('data-order-id')))
+                                .filter(Boolean);
+                        },
+
+                        isOrderSelected(orderId) {
+                            return this.selectedOrderIds.includes(String(orderId));
+                        },
+
+                        areAllVisibleSelected() {
+                            const visibleIds = this.visibleOrderIds();
+                            return visibleIds.length > 0 && visibleIds.every((id) => this.selectedOrderIds.includes(id));
+                        },
+
+                        toggleSelectAllVisible(checked) {
+                            const visibleIds = this.visibleOrderIds();
+
+                            if (!visibleIds.length) {
+                                return;
+                            }
+
+                            if (checked) {
+                                this.selectedOrderIds = Array.from(new Set([
+                                    ...this.selectedOrderIds.map((id) => String(id)),
+                                    ...visibleIds,
+                                ]));
+                                return;
+                            }
+
+                            const visibleSet = new Set(visibleIds);
+                            this.selectedOrderIds = this.selectedOrderIds.filter((id) => !visibleSet.has(String(id)));
+                        },
+
+                        clearSelection() {
+                            this.selectedOrderIds = [];
+                        },
+
+                        syncSelectionWithVisibleOrders() {
+                            const visibleSet = new Set(this.visibleOrderIds());
+                            this.selectedOrderIds = this.selectedOrderIds
+                                .map((id) => String(id))
+                                .filter((id) => visibleSet.has(id));
+                        },
+
                         openDeleteDialog(config) {
                             this.deleteDialog = {
                                 open: true,
@@ -771,7 +888,8 @@
                                 message: config.message ?? 'This will remove the order from the active inbox but keep it in analytics and history.',
                                 action: config.action ?? '',
                                 orderId: config.orderId ?? null,
-                                buttonLabel: config.buttonLabel ?? 'Archive',
+                                orderIds: Array.isArray(config.orderIds) ? config.orderIds.map((id) => String(id)) : [],
+                                buttonLabel: config.buttonLabel ?? 'Confirm',
                                 submitting: false,
                             };
                         },
@@ -788,7 +906,8 @@
                                 message: '',
                                 action: '',
                                 orderId: null,
-                                buttonLabel: 'Archive',
+                                orderIds: [],
+                                buttonLabel: 'Confirm',
                                 submitting: false,
                             };
                         },
@@ -817,8 +936,94 @@
                             this.toast.timeoutId = null;
                         },
 
+                        applySearch(term) {
+                            const targetUrl = new URL(window.location.href);
+                            const search = String(term ?? '').trim();
+
+                            if (search) {
+                                targetUrl.searchParams.set('q', search);
+                            } else {
+                                targetUrl.searchParams.delete('q');
+                            }
+
+                            targetUrl.searchParams.delete('page');
+
+                            this.applyFilter(targetUrl.toString(), true, { preserveSearch: false });
+                        },
+
+                        normalizeFilterUrl(url, options = {}) {
+                            const normalizedUrl = new URL(url, window.location.href);
+                            const currentUrl = new URL(window.location.href);
+                            const preserveSearch = options.preserveSearch ?? true;
+
+                            if (preserveSearch) {
+                                const currentSearch = currentUrl.searchParams.get('q');
+
+                                if (currentSearch && !normalizedUrl.searchParams.has('q')) {
+                                    normalizedUrl.searchParams.set('q', currentSearch);
+                                }
+                            }
+
+                            return normalizedUrl.toString();
+                        },
+
+                        buildDeleteActionUrl() {
+                            if (!this.deleteDialog.action) {
+                                return '';
+                            }
+
+                            const actionUrl = new URL(this.deleteDialog.action, window.location.href);
+
+                            if (this.deleteDialog.type !== 'clear-all') {
+                                return actionUrl.toString();
+                            }
+
+                            const currentUrl = new URL(window.location.href);
+
+                            ['filter', 'status', 'sort', 'q'].forEach((key) => {
+                                const value = currentUrl.searchParams.get(key);
+
+                                if (value) {
+                                    actionUrl.searchParams.set(key, value);
+                                } else {
+                                    actionUrl.searchParams.delete(key);
+                                }
+                            });
+
+                            actionUrl.searchParams.delete('page');
+
+                            return actionUrl.toString();
+                        },
+
+                        buildDeleteRequestOptions() {
+                            const headers = {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            };
+
+                            if (this.deleteDialog.type === 'selected-orders') {
+                                headers['Content-Type'] = 'application/json';
+
+                                return {
+                                    method: 'DELETE',
+                                    headers,
+                                    body: JSON.stringify({
+                                        order_ids: this.deleteDialog.orderIds,
+                                    }),
+                                };
+                            }
+
+                            return {
+                                method: 'DELETE',
+                                headers,
+                            };
+                        },
+
                         async confirmDelete() {
-                            if (!this.deleteDialog.action || this.deleteDialog.submitting) {
+                            const deleteAction = this.buildDeleteActionUrl();
+
+                            if (!deleteAction || this.deleteDialog.submitting) {
                                 return;
                             }
 
@@ -831,27 +1036,28 @@
                             }
 
                             try {
-                                const res = await fetch(this.deleteDialog.action, {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'X-Requested-With': 'XMLHttpRequest',
-                                        'Accept': 'application/json',
-                                    },
-                                });
+                                const res = await fetch(deleteAction, this.buildDeleteRequestOptions());
 
                                 if (!res.ok) {
-                                    throw new Error('Archive request failed');
+                                    throw new Error('Delete request failed');
                                 }
 
                                 const data = await res.json();
                                 const currentUrl = new URL(window.location.href);
                                 currentUrl.searchParams.delete('page');
+
+                                if (this.deleteDialog.type === 'selected-orders') {
+                                    const deletedSet = new Set(this.deleteDialog.orderIds.map((id) => String(id)));
+                                    this.selectedOrderIds = this.selectedOrderIds.filter((id) => !deletedSet.has(String(id)));
+                                } else if (this.deleteDialog.type === 'single-order' && this.deleteDialog.orderId) {
+                                    this.selectedOrderIds = this.selectedOrderIds.filter((id) => String(id) !== String(this.deleteDialog.orderId));
+                                }
+
                                 this.closeDeleteDialog(true);
-                                this.showToast(data.message ?? 'Order archived successfully.');
+                                this.showToast(data.message ?? 'Orders updated successfully.');
                                 await this.applyFilter(currentUrl.toString());
                             } catch (error) {
-                                console.error('Archive action failed:', error);
+                                console.error('Delete action failed:', error);
                                 this.submitDeleteFallback();
                             } finally {
                                 this.loadingOrderId = null;
@@ -861,9 +1067,15 @@
                         },
 
                         submitDeleteFallback() {
+                            const deleteAction = this.buildDeleteActionUrl();
+
+                            if (!deleteAction) {
+                                return;
+                            }
+
                             const form = document.createElement('form');
                             form.method = 'POST';
-                            form.action = this.deleteDialog.action;
+                            form.action = deleteAction;
                             form.className = 'hidden';
 
                             const token = document.createElement('input');
@@ -878,6 +1090,17 @@
 
                             form.appendChild(token);
                             form.appendChild(method);
+
+                            if (this.deleteDialog.type === 'selected-orders') {
+                                this.deleteDialog.orderIds.forEach((orderId) => {
+                                    const input = document.createElement('input');
+                                    input.type = 'hidden';
+                                    input.name = 'order_ids[]';
+                                    input.value = orderId;
+                                    form.appendChild(input);
+                                });
+                            }
+
                             document.body.appendChild(form);
                             form.submit();
                         },
@@ -905,11 +1128,12 @@
                             });
                         },
 
-                        async applyFilter(url, pushState = true) {
+                        async applyFilter(url, pushState = true, options = {}) {
+                            const normalizedUrl = this.normalizeFilterUrl(url, options);
                             this.filterLoading = true;
 
                             try {
-                                const res = await fetch(url, {
+                                const res = await fetch(normalizedUrl, {
                                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                                 });
                                 const html = await res.text();
@@ -958,7 +1182,7 @@
 
                                     // Update browser URL
                                     if (pushState) {
-                                        window.history.pushState({}, '', url);
+                                        window.history.pushState({}, '', normalizedUrl);
                                     }
 
                                     // Re-bind Alpine click handlers on new filter links
@@ -968,6 +1192,7 @@
                                             currentContent,
                                             container.querySelector('#orders-pagination'),
                                         ]);
+                                        this.syncSelectionWithVisibleOrders();
 
                                         container.querySelectorAll('#orders-filters .order-filter-link').forEach(link => {
                                             link.addEventListener('click', (e) => {
@@ -1000,7 +1225,7 @@
                                 }
                             } catch (err) {
                                 console.error('Filter fetch failed, falling back:', err);
-                                window.location.href = url;
+                                window.location.href = normalizedUrl;
                             }
 
                             this.filterLoading = false;
@@ -1063,6 +1288,7 @@
                                     currentContent,
                                     container.querySelector('#orders-pagination'),
                                 ]);
+                                this.syncSelectionWithVisibleOrders();
 
                                 container.querySelectorAll('#orders-pagination .order-filter-link').forEach(link => {
                                     link.addEventListener('click', (e) => {

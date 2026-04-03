@@ -1,7 +1,8 @@
 @extends('layouts.app')
+@section('hideFooter', '1')
 
 @section('content')
-<div class="min-h-[80vh] flex items-center justify-center py-16 px-4 relative">
+<div class="min-h-[72vh] flex items-center justify-center py-8 sm:py-10 px-4 relative">
     <!-- Decorative floating shapes -->
     <div class="absolute top-20 left-10 w-20 h-20 bg-emerald-200 rounded-full opacity-30 animate-bounce" style="animation-duration: 3s;"></div>
     <div class="absolute bottom-20 right-10 w-32 h-32 bg-teal-200 rounded-full opacity-20 animate-bounce" style="animation-duration: 5s;"></div>
@@ -16,21 +17,18 @@
             class="bg-white rounded-[2rem] shadow-2xl shadow-gray-200/60 border border-gray-100 overflow-hidden"
         >
             <!-- Header -->
-            <div class="bg-gradient-to-br from-emerald-500 to-teal-400 p-8 text-center relative overflow-hidden">
+            <div class="bg-gradient-to-br from-emerald-500 to-teal-400 px-6 py-5 sm:px-7 sm:py-6 text-center relative overflow-hidden">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full"></div>
                 <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full"></div>
                 
-                <div class="w-20 h-20 mx-auto bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4 transform hover:rotate-12 transition-transform cursor-pointer shadow-lg">
-                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                </div>
-                <h2 class="text-3xl font-black outfit text-white tracking-tight">Welcome Back!</h2>
-                <p class="text-emerald-100 font-medium mt-2">Sign in to manage your restaurant</p>
+                <h2 class="text-2xl sm:text-[1.7rem] font-black outfit text-white tracking-tight">Welcome Back!</h2>
+                <p class="text-emerald-100 font-medium mt-1.5 text-sm sm:text-base">Sign in to manage your restaurant</p>
             </div>
 
             <!-- Form -->
-            <div class="p-8">
+            <div class="p-6 sm:p-7">
                 @if ($errors->any())
-                    <div class="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4" x-data="{ showErr: true }" x-show="showErr">
+                    <div class="mb-5 bg-red-50 border border-red-200 rounded-2xl p-4" x-data="{ showErr: true }" x-show="showErr">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -43,7 +41,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('login') }}" class="space-y-5">
+                <form method="POST" action="{{ route('login') }}" class="space-y-4">
                     @csrf
                     
                     <div class="group">
@@ -53,7 +51,7 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path></svg>
                             </div>
                             <input id="email" name="email" type="email" value="{{ old('email') }}" required autofocus
-                                class="block w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
+                                class="block w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
                                 placeholder="your@email.com">
                         </div>
                     </div>
@@ -65,7 +63,7 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                             </div>
                             <input id="password" name="password" :type="showPassword ? 'text' : 'password'" required
-                                class="block w-full pl-12 pr-12 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
+                                class="block w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
                                 placeholder="••••••••">
                             <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-emerald-500 transition-colors">
                                 <svg x-show="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
@@ -74,17 +72,17 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full py-4 bg-gray-900 hover:bg-emerald-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl hover:shadow-emerald-500/30 transition-all transform hover:-translate-y-0.5 active:scale-[0.98] text-lg">
+                    <button type="submit" class="w-full py-3.5 bg-gray-900 hover:bg-emerald-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl hover:shadow-emerald-500/30 transition-all transform hover:-translate-y-0.5 active:scale-[0.98] text-base">
                         Sign In
                     </button>
                 </form>
 
-                <div class="mt-8 text-center">
+                <div class="mt-6 text-center">
                     <div class="relative">
                         <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
                         <div class="relative flex justify-center text-sm"><span class="px-4 bg-white text-gray-500 font-bold">New here?</span></div>
                     </div>
-                    <a href="{{ route('register') }}" class="inline-block mt-4 font-bold text-emerald-600 hover:text-emerald-500 transition-colors group">
+                    <a href="{{ route('register') }}" class="inline-block mt-3 font-bold text-emerald-600 hover:text-emerald-500 transition-colors group">
                         Create an account &amp; open your store
                         <span class="inline-block group-hover:translate-x-1 transition-transform">→</span>
                     </a>

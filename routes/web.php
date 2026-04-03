@@ -76,6 +76,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/order/{order}/reject', [DashboardController::class, 'rejectOrder'])->name('order.reject');
         Route::post('/order/{order}/deliver', [DashboardController::class, 'deliverOrder'])->name('order.deliver');
         Route::delete('/order/{order}', [DashboardController::class, 'destroyOrder'])->name('order.destroy');
+        Route::delete('/orders/selected', [DashboardController::class, 'destroySelectedOrders'])->name('orders.destroy-selected');
         Route::delete('/orders', [DashboardController::class, 'clearOrders'])->name('orders.clear');
         Route::get('/order/{order}/print', [DashboardController::class, 'printOrder'])->name('order.print');
 

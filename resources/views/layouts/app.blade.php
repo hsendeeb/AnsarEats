@@ -632,6 +632,7 @@
         @yield('content')
     </main>
 
+    @unless (trim($__env->yieldContent('hideFooter')))
     <!-- Footer -->
     <footer class="bg-gray-900 text-white overflow-hidden py-16 mt-auto relative z-10 w-full ">
         <!-- White Radial Circles Background Effect -->
@@ -707,6 +708,7 @@
             </div>
         </div>
     </footer>
+    @endunless
     
     <script>
         // Global helper for Alpine + shared components

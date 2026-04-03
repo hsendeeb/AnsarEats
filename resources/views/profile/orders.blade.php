@@ -353,6 +353,7 @@ function ordersTracker() {
         usingEcho: false,
         pollTimer: null,
         pollInFlight: false,
+        pollingFallbackBound: false,
         pollConfig: {
             visible: {{ (int) config('performance.polling.profile_visible_ms') }},
             hidden: {{ (int) config('performance.polling.profile_hidden_ms') }},
@@ -367,23 +368,24 @@ function ordersTracker() {
 
             this.usingEcho = this.subscribeToRealtime();
 
+            window.addEventListener('realtime:connected', () => {
+                this.usingEcho = true;
+                this.stopPolling();
+            });
+
             if (this.usingEcho) {
+                window.waitForRealtimeConnection?.(2500).then((connected) => {
+                    this.usingEcho = connected;
+
+                    if (!connected && this.getActiveIds().length > 0) {
+                        this.enablePollingFallback();
+                    }
+                });
+
                 return;
             }
 
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) {
-                    this.stopPolling();
-                } else {
-                    this.schedulePoll(this.pollConfig.focus);
-                }
-            });
-
-            window.addEventListener('online', () => this.schedulePoll(this.pollConfig.focus));
-
-            if (this.getActiveIds().length > 0) {
-                this.schedulePoll(this.pollConfig.visible);
-            }
+            this.enablePollingFallback();
         },
 
         getStatus(id, fallback) {
@@ -440,6 +442,31 @@ function ordersTracker() {
 
         currentPollDelay() {
             return document.hidden ? this.pollConfig.hidden : this.pollConfig.visible;
+        },
+
+        enablePollingFallback() {
+            if (this.pollingFallbackBound) {
+                if (this.getActiveIds().length > 0) {
+                    this.schedulePoll(this.pollConfig.visible);
+                }
+                return;
+            }
+
+            this.pollingFallbackBound = true;
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    this.stopPolling();
+                } else {
+                    this.schedulePoll(this.pollConfig.focus);
+                }
+            });
+
+            window.addEventListener('online', () => this.schedulePoll(this.pollConfig.focus));
+
+            if (this.getActiveIds().length > 0) {
+                this.schedulePoll(this.pollConfig.visible);
+            }
         },
 
         stopPolling() {

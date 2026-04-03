@@ -221,9 +221,27 @@ function orderTracker() {
             setTimeout(() => this.show = true, 100);
             this.usingEcho = this.subscribeToRealtime();
 
-            if (!this.usingEcho && !this.terminalStatuses.includes(this.status)) {
-                this.startPolling();
+            window.addEventListener('realtime:connected', () => {
+                this.usingEcho = true;
+                this.stopPolling();
+            });
+
+            if (this.terminalStatuses.includes(this.status)) {
+                return;
             }
+
+            if (!this.usingEcho) {
+                this.startPolling();
+                return;
+            }
+
+            window.waitForRealtimeConnection?.(2500).then((connected) => {
+                this.usingEcho = connected;
+
+                if (!connected && !this.terminalStatuses.includes(this.status)) {
+                    this.startPolling();
+                }
+            });
         },
 
         subscribeToRealtime() {

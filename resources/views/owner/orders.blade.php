@@ -88,21 +88,132 @@
 
                     <div class="w-full lg:max-w-4xl" id="orders-filters">
                         <div class="flex flex-col gap-3 lg:items-end">
-                        <form @submit.prevent="applySearch($refs.orderSearchInput.value)"
-                              class="relative w-full lg:w-[24rem]">
-                            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="m21 21-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                            </span>
-                            <input type="search"
-                                   name="q"
-                                   x-ref="orderSearchInput"
-                                   value="{{ request('q') }}"
-                                   placeholder="Search order # or customer name"
-                                   class="w-full rounded-2xl border border-gray-100 bg-white py-2.5 pl-11 pr-24 text-sm font-semibold text-gray-700 placeholder:text-gray-400 shadow-sm transition-all focus:border-emerald-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10">
-                            <button type="submit"
-                                    class="absolute inset-y-1.5 right-1.5 inline-flex items-center rounded-xl bg-gray-900 px-3.5 text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-emerald-500">
-                                Search
-                            </button>
+                        <form method="GET"
+                              action="{{ route('owner.orders') }}"
+                              @submit.prevent="applySearch(searchTerm)"
+                              class="w-full lg:w-[30rem]">
+                            @if(request('status'))
+                                <input type="hidden" name="status" value="{{ request('status') }}">
+                            @endif
+                            @if(request('filter'))
+                                <input type="hidden" name="filter" value="{{ request('filter') }}">
+                            @endif
+                            @if(request('sort'))
+                                <input type="hidden" name="sort" value="{{ request('sort') }}">
+                            @endif
+
+                            <label for="owner-orders-search" class="mb-2 flex items-center justify-between gap-3 text-[11px] font-black uppercase tracking-[0.18em] text-gray-400">
+                                <span>Find Orders</span>
+                                <span class="rounded-full bg-white px-3 py-1 text-[10px] text-emerald-600 shadow-sm shadow-emerald-100/60">Live search</span>
+                            </label>
+
+                            <div class="relative" @click.outside="showSearchSuggestions = false">
+                                <div class="rounded-[1.75rem] border border-gray-200 bg-white p-2.5 shadow-[0_18px_45px_-24px_rgba(17,24,39,0.28)] transition-all duration-200 focus-within:border-emerald-300 focus-within:shadow-[0_22px_50px_-24px_rgba(16,185,129,0.3)]">
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                        <div class="relative flex-1">
+                                            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
+                                                <svg class="h-[18px] w-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="m21 21-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                            </span>
+                                            <input id="owner-orders-search"
+                                                   type="search"
+                                                   name="q"
+                                                   autocomplete="off"
+                                                   x-model="searchTerm"
+                                                   x-ref="orderSearchInput"
+                                                   @input="queueSearchSuggestions()"
+                                                   @focus="handleSearchFocus()"
+                                                   @keydown.escape.prevent="showSearchSuggestions = false"
+                                                   @keydown.arrow-down.prevent="highlightNextSearchSuggestion()"
+                                                   @keydown.arrow-up.prevent="highlightPreviousSearchSuggestion()"
+                                                   @keydown.enter.prevent="selectActiveSearchSuggestion()"
+                                                   :aria-expanded="showSearchSuggestions ? 'true' : 'false'"
+                                                   placeholder=" #, customer, or phone"
+                                                   class="w-full rounded-[1.2rem] border-0 bg-gray-50/80 py-3.5 pl-11 pr-11 text-sm font-semibold text-gray-700 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-0">
+                                            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                <svg x-show="searchSuggestionsLoading" x-cloak class="h-4 w-4 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-2 sm:flex-shrink-0">
+                                            <button type="button"
+                                                    x-show="searchTerm.trim().length"
+                                                    x-cloak
+                                                    @click="clearOrderSearch()"
+                                                    class="inline-flex h-11 flex-1 items-center justify-center rounded-2xl border border-gray-200 bg-white px-4 text-xs font-black uppercase tracking-[0.18em] text-gray-500 transition-all hover:border-red-100 hover:bg-red-50 hover:text-red-500 sm:flex-none">
+                                                Clear
+                                            </button>
+                                            <button type="submit"
+                                                    class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl bg-gray-900 px-5 text-xs font-black uppercase tracking-[0.18em] text-white transition-all hover:bg-emerald-500 sm:flex-none">
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="m21 21-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                                Search
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div x-show="showSearchSuggestions && searchTerm.trim().length >= 2"
+                                     x-transition:enter="transition ease-out duration-180"
+                                     x-transition:enter-start="opacity-0 translate-y-2 scale-[0.98]"
+                                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                     x-transition:leave="transition ease-in duration-120"
+                                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                     x-transition:leave-end="opacity-0 translate-y-1 scale-[0.99]"
+                                     x-cloak
+                                     class="absolute left-0 right-0 top-[calc(100%-1px)] z-50 overflow-hidden rounded-b-[1.5rem] rounded-t-[1rem] border border-t-0 border-gray-200 bg-white shadow-[0_24px_50px_-24px_rgba(17,24,39,0.28)]">
+                                    <div class="max-h-[min(22rem,60vh)] overflow-y-auto overscroll-contain py-2"
+                                         style="-webkit-overflow-scrolling: touch; touch-action: pan-y;">
+                                        <div x-show="searchSuggestionsLoading" x-cloak class="flex items-center gap-3 px-4 py-4 text-sm font-semibold text-gray-500">
+                                            <svg class="h-4 w-4 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                            </svg>
+                                            <span>Searching orders...</span>
+                                        </div>
+
+                                        <template x-if="!searchSuggestionsLoading && searchSuggestions.length">
+                                            <div>
+                                                <template x-for="(suggestion, index) in searchSuggestions" :key="suggestion.id">
+                                                    <button type="button"
+                                                            @mouseenter="activeSearchSuggestionIndex = index"
+                                                            @click="chooseSearchSuggestion(suggestion)"
+                                                            :class="activeSearchSuggestionIndex === index ? 'bg-emerald-50/80' : 'bg-white'"
+                                                            class="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-emerald-50/80">
+                                                        <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-gray-100 text-gray-600">
+                                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V9m-5-4h5m0 0v5m0-5L10 14"></path></svg>
+                                                        </div>
+                                                        <div class="min-w-0 flex-1">
+                                                            <div class="flex flex-wrap items-center gap-2">
+                                                                <p class="text-sm font-black text-gray-900" x-text="suggestion.order_number"></p>
+                                                                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em]"
+                                                                      :class="suggestion.status_tone"
+                                                                      x-text="suggestion.status_label"></span>
+                                                            </div>
+                                                            <p class="mt-1 truncate text-sm font-semibold text-gray-600" x-text="suggestion.customer_name"></p>
+                                                            <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-gray-400">
+                                                                <span x-text="suggestion.phone"></span>
+                                                                <span x-text="suggestion.created_at"></span>
+                                                                <span class="font-bold text-emerald-600" x-text="suggestion.total"></span>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </template>
+
+                                        <div x-show="!searchSuggestionsLoading && searchSuggestionsLoaded && !searchSuggestions.length"
+                                             x-cloak
+                                             class="px-4 py-6 text-center">
+                                            <p class="text-sm font-bold text-gray-600">No matching orders found.</p>
+                                            <p class="mt-1 text-xs font-medium text-gray-400">Try the order number, customer name, or phone number.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+       
                         </form>
 
                         <div class="flex flex-wrap items-center gap-2 relative z-30 overflow-visible w-full lg:justify-end">
@@ -645,6 +756,14 @@
                         loadingButtonKey: null,
                         newOrderCount: 0,
                         usingEcho: false,
+                        searchTerm: @js((string) request('q', '')),
+                        searchSuggestions: [],
+                        searchSuggestionsLoading: false,
+                        searchSuggestionsLoaded: false,
+                        showSearchSuggestions: false,
+                        activeSearchSuggestionIndex: -1,
+                        searchDebounceTimer: null,
+                        searchAbortController: null,
                         selectedOrderIds: [],
                         deleteDialog: {
                             open: false,
@@ -665,6 +784,7 @@
                         latestOrderId: {{ $orders->isNotEmpty() ? $orders->first()->id : 0 }},
                         pollTimer: null,
                         pollInFlight: false,
+                        pollingFallbackBound: false,
                         pollConfig: {
                             visible: {{ (int) config('performance.polling.owner_visible_ms') }},
                             hidden: {{ (int) config('performance.polling.owner_hidden_ms') }},
@@ -686,9 +806,33 @@
 
                             this.usingEcho = this.subscribeToRealtime();
 
+                            window.addEventListener('realtime:connected', () => {
+                                this.usingEcho = true;
+                                this.stopPolling();
+                            });
+
                             if (this.usingEcho) {
+                                window.waitForRealtimeConnection?.(2500).then((connected) => {
+                                    this.usingEcho = connected;
+
+                                    if (!connected) {
+                                        this.enablePollingFallback();
+                                    }
+                                });
+
                                 return;
                             }
+
+                            this.enablePollingFallback();
+                        },
+
+                        enablePollingFallback() {
+                            if (this.pollingFallbackBound) {
+                                this.schedulePoll(this.pollConfig.visible);
+                                return;
+                            }
+
+                            this.pollingFallbackBound = true;
 
                             document.addEventListener('visibilitychange', () => {
                                 if (document.hidden) {
@@ -936,9 +1080,191 @@
                             this.toast.timeoutId = null;
                         },
 
+                        clearSearchSuggestionState({ hidePanel = true } = {}) {
+                            if (this.searchDebounceTimer) {
+                                clearTimeout(this.searchDebounceTimer);
+                                this.searchDebounceTimer = null;
+                            }
+
+                            if (this.searchAbortController) {
+                                this.searchAbortController.abort();
+                                this.searchAbortController = null;
+                            }
+
+                            this.searchSuggestions = [];
+                            this.searchSuggestionsLoading = false;
+                            this.searchSuggestionsLoaded = false;
+                            this.activeSearchSuggestionIndex = -1;
+
+                            if (hidePanel) {
+                                this.showSearchSuggestions = false;
+                            }
+                        },
+
+                        queueSearchSuggestions() {
+                            const term = this.searchTerm.trim();
+                            const currentUrl = new URL(window.location.href);
+
+                            if (this.searchDebounceTimer) {
+                                clearTimeout(this.searchDebounceTimer);
+                            }
+
+                            if (term.length === 0) {
+                                this.clearSearchSuggestionState();
+
+                                if (currentUrl.searchParams.has('q')) {
+                                    this.searchDebounceTimer = setTimeout(() => {
+                                        this.applySearch('');
+                                    }, 150);
+                                }
+
+                                return;
+                            }
+
+                            if (term.length < 2) {
+                                this.clearSearchSuggestionState();
+                                return;
+                            }
+
+                            this.showSearchSuggestions = true;
+                            this.searchSuggestions = [];
+                            this.searchSuggestionsLoading = true;
+                            this.searchSuggestionsLoaded = false;
+                            this.activeSearchSuggestionIndex = -1;
+                            this.searchDebounceTimer = setTimeout(() => {
+                                this.fetchSearchSuggestions(term);
+                            }, 280);
+                        },
+
+                        handleSearchFocus() {
+                            if (this.searchTerm.trim().length < 2) {
+                                return;
+                            }
+
+                            this.showSearchSuggestions = true;
+
+                            if (!this.searchSuggestionsLoaded && !this.searchSuggestionsLoading) {
+                                this.queueSearchSuggestions();
+                            }
+                        },
+
+                        async fetchSearchSuggestions(term) {
+                            const search = String(term ?? '').trim();
+
+                            if (search.length < 2) {
+                                this.clearSearchSuggestionState();
+                                return;
+                            }
+
+                            if (this.searchAbortController) {
+                                this.searchAbortController.abort();
+                            }
+
+                            const controller = new AbortController();
+                            this.searchAbortController = controller;
+                            this.searchSuggestionsLoading = true;
+
+                            try {
+                                const currentUrl = new URL(window.location.href);
+                                const url = new URL(@js(route('owner.orders.suggestions')), window.location.origin);
+                                url.searchParams.set('q', search);
+
+                                ['status', 'filter'].forEach((key) => {
+                                    const value = currentUrl.searchParams.get(key);
+                                    if (value) {
+                                        url.searchParams.set(key, value);
+                                    }
+                                });
+
+                                const response = await fetch(url.toString(), {
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json',
+                                    },
+                                    signal: controller.signal,
+                                });
+
+                                if (!response.ok) {
+                                    throw new Error('Suggestions request failed');
+                                }
+
+                                const data = await response.json();
+
+                                if (this.searchTerm.trim() !== search) {
+                                    return;
+                                }
+
+                                this.searchSuggestions = Array.isArray(data.orders) ? data.orders : [];
+                                this.searchSuggestionsLoaded = true;
+                                this.activeSearchSuggestionIndex = this.searchSuggestions.length ? 0 : -1;
+                                this.showSearchSuggestions = true;
+                            } catch (error) {
+                                if (error.name !== 'AbortError') {
+                                    console.error('Owner order suggestions failed:', error);
+                                    this.searchSuggestions = [];
+                                    this.searchSuggestionsLoaded = true;
+                                }
+                            } finally {
+                                if (this.searchAbortController === controller) {
+                                    this.searchAbortController = null;
+                                }
+
+                                if (this.searchTerm.trim() === search) {
+                                    this.searchSuggestionsLoading = false;
+                                }
+                            }
+                        },
+
+                        highlightNextSearchSuggestion() {
+                            if (!this.searchSuggestions.length) {
+                                return;
+                            }
+
+                            this.showSearchSuggestions = true;
+                            this.activeSearchSuggestionIndex = (this.activeSearchSuggestionIndex + 1) % this.searchSuggestions.length;
+                        },
+
+                        highlightPreviousSearchSuggestion() {
+                            if (!this.searchSuggestions.length) {
+                                return;
+                            }
+
+                            this.showSearchSuggestions = true;
+                            this.activeSearchSuggestionIndex = this.activeSearchSuggestionIndex <= 0
+                                ? this.searchSuggestions.length - 1
+                                : this.activeSearchSuggestionIndex - 1;
+                        },
+
+                        selectActiveSearchSuggestion() {
+                            if (this.showSearchSuggestions && this.activeSearchSuggestionIndex >= 0) {
+                                const suggestion = this.searchSuggestions[this.activeSearchSuggestionIndex];
+                                if (suggestion) {
+                                    this.chooseSearchSuggestion(suggestion);
+                                    return;
+                                }
+                            }
+
+                            this.applySearch(this.searchTerm);
+                        },
+
+                        chooseSearchSuggestion(suggestion) {
+                            const searchValue = suggestion?.search_value ?? '';
+                            this.searchTerm = searchValue;
+                            this.showSearchSuggestions = false;
+                            this.applySearch(searchValue);
+                        },
+
+                        clearOrderSearch() {
+                            this.searchTerm = '';
+                            this.clearSearchSuggestionState();
+                            this.applySearch('');
+                        },
+
                         applySearch(term) {
                             const targetUrl = new URL(window.location.href);
                             const search = String(term ?? '').trim();
+                            this.searchTerm = search;
+                            this.clearSearchSuggestionState();
 
                             if (search) {
                                 targetUrl.searchParams.set('q', search);
@@ -1130,6 +1456,9 @@
 
                         async applyFilter(url, pushState = true, options = {}) {
                             const normalizedUrl = this.normalizeFilterUrl(url, options);
+                            const nextUrl = new URL(normalizedUrl, window.location.href);
+                            this.searchTerm = nextUrl.searchParams.get('q') ?? '';
+                            this.clearSearchSuggestionState();
                             this.filterLoading = true;
 
                             try {
@@ -1344,6 +1673,7 @@
 
                         destroy() {
                             this.stopPolling();
+                            this.clearSearchSuggestionState();
                             window.Echo?.leaveChannel('private-restaurant.{{ $restaurant->id }}.orders');
                         }
                     };

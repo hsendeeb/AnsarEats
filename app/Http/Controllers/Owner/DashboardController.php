@@ -48,6 +48,24 @@ class DashboardController extends Controller
         }
     }
 
+    private function applyOwnerOrderTextSearch($query, string $search): void
+    {
+        $digits = preg_replace('/\D+/', '', $search);
+        $orderNumber = $digits !== '' ? (int) $digits : null;
+
+        $query->where(function ($searchQuery) use ($search, $orderNumber) {
+            $searchQuery->whereHas('user', function ($userQuery) use ($search) {
+                $userQuery->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('email', 'like', '%'.$search.'%');
+            })
+            ->orWhere('phone', 'like', '%'.$search.'%');
+
+            if ($orderNumber) {
+                $searchQuery->orWhere('id', $orderNumber);
+            }
+        });
+    }
+
     private function applyOwnerOrderSearchFilter($query, Request $request): void
     {
         $search = trim((string) $request->get('q', ''));
@@ -56,20 +74,7 @@ class DashboardController extends Controller
             return;
         }
 
-        $isOrderNumberSearch = preg_match('/^#?\s*\d+\s*$/', $search) === 1;
-        $orderNumber = $isOrderNumberSearch
-            ? (int) preg_replace('/\D+/', '', $search)
-            : null;
-
-        $query->where(function ($searchQuery) use ($search, $orderNumber) {
-            $searchQuery->whereHas('user', function ($userQuery) use ($search) {
-                $userQuery->where('name', 'like', '%'.$search.'%');
-            });
-
-            if ($orderNumber) {
-                $searchQuery->orWhere('id', $orderNumber);
-            }
-        });
+        $this->applyOwnerOrderTextSearch($query, $search);
     }
 
     private function applyOwnerOrderSorting($query, Request $request): void
@@ -355,6 +360,72 @@ class DashboardController extends Controller
         );
 
         return view('owner.orders', compact('restaurant', 'orders', 'statusCounts'));
+    }
+
+    public function orderSuggestions(Request $request)
+    {
+        $restaurant = Auth::user()?->restaurant;
+
+        if (! $restaurant) {
+            return response()->json(['orders' => []]);
+        }
+
+        $search = trim((string) $request->get('q', ''));
+
+        if (mb_strlen($search) < 2) {
+            return response()->json(['orders' => []]);
+        }
+
+        $payload = PerformanceCache::remember(
+            'owner-order-suggestions',
+            json_encode([
+                'restaurant_id' => $restaurant->id,
+                'filter' => (string) $request->get('filter', ''),
+                'status' => (string) $request->get('status', ''),
+                'q' => mb_strtolower($search),
+            ]),
+            now()->addSeconds(max(10, (int) config('performance.cache_ttl.owner_orders'))),
+            function () use ($request, $restaurant, $search) {
+                $ordersQuery = Order::with(['user:id,name,email'])
+                    ->where('restaurant_id', $restaurant->id)
+                    ->unarchived();
+
+                $this->applyOwnerOrderDateFilter($ordersQuery, $request);
+                $this->applyOwnerOrderStatusFilter($ordersQuery, $request);
+                $this->applyOwnerOrderTextSearch($ordersQuery, $search);
+
+                $orders = $ordersQuery
+                    ->latest()
+                    ->limit(6)
+                    ->get(['id', 'user_id', 'status', 'phone', 'total', 'created_at']);
+
+                return [
+                    'orders' => $orders->map(function ($order) {
+                        $statusTone = match ($order->status) {
+                            'pending' => 'bg-amber-100 text-amber-600',
+                            'accepted' => 'bg-emerald-100 text-emerald-600',
+                            'preparing', 'out_for_delivery' => 'bg-indigo-100 text-indigo-600',
+                            'delivered' => 'bg-blue-100 text-blue-600',
+                            default => 'bg-gray-100 text-gray-600',
+                        };
+
+                        return [
+                            'id' => $order->id,
+                            'order_number' => '#'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
+                            'search_value' => '#'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
+                            'customer_name' => $order->user?->name ?? 'Guest customer',
+                            'phone' => $order->phone ?: 'No phone provided',
+                            'created_at' => $order->created_at?->format('M d, h:i A'),
+                            'total' => '$'.number_format((float) $order->total, 2),
+                            'status_label' => ucwords(str_replace('_', ' ', $order->status)),
+                            'status_tone' => $statusTone,
+                        ];
+                    })->values()->all(),
+                ];
+            }
+        );
+
+        return response()->json($payload);
     }
 
     public function chartData(Request $request)

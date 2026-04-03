@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('owner')->name('owner.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/orders', [DashboardController::class, 'orders'])->name('orders');
+        Route::get('/orders/suggestions', [DashboardController::class, 'orderSuggestions'])->name('orders.suggestions');
         Route::get('/dashboard/chart-data', [DashboardController::class, 'chartData'])->name('dashboard.chart-data');
         Route::get('/dashboard/poll-new-orders', [DashboardController::class, 'pollNewOrders'])->name('dashboard.poll-new-orders');
         Route::post('/restaurant', [DashboardController::class, 'storeOrUpdate'])->name('restaurant.store');

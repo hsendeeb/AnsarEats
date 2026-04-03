@@ -180,8 +180,8 @@
                                 
                                 <div class="absolute top-4 right-4">
                                     <div class="bg-white/90 backdrop-blur-md text-gray-900 font-bold px-4 py-1.5 rounded-full text-xs shadow-lg flex items-center gap-1.5">
-                                        <div class="w-2 h-2 rounded-full {{ $restaurant->is_open ? 'bg-emerald-500' : 'bg-red-500' }}"></div>
-                                        {{ $restaurant->is_open ? 'Open Now' : 'Closed' }}
+                                        <div class="w-2 h-2 rounded-full {{ $restaurant->isOpenNow() ? 'bg-emerald-500' : 'bg-red-500' }}"></div>
+                                        {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
                                     </div>
                                 </div>
                             </div>

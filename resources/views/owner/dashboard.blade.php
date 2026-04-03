@@ -200,20 +200,20 @@
                     </div>
                 </a>
 
-                <!-- Completed Orders -->
+                <!-- Delivered Orders -->
                 <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" class="block bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
-                        <span class="text-xs font-black px-2 py-1 bg-blue-50 text-blue-600 rounded-lg">Done</span>
+                        <span class="text-xs font-black px-2 py-1 bg-blue-50 text-blue-600 rounded-lg">Delivered</span>
                     </div>
                     <div>
-                        <p class="text-sm font-bold text-gray-400">Completed</p>
-                        <p class="text-2xl lg:text-3xl font-black text-gray-900 outfit">{{ $stats['completed_orders'] }}</p>
+                        <p class="text-sm font-bold text-gray-400">Delivered</p>
+                        <p class="text-2xl lg:text-3xl font-black text-gray-900 outfit">{{ $stats['delivered_orders'] }}</p>
                     </div>
                     <div class="absolute bottom-4 right-4 w-24 h-12">
-                        <canvas class="sparkline" data-color="#3b82f6" data-sparkline='@json($stats["sparklines"]["completed_orders"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
+                        <canvas class="sparkline" data-color="#3b82f6" data-sparkline='@json($stats["sparklines"]["delivered_orders"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
                     </div>
                 </a>
             </div>

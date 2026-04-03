@@ -474,14 +474,14 @@
                                                     <button type="button"
                                                             @click="openDeleteDialog({
                                                                 type: 'single-order',
-                                                                title: 'Archive this order?',
-                                                                message: 'Order #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }} will be removed from the active inbox but kept for analytics and order history.',
+                                                                title: 'Delete this order?',
+                                                                message: 'Order #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }} will be permanently deleted from your restaurant orders.',
                                                                 action: '{{ route('owner.order.destroy', $order) }}',
                                                                 orderId: {{ $order->id }},
-                                                                buttonLabel: 'Archive Order'
+                                                                buttonLabel: 'Delete Order'
                                                             })"
                                                             class="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-white text-red-500 transition-all hover:bg-red-50"
-                                                            title="Archive order">
+                                                            title="Delete order">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                                                     </button>
                                                 </div>
@@ -1028,8 +1028,8 @@
                             this.deleteDialog = {
                                 open: true,
                                 type: config.type ?? 'single-order',
-                                title: config.title ?? 'Archive this order?',
-                                message: config.message ?? 'This will remove the order from the active inbox but keep it in analytics and history.',
+                                title: config.title ?? 'Delete this order?',
+                                message: config.message ?? 'This will permanently delete the order from your restaurant orders.',
                                 action: config.action ?? '',
                                 orderId: config.orderId ?? null,
                                 orderIds: Array.isArray(config.orderIds) ? config.orderIds.map((id) => String(id)) : [],

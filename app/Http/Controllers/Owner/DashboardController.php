@@ -202,7 +202,7 @@ class DashboardController extends Controller
             'total_orders' => 0,
             'total_revenue' => 0,
             'pending_orders' => 0,
-            'completed_orders' => 0,
+            'delivered_orders' => 0,
             'chart_data' => [
                 'bar' => ['labels' => [], 'data' => []],
                 'pie' => ['labels' => [], 'data' => []]
@@ -218,7 +218,7 @@ class DashboardController extends Controller
             $stats['total_orders'] = $orders->count();
             $stats['total_revenue'] = $revenueOrders->sum('total');
             $stats['pending_orders'] = $orders->where('status', 'pending')->count();
-            $stats['completed_orders'] = $orders->whereIn('status', ['delivered'])->count();
+            $stats['delivered_orders'] = $orders->where('status', 'delivered')->count();
             $stats['avg_order_value'] = $revenueOrders->count() > 0
                 ? $stats['total_revenue'] / $revenueOrders->count()
                 : 0;
@@ -249,7 +249,7 @@ class DashboardController extends Controller
             $sparkline = [
                 'total_orders' => [],
                 'pending_orders' => [],
-                'completed_orders' => [],
+                'delivered_orders' => [],
                 'revenue' => [],
                 'avg_order_value' => [],
             ];
@@ -264,7 +264,7 @@ class DashboardController extends Controller
 
                 $sparkline['total_orders'][] = $dayTotalOrders;
                 $sparkline['pending_orders'][] = $dayPending;
-                $sparkline['completed_orders'][] = $dayCompleted;
+                $sparkline['delivered_orders'][] = $dayCompleted;
                 $sparkline['revenue'][] = (float) $dayRevenue;
                 $sparkline['avg_order_value'][] = $dayRevenueOrders->count() > 0
                     ? (float) ($dayRevenue / $dayRevenueOrders->count())
@@ -589,18 +589,17 @@ class DashboardController extends Controller
             abort(403);
         }
 
-        $order->update([
-            'archived_at' => now(),
-        ]);
+        $orderId = $order->id;
+        $order->delete();
 
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Order archived successfully.',
+                'message' => 'Order #'.$orderId.' deleted successfully.',
             ]);
         }
 
-        return back()->with('success', 'Order archived successfully.');
+        return back()->with('success', 'Order #'.$orderId.' deleted successfully.');
     }
 
     public function clearOrders(Request $request)

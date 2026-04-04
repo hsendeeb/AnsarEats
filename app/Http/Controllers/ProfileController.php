@@ -11,10 +11,25 @@ use Carbon\Carbon;
 
 class ProfileController extends Controller
 {
+    private function deliveryDefaults($user): array
+    {
+        $latestOrder = $user->orders()
+            ->latest()
+            ->first(['delivery_address', 'phone']);
+
+        return [
+            'phone' => $user->phone ?: $latestOrder?->phone,
+            'delivery_address' => $user->delivery_address ?: $latestOrder?->delivery_address,
+            'delivery_latitude' => $user->delivery_latitude,
+            'delivery_longitude' => $user->delivery_longitude,
+        ];
+    }
+
     public function show()
     {
         return view('profile.show', [
-            'user' => Auth::user()
+            'user' => Auth::user(),
+            'deliveryDefaults' => $this->deliveryDefaults(Auth::user()),
         ]);
     }
 
@@ -25,11 +40,23 @@ class ProfileController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:50',
+            'delivery_address' => 'nullable|string|max:255',
+            'delivery_latitude' => 'nullable|numeric',
+            'delivery_longitude' => 'nullable|numeric',
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 
         $user->name = $request->name;
         $user->email = $request->email;
+        $user->phone = $request->input('phone');
+        $user->delivery_address = $request->input('delivery_address');
+        $user->delivery_latitude = $request->filled('delivery_latitude')
+            ? $request->input('delivery_latitude')
+            : null;
+        $user->delivery_longitude = $request->filled('delivery_longitude')
+            ? $request->input('delivery_longitude')
+            : null;
 
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);

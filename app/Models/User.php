@@ -23,6 +23,10 @@ class User extends Authenticatable implements FilamentUser
     protected $fillable = [
         'name',
         'email',
+        'phone',
+        'delivery_address',
+        'delivery_latitude',
+        'delivery_longitude',
         'password',
         'email_verified_at',
         'role',
@@ -51,6 +55,8 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'delivery_latitude' => 'decimal:8',
+            'delivery_longitude' => 'decimal:8',
         ];
     }
 

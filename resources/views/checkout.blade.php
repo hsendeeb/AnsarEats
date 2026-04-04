@@ -45,9 +45,11 @@
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-emerald-500 transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                                 </div>
-                                <input id="delivery_address" name="delivery_address" type="text" required value="{{ old('delivery_address') }}"
+                                <input id="delivery_address" name="delivery_address" type="text" required value="{{ old('delivery_address', $checkoutDefaults['delivery_address']) }}"
                                     class="block w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
                                     placeholder="Hamra Street, Building 42, 3rd Floor">
+                                <input id="delivery_latitude" name="delivery_latitude" type="hidden" value="{{ old('delivery_latitude', $checkoutDefaults['delivery_latitude']) }}">
+                                <input id="delivery_longitude" name="delivery_longitude" type="hidden" value="{{ old('delivery_longitude', $checkoutDefaults['delivery_longitude']) }}">
                             </div>
                             <p id="locationHelp" class="text-[11px] font-medium text-gray-400 mt-2">Tip: Using current location will fill coordinates; you can edit to add details.</p>
                             @error('delivery_address')
@@ -61,7 +63,7 @@
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-emerald-500 transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
                                 </div>
-                                <input id="phone" name="phone" type="text" required value="{{ old('phone') }}"
+                                <input id="phone" name="phone" type="text" required value="{{ old('phone', $checkoutDefaults['phone']) }}"
                                     class="block w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
                                     placeholder="+961 71 123 456">
                             </div>
@@ -212,11 +214,18 @@
         function initUseLocation() {
             const btn = document.getElementById('useCurrentLocation');
             const input = document.getElementById('delivery_address');
+            const latInput = document.getElementById('delivery_latitude');
+            const lonInput = document.getElementById('delivery_longitude');
             const help = document.getElementById('locationHelp');
             const idleIcon = document.getElementById('useCurrentLocationIdleIcon');
             const loadingIcon = document.getElementById('useCurrentLocationLoadingIcon');
             const label = document.getElementById('useCurrentLocationLabel');
             if (!btn || !input) return;
+
+            input.addEventListener('input', () => {
+                if (latInput) latInput.value = '';
+                if (lonInput) lonInput.value = '';
+            });
 
             btn.addEventListener('click', () => {
                 if (!window.isSecureContext) {
@@ -238,6 +247,8 @@
             navigator.geolocation.getCurrentPosition(async (pos) => {
                 const lat = pos.coords.latitude.toFixed(6);
                 const lng = pos.coords.longitude.toFixed(6);
+                if (latInput) latInput.value = lat;
+                if (lonInput) lonInput.value = lng;
 
                 try {
                     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);

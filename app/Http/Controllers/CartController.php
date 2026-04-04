@@ -13,6 +13,21 @@ use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
+    private function checkoutDefaults(): array
+    {
+        $user = Auth::user();
+        $latestOrder = $user?->orders()
+            ->latest()
+            ->first(['delivery_address', 'phone']);
+
+        return [
+            'delivery_address' => $user?->delivery_address ?: $latestOrder?->delivery_address,
+            'phone' => $user?->phone ?: $latestOrder?->phone,
+            'delivery_latitude' => $user?->delivery_latitude,
+            'delivery_longitude' => $user?->delivery_longitude,
+        ];
+    }
+
     private function customerIsBlockedForRestaurant(?Restaurant $restaurant): bool
     {
         if (! $restaurant || ! Auth::check()) {
@@ -371,7 +386,9 @@ class CartController extends Controller
             return redirect()->route('home')->with('error', 'Your cart is empty!');
         }
 
-        return view('checkout', compact('cart'));
+        $checkoutDefaults = $this->checkoutDefaults();
+
+        return view('checkout', compact('cart', 'checkoutDefaults'));
     }
 
     /**
@@ -382,6 +399,8 @@ class CartController extends Controller
         $request->validate([
             'delivery_address' => 'required|string|max:255',
             'phone' => 'required|string|max:50',
+            'delivery_latitude' => 'nullable|numeric',
+            'delivery_longitude' => 'nullable|numeric',
             'notes' => 'nullable|string|max:500',
         ]);
 
@@ -404,10 +423,23 @@ class CartController extends Controller
         $response = $this->index();
         $cartData = $response->getData(true);
 
-        $order = $placeOrderFromCart->handle(Auth::user(), $cartData, [
+        $customer = Auth::user();
+
+        $order = $placeOrderFromCart->handle($customer, $cartData, [
             'delivery_address' => $request->delivery_address,
             'phone' => $request->phone,
             'notes' => $request->notes,
+        ]);
+
+        $customer->update([
+            'delivery_address' => $request->delivery_address,
+            'phone' => $request->phone,
+            'delivery_latitude' => $request->filled('delivery_latitude')
+                ? $request->input('delivery_latitude')
+                : null,
+            'delivery_longitude' => $request->filled('delivery_longitude')
+                ? $request->input('delivery_longitude')
+                : null,
         ]);
 
         session()->forget('cart');

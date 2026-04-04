@@ -55,9 +55,19 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasOne(Restaurant::class);
     }
 
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
     public function restaurantRegistrationRequests()
     {
         return $this->hasMany(RestaurantRegistrationRequest::class);
+    }
+
+    public function restaurantCustomerBlocks()
+    {
+        return $this->hasMany(RestaurantCustomerBlock::class);
     }
 
     public function canAccessPanel(Panel $panel): bool

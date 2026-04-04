@@ -290,9 +290,27 @@
                 cart: { items: {}, count: 0, total: 0, restaurant_id: null },
                 indicatorStyle: '',
                 
+                normalizeCart(cart) {
+                    const normalized = cart || {};
+                    const items = normalized.items && !Array.isArray(normalized.items)
+                        ? normalized.items
+                        : {};
+
+                    return {
+                        items,
+                        count: normalized.count || 0,
+                        total: normalized.total || 0,
+                        restaurant_id: normalized.restaurant_id || null,
+                    };
+                },
+                
                 async init() {
                     console.log('restaurantPage init starting...');
                     await this.loadCart();
+
+                    window.addEventListener('cart-updated', (e) => {
+                        this.cart = this.normalizeCart(e.detail);
+                    });
                     
                     this.$nextTick(() => {
                         this.updateIndicator(this.activeCategory);
@@ -349,7 +367,7 @@
                     try {
                         const res = await fetch('{{ route("cart.index") }}');
                         const data = await res.json();
-                        this.cart = data || { items: {}, count: 0, total: 0 };
+                        this.cart = this.normalizeCart(data);
                     } catch(e) {
                         console.error('Failed to load cart', e);
                     }
@@ -393,13 +411,24 @@
                         });
                         const data = await res.json();
                         if (res.ok) {
-                            this.cart = data.cart;
+                            this.cart = this.normalizeCart(data.cart);
                             window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+                            window.showAppToast({ message: data.message || 'Added to cart!', type: 'success' });
+                        } else {
+                            window.showAppToast({
+                                message: data.message || 'Could not add item.',
+                                type: 'error'
+                            });
                         }
                     } catch(e) {
                         console.error('Add to cart failed', e);
+                        window.showAppToast({
+                            message: 'Network error. Please try again.',
+                            type: 'error'
+                        });
+                    } finally {
+                        Alpine.store('restaurantState').addingItem = null;
                     }
-                    Alpine.store('restaurantState').addingItem = null;
                 },
                 
                 async updateQty(itemKey, qty) {
@@ -411,7 +440,7 @@
                         });
                         const data = await res.json();
                         if (res.ok) {
-                            this.cart = data.cart;
+                            this.cart = this.normalizeCart(data.cart);
                             window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
                         }
                     } catch(e) {}

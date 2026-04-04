@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Concurrency;
 use Illuminate\Support\Str;
 
-const KFC_STRESS_OWNER_NAME = 'hsendeeb';
-const KFC_STRESS_OWNER_EMAIL = 'hsendeeb2@gmail.com';
+defined('KFC_STRESS_OWNER_NAME') || define('KFC_STRESS_OWNER_NAME', 'hsendeeb');
+defined('KFC_STRESS_OWNER_EMAIL') || define('KFC_STRESS_OWNER_EMAIL', 'hsendeeb2@gmail.com');
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());

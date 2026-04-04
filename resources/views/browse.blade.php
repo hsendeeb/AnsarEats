@@ -437,11 +437,12 @@
         .then(function(data) {
             if (data.cart) {
                 window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+                window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: data.message || 'Added to cart!', type: 'success' } }));
             }
         })
         .catch(function(e) { 
             console.error('Add to cart failed', e); 
-            alert(e.message); // Show the error to the user
+            window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: e.message || 'Could not add item.', type: 'error' } }));
         });
     }
 

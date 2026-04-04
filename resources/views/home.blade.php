@@ -421,12 +421,12 @@
                                         const data = await res.json();
                                         if (res.ok) {
                                             window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
-                                            window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: data.message || 'Added to cart!' } }));
+                                            window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: data.message || 'Added to cart!', type: 'success' } }));
                                         } else {
-                                            window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: data.message || 'Could not add item.' } }));
+                                            window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: data.message || 'Could not add item.', type: 'error' } }));
                                         }
                                     } catch (e) {
-                                        window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: 'Network error. Please try again.' } }));
+                                        window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: 'Network error. Please try again.', type: 'error' } }));
                                     } finally {
                                         this.adding = false;
                                     }

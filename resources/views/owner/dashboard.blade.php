@@ -131,7 +131,7 @@
 
             <div id="dashboard-live-sections">
             <!-- Analytics Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-6 mb-10">
                 <!-- Total Revenue -->
                 <div class="bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
@@ -214,6 +214,23 @@
                     </div>
                     <div class="absolute bottom-4 right-4 w-24 h-12">
                         <canvas class="sparkline" data-color="#3b82f6" data-sparkline='@json($stats["sparklines"]["delivered_orders"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
+                    </div>
+                </a>
+
+                <!-- Customers -->
+                <a href="{{ route('owner.customers') }}" class="block bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-500 group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5V4H2v16h5m10 0v-2a4 4 0 00-4-4H11a4 4 0 00-4 4v2m10 0H7m10-11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <span class="text-xs font-black px-2 py-1 bg-rose-50 text-rose-600 rounded-lg">People</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-400">Customers</p>
+                        <p class="text-2xl lg:text-3xl font-black text-gray-900 outfit">{{ $stats['customers_count'] }}</p>
+                    </div>
+                    <div class="absolute bottom-4 right-4 w-24 h-12">
+                        <canvas class="sparkline" data-color="#f43f5e" data-sparkline='@json($stats["sparklines"]["customers"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
                     </div>
                 </a>
             </div>

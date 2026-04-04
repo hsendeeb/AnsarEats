@@ -787,19 +787,49 @@
                 }));
             }
 
-            if (!Alpine.data('toastManager')) {
-                Alpine.data('toastManager', () => ({
+            if (!Alpine.store('appToast')) {
+                Alpine.store('appToast', {
                     visible: false,
                     message: '',
+                    type: 'success',
                     timeout: null,
-                    showToast(event) {
-                        this.message = event.detail.message || 'Cart updated!';
+                    get toastClasses() {
+                        if (this.type === 'error') {
+                            return {
+                                container: 'bg-white border-red-100',
+                                iconWrap: 'bg-red-100',
+                                icon: 'text-red-500',
+                                text: 'text-red-900',
+                            };
+                        }
+
+                        return {
+                            container: 'bg-white border-gray-100',
+                            iconWrap: 'bg-emerald-100',
+                            icon: 'text-emerald-500',
+                            text: 'text-gray-900',
+                        };
+                    },
+                    show(detail = {}) {
+                        this.message = detail.message || 'Cart updated!';
+                        this.type = detail.type || 'success';
                         this.visible = true;
                         if (this.timeout) clearTimeout(this.timeout);
-                        this.timeout = setTimeout(() => { this.visible = false; }, 3000);
+                        this.timeout = setTimeout(() => {
+                            this.visible = false;
+                        }, 3000);
                     },
-                }));
+                });
             }
+        };
+
+        window.showAppToast = function(detail = {}) {
+            if (window.Alpine && Alpine.store('appToast')) {
+                Alpine.store('appToast').show(detail);
+                return;
+            }
+
+            window.dispatchEvent(new CustomEvent('show-toast', { detail }));
         };
 
         // Initialize on start

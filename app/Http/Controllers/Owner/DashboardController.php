@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
 use App\Models\MenuCategory;
 use App\Models\Order;
+use App\Models\RestaurantCustomerBlock;
+use App\Models\User;
 use App\Support\PerformanceCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -183,6 +185,37 @@ class DashboardController extends Controller
         ];
     }
 
+    private function ownerCustomersQuery(Restaurant $restaurant)
+    {
+        $latestPhoneSubquery = Order::query()
+            ->select('phone')
+            ->whereColumn('user_id', 'users.id')
+            ->where('restaurant_id', $restaurant->id)
+            ->latest('created_at')
+            ->limit(1);
+
+        $blockedAtSubquery = RestaurantCustomerBlock::query()
+            ->select('created_at')
+            ->whereColumn('user_id', 'users.id')
+            ->where('restaurant_id', $restaurant->id)
+            ->limit(1);
+
+        $isBlockedSubquery = RestaurantCustomerBlock::query()
+            ->selectRaw('COUNT(*)')
+            ->whereColumn('user_id', 'users.id')
+            ->where('restaurant_id', $restaurant->id);
+
+        return User::query()
+            ->select('users.*')
+            ->whereHas('orders', fn ($query) => $query->where('restaurant_id', $restaurant->id))
+            ->withCount([
+                'orders as restaurant_orders_count' => fn ($query) => $query->where('restaurant_id', $restaurant->id),
+            ])
+            ->selectSub($latestPhoneSubquery, 'restaurant_phone')
+            ->selectSub($blockedAtSubquery, 'blocked_at')
+            ->selectSub($isBlockedSubquery, 'is_blocked');
+    }
+
     public function index(Request $request)
 
     {
@@ -203,6 +236,7 @@ class DashboardController extends Controller
             'total_revenue' => 0,
             'pending_orders' => 0,
             'delivered_orders' => 0,
+            'customers_count' => 0,
             'chart_data' => [
                 'bar' => ['labels' => [], 'data' => []],
                 'pie' => ['labels' => [], 'data' => []]
@@ -219,6 +253,7 @@ class DashboardController extends Controller
             $stats['total_revenue'] = $revenueOrders->sum('total');
             $stats['pending_orders'] = $orders->where('status', 'pending')->count();
             $stats['delivered_orders'] = $orders->where('status', 'delivered')->count();
+            $stats['customers_count'] = $orders->pluck('user_id')->filter()->unique()->count();
             $stats['avg_order_value'] = $revenueOrders->count() > 0
                 ? $stats['total_revenue'] / $revenueOrders->count()
                 : 0;
@@ -250,6 +285,7 @@ class DashboardController extends Controller
                 'total_orders' => [],
                 'pending_orders' => [],
                 'delivered_orders' => [],
+                'customers' => [],
                 'revenue' => [],
                 'avg_order_value' => [],
             ];
@@ -261,10 +297,12 @@ class DashboardController extends Controller
                 $dayRevenue = $dayRevenueOrders->sum('total');
                 $dayPending = $dayOrders->where('status', 'pending')->count();
                 $dayCompleted = $dayOrders->where('status', 'delivered')->count();
+                $dayCustomers = $dayOrders->pluck('user_id')->filter()->unique()->count();
 
                 $sparkline['total_orders'][] = $dayTotalOrders;
                 $sparkline['pending_orders'][] = $dayPending;
                 $sparkline['delivered_orders'][] = $dayCompleted;
+                $sparkline['customers'][] = $dayCustomers;
                 $sparkline['revenue'][] = (float) $dayRevenue;
                 $sparkline['avg_order_value'][] = $dayRevenueOrders->count() > 0
                     ? (float) ($dayRevenue / $dayRevenueOrders->count())
@@ -286,6 +324,33 @@ class DashboardController extends Controller
         }
         
         return view('owner.dashboard', compact('restaurant', 'latestRequest', 'pendingRequest', 'stats'));
+    }
+
+    public function customers()
+    {
+        $user = Auth::user();
+        $restaurant = $user->restaurant;
+
+        if (! $restaurant) {
+            return redirect()
+                ->route('owner.dashboard')
+                ->with('error', 'Please create your restaurant first.');
+        }
+
+        $customers = $this->ownerCustomersQuery($restaurant)
+            ->orderByDesc('restaurant_orders_count')
+            ->orderBy('name')
+            ->paginate(12);
+
+        $summary = [
+            'total_customers' => Order::where('restaurant_id', $restaurant->id)
+                ->distinct('user_id')
+                ->count('user_id'),
+            'blocked_customers' => RestaurantCustomerBlock::where('restaurant_id', $restaurant->id)->count(),
+            'total_customer_orders' => Order::where('restaurant_id', $restaurant->id)->count(),
+        ];
+
+        return view('owner.customers', compact('restaurant', 'customers', 'summary'));
     }
 
     public function showPartnerForm()
@@ -450,6 +515,58 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function blockCustomer(User $customer)
+    {
+        $restaurant = Auth::user()?->restaurant;
+
+        if (! $restaurant) {
+            abort(404);
+        }
+
+        $hasOrderedFromRestaurant = Order::where('restaurant_id', $restaurant->id)
+            ->where('user_id', $customer->id)
+            ->exists();
+
+        if (! $hasOrderedFromRestaurant) {
+            abort(404);
+        }
+
+        $block = RestaurantCustomerBlock::firstOrCreate(
+            [
+                'restaurant_id' => $restaurant->id,
+                'user_id' => $customer->id,
+            ],
+            [
+                'blocked_by_user_id' => Auth::id(),
+            ]
+        );
+
+        $message = $block->wasRecentlyCreated
+            ? $customer->name.' has been blocked from ordering from your restaurant.'
+            : $customer->name.' is already blocked from ordering from your restaurant.';
+
+        return back()->with('success', $message);
+    }
+
+    public function unblockCustomer(User $customer)
+    {
+        $restaurant = Auth::user()?->restaurant;
+
+        if (! $restaurant) {
+            abort(404);
+        }
+
+        $deletedCount = RestaurantCustomerBlock::where('restaurant_id', $restaurant->id)
+            ->where('user_id', $customer->id)
+            ->delete();
+
+        $message = $deletedCount > 0
+            ? $customer->name.' has been unblocked and can order from your restaurant again.'
+            : $customer->name.' is not currently blocked from your restaurant.';
+
+        return back()->with('success', $message);
+    }
+
     public function pollNewOrders(Request $request)
     {
         $restaurant = Auth::user()->restaurant;
@@ -590,7 +707,7 @@ class DashboardController extends Controller
         }
 
         $orderId = $order->id;
-        $order->delete();
+        $order->update(['archived_at' => now()]);
 
         if ($request->ajax()) {
             return response()->json([
@@ -617,7 +734,7 @@ class DashboardController extends Controller
         $this->applyOwnerOrderStatusFilter($ordersQuery, $request);
         $this->applyOwnerOrderSearchFilter($ordersQuery, $request);
 
-        $deletedCount = $ordersQuery->delete();
+        $deletedCount = $ordersQuery->update(['archived_at' => now()]);
         $scopeLabel = $this->ownerOrderClearScopeLabel($request);
 
         if ($deletedCount === 0) {
@@ -659,7 +776,7 @@ class DashboardController extends Controller
         $deletedCount = Order::where('restaurant_id', $restaurant->id)
             ->unarchived()
             ->whereIn('id', $orderIds)
-            ->delete();
+            ->update(['archived_at' => now()]);
 
         if ($deletedCount === 0) {
             $message = 'No selected orders could be deleted.';

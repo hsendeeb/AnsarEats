@@ -9,6 +9,7 @@ use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Promotion;
+use App\Models\RestaurantCustomerBlock;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -315,5 +316,133 @@ class OwnerDashboardTest extends TestCase
         $dashboardResponse->assertOk();
         $dashboardResponse->assertSee('$25.00', false);
         $dashboardResponse->assertSee('$12.50', false);
+    }
+
+    public function test_owner_dashboard_tracks_distinct_customers_and_customers_page_lists_them(): void
+    {
+        $firstCustomer = User::factory()->create([
+            'name' => 'Alice Customer',
+            'created_at' => now()->subMonths(3),
+        ]);
+
+        $secondCustomer = User::factory()->create([
+            'name' => 'Bob Customer',
+            'created_at' => now()->subMonth(),
+        ]);
+
+        Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'user_id' => $firstCustomer->id,
+            'phone' => '111-222-333',
+        ]);
+
+        Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'user_id' => $firstCustomer->id,
+            'phone' => '111-222-444',
+        ]);
+
+        Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'user_id' => $secondCustomer->id,
+            'phone' => '555-666-777',
+        ]);
+
+        $dashboardResponse = $this->actingAs($this->owner)->get(route('owner.dashboard'));
+
+        $dashboardResponse->assertOk();
+        $dashboardResponse->assertViewHas('stats', fn (array $stats) => ($stats['customers_count'] ?? null) === 2);
+        $dashboardResponse->assertSee(route('owner.customers'));
+
+        $customersResponse = $this->actingAs($this->owner)->get(route('owner.customers'));
+
+        $customersResponse->assertOk();
+        $customersResponse->assertSee('Alice Customer');
+        $customersResponse->assertSee('Bob Customer');
+        $customersResponse->assertSee('111-222-444');
+        $customersResponse->assertSee('555-666-777');
+        $customersResponse->assertSee('2 orders');
+        $customersResponse->assertSee('1 order');
+    }
+
+    public function test_owner_can_block_a_customer_from_customers_page(): void
+    {
+        $customer = User::factory()->create([
+            'name' => 'Policy Violator',
+        ]);
+
+        Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'user_id' => $customer->id,
+        ]);
+
+        $response = $this->actingAs($this->owner)->post(route('owner.customers.block', $customer));
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('restaurant_customer_blocks', [
+            'restaurant_id' => $this->restaurant->id,
+            'user_id' => $customer->id,
+            'blocked_by_user_id' => $this->owner->id,
+        ]);
+
+        $customersResponse = $this->actingAs($this->owner)->get(route('owner.customers'));
+        $customersResponse->assertSee('Blocked');
+        $customersResponse->assertSee('Unblock Customer');
+    }
+
+    public function test_owner_can_unblock_a_customer_from_customers_page(): void
+    {
+        $customer = User::factory()->create([
+            'name' => 'Second Chance Customer',
+        ]);
+
+        Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'user_id' => $customer->id,
+        ]);
+
+        RestaurantCustomerBlock::create([
+            'restaurant_id' => $this->restaurant->id,
+            'user_id' => $customer->id,
+            'blocked_by_user_id' => $this->owner->id,
+        ]);
+
+        $response = $this->actingAs($this->owner)->delete(route('owner.customers.unblock', $customer));
+
+        $response->assertRedirect();
+        $this->assertDatabaseMissing('restaurant_customer_blocks', [
+            'restaurant_id' => $this->restaurant->id,
+            'user_id' => $customer->id,
+        ]);
+
+        $customersResponse = $this->actingAs($this->owner)->get(route('owner.customers'));
+        $customersResponse->assertSee('Active');
+        $customersResponse->assertSee('Block Customer');
+    }
+
+    public function test_blocked_customer_cannot_add_items_from_restaurant_to_cart(): void
+    {
+        $customer = User::factory()->create();
+        $category = MenuCategory::factory()->create(['restaurant_id' => $this->restaurant->id]);
+        $item = MenuItem::factory()->create([
+            'menu_category_id' => $category->id,
+            'is_available' => true,
+        ]);
+
+        RestaurantCustomerBlock::create([
+            'restaurant_id' => $this->restaurant->id,
+            'user_id' => $customer->id,
+            'blocked_by_user_id' => $this->owner->id,
+        ]);
+
+        $response = $this->actingAs($customer)->postJson(route('cart.add'), [
+            'menu_item_id' => $item->id,
+            'quantity' => 1,
+        ]);
+
+        $response->assertStatus(403);
+        $response->assertJson([
+            'message' => 'You are blocked from ordering from this restaurant.',
+        ]);
     }
 }

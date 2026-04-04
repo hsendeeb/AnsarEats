@@ -32,6 +32,16 @@ class Restaurant extends Model
         return $this->hasMany(Rating::class);
     }
 
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function customerBlocks()
+    {
+        return $this->hasMany(RestaurantCustomerBlock::class);
+    }
+
     public function averageRating()
     {
         return $this->ratings()->avg('rating') ?: 0;

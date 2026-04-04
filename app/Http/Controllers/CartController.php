@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\PlaceOrderFromCart;
 use App\Models\MenuItem;
 use App\Models\Order;
+use App\Models\RestaurantCustomerBlock;
 use App\Models\Restaurant;
 use App\Models\Promotion;
 use Illuminate\Http\Request;
@@ -12,6 +13,17 @@ use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
+    private function customerIsBlockedForRestaurant(?Restaurant $restaurant): bool
+    {
+        if (! $restaurant || ! Auth::check()) {
+            return false;
+        }
+
+        return RestaurantCustomerBlock::where('restaurant_id', $restaurant->id)
+            ->where('user_id', Auth::id())
+            ->exists();
+    }
+
     private function cartItemKey(int $menuItemId, ?string $variantLabel, float $price): string
     {
         $label = trim((string) ($variantLabel ?? ''));
@@ -184,6 +196,12 @@ class CartController extends Controller
         // Prevent owner from ordering from their own restaurant
         if ($restaurant->user_id === Auth::id()) {
             return response()->json(['message' => 'You cannot order from your own restaurant.'], 403);
+        }
+
+        if ($this->customerIsBlockedForRestaurant($restaurant)) {
+            return response()->json([
+                'message' => 'You are blocked from ordering from this restaurant.',
+            ], 403);
         }
 
         $cart = session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => []]);
@@ -377,6 +395,10 @@ class CartController extends Controller
         $restaurant = \App\Models\Restaurant::find($cart['restaurant_id']);
         if ($restaurant && $restaurant->user_id === Auth::id()) {
             return redirect()->route('home')->with('error', 'You cannot order from your own restaurant.');
+        }
+
+        if ($this->customerIsBlockedForRestaurant($restaurant)) {
+            return back()->with('error', 'You are blocked from ordering from this restaurant.');
         }
 
         $response = $this->index();

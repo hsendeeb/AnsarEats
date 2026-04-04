@@ -5,7 +5,7 @@
     <div class="max-w-7xl mx-auto">
         <div class="mb-6">
             <a href="{{ route('owner.dashboard') }}" class="inline-flex items-center gap-2 text-gray-500 hover:text-emerald-600 font-bold transition-colors bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                <x-heroicon-o-arrow-left class="w-4 h-4" />
                 Back to Dashboard
             </a>
         </div>
@@ -25,7 +25,7 @@
                                 <p class="mt-2 text-sm font-medium text-gray-500 dark:text-slate-300">Unique people who have ordered from your restaurant.</p>
                             </div>
                             <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-600 ring-1 ring-sky-400/20 dark:text-sky-200">
-                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5V4H2v16h5m10 0v-2a4 4 0 00-4-4H11a4 4 0 00-4 4v2m10 0H7m10-11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <x-heroicon-o-user-circle class="w-7 h-7" />
                             </div>
                         </div>
                     </div>
@@ -38,7 +38,7 @@
                                 <p class="mt-2 text-sm font-medium text-gray-500 dark:text-slate-300">Customers currently restricted from ordering.</p>
                             </div>
                             <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/15 text-red-500 ring-1 ring-rose-400/20 dark:text-rose-300">
-                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M18.364 5.636l-12.728 12.728M5.636 5.636l12.728 12.728"></path></svg>
+                                <x-heroicon-o-x-circle class="w-7 h-7" />
                             </div>
                         </div>
                     </div>
@@ -51,7 +51,7 @@
                                 <p class="mt-2 text-sm font-medium text-gray-500 dark:text-slate-300">All orders placed by customers at this restaurant.</p>
                             </div>
                             <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-600 ring-1 ring-amber-400/20 dark:text-amber-200">
-                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-6 0a2 2 0 104 0m-4 0a2 2 0 114 0m-4 0h4"></path></svg>
+                                <x-heroicon-o-clipboard-document-list class="w-7 h-7" />
                             </div>
                         </div>
                     </div>
@@ -133,7 +133,7 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-black text-white shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-400">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                                    <x-heroicon-o-check-circle class="w-4 h-4" />
                                                     Unblock Customer
                                                 </button>
                                             </form>
@@ -144,7 +144,7 @@
                                                   onsubmit="return confirm('Block {{ addslashes($customer->name) }} from ordering from your restaurant?');">
                                                 @csrf
                                                 <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-4 py-2 text-sm font-black text-white shadow-lg shadow-red-500/20 transition-all hover:bg-red-400">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18.364 5.636l-12.728 12.728M5.636 5.636l12.728 12.728"></path></svg>
+                                                    <x-heroicon-o-x-circle class="w-4 h-4" />
                                                     Block Customer
                                                 </button>
                                             </form>
@@ -162,7 +162,7 @@
             @else
                 <div class="px-6 py-16 text-center">
                     <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-rose-100 text-rose-500">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5V4H2v16h5m10 0v-2a4 4 0 00-4-4H11a4 4 0 00-4 4v2m10 0H7m10-11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <x-heroicon-o-user-circle class="w-10 h-10" />
                     </div>
                     <h3 class="mt-6 text-2xl font-black outfit text-gray-900">No customers yet</h3>
                     <p class="mt-2 text-sm font-medium text-gray-500">Once someone orders from your restaurant, they will appear here automatically.</p>

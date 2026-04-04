@@ -76,7 +76,7 @@
                     @endif
 
                     <button @click="showRestaurantModal = true" class="flex-shrink-0 w-full lg:w-auto bg-white/20 backdrop-blur-sm hover:bg-white/30 border border-white/30 text-white font-bold py-3 px-6 rounded-2xl transition-all transform hover:-translate-y-0.5 active:scale-95 shadow-lg flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <x-heroicon-o-cog-6-tooth class="w-5 h-5" />
                         {{ $restaurant ? 'Edit Restaurant' : ($pendingRequest ? 'Edit Request' : 'Create Restaurant') }}
                     </button>
                 </div>
@@ -97,14 +97,14 @@
                     </div>
                 @endif
                 <div class="inline-flex items-center justify-center w-28 h-28 rounded-full bg-purple-100 text-purple-500 mb-8 animate-bounce" style="animation-duration: 2s;">
-                    <svg class="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    <x-heroicon-o-building-storefront class="w-14 h-14" />
                 </div>
                 <h3 class="text-3xl font-black outfit text-gray-900 mb-3">Start Your Journey</h3>
                 <p class="text-gray-500 text-lg font-medium max-w-md mx-auto mb-8">
                     {{ $latestRequest?->status === 'pending' ? 'Update your request details while you wait for approval.' : ($latestRequest?->status === 'rejected' ? 'Adjust your restaurant details and submit again for another review.' : 'Create your restaurant profile first. Then you can add categories and menu items.') }}
                 </p>
                 <button @click="showRestaurantModal = true" class="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 hover:bg-purple-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl hover:shadow-purple-500/30 transition-all transform hover:-translate-y-0.5 active:scale-95 text-lg">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                    <x-heroicon-o-plus class="w-6 h-6" />
                     {{ $latestRequest ? 'Update Request' : 'Create Your Restaurant' }}
                 </button>
             </div>
@@ -112,19 +112,19 @@
             <!-- Action Buttons -->
             <div class="flex flex-wrap gap-3 mb-10">
                 <button @click="showCategoryModal = true" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-95">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                    <x-heroicon-o-plus class="w-5 h-5" />
                     Add Category
                 </button>
                 
                 @if($restaurant->menuCategories->count() > 0)
                 <button @click="showMenuItemModal = true" class="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-white font-bold rounded-2xl shadow-lg shadow-amber-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-95">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                    <x-heroicon-o-plus class="w-5 h-5" />
                     Add Menu Item
                 </button>
                 @endif
                 
                 <a href="{{ route('restaurant.show', $restaurant) }}" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 hover:border-emerald-500 text-gray-700 hover:text-emerald-600 font-bold rounded-2xl transition-all transform hover:-translate-y-0.5 active:scale-95">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    <x-heroicon-o-arrow-top-right-on-square class="w-5 h-5" />
                     View Public Page
                 </a>
             </div>
@@ -136,7 +136,7 @@
                 <div class="bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zM12 4v16m8-8H4"></path></svg>
+                            <x-heroicon-o-banknotes class="w-6 h-6" />
                         </div>
                         <span class="text-xs font-black px-2 py-1 bg-emerald-50 text-emerald-600 rounded-lg">Revenue</span>
                     </div>
@@ -153,7 +153,7 @@
                 <div class="bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-teal-100 rounded-2xl flex items-center justify-center text-teal-500 group-hover:scale-110 transition-transform">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            <x-heroicon-o-calculator class="w-6 h-6" />
                         </div>
                         <span class="text-xs font-black px-2 py-1 bg-teal-50 text-teal-600 rounded-lg">AOV</span>
                     </div>
@@ -170,7 +170,7 @@
                 <a href="{{ route('owner.orders') }}" class="block bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                            <x-heroicon-o-shopping-bag class="w-6 h-6" />
                         </div>
                         <span class="text-xs font-black px-2 py-1 bg-indigo-50 text-indigo-600 rounded-lg">Total</span>
                     </div>
@@ -187,7 +187,7 @@
                 <a href="{{ route('owner.orders', ['status' => 'pending']) }}" class="block bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <x-heroicon-o-clock class="w-6 h-6" />
                         </div>
                         <span class="text-xs font-black px-2 py-1 bg-amber-50 text-amber-600 rounded-lg">Active</span>
                     </div>
@@ -204,7 +204,7 @@
                 <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" class="block bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <x-heroicon-o-check-circle class="w-6 h-6" />
                         </div>
                         <span class="text-xs font-black px-2 py-1 bg-blue-50 text-blue-600 rounded-lg">Delivered</span>
                     </div>
@@ -221,7 +221,7 @@
                 <a href="{{ route('owner.customers') }}" class="block bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-500 group-hover:scale-110 transition-transform">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5V4H2v16h5m10 0v-2a4 4 0 00-4-4H11a4 4 0 00-4 4v2m10 0H7m10-11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <x-heroicon-o-user-group class="w-6 h-6" />
                         </div>
                         <span class="text-xs font-black px-2 py-1 bg-rose-50 text-rose-600 rounded-lg">People</span>
                     </div>
@@ -316,7 +316,7 @@
                 </div>
                 <a href="{{ route('owner.orders') }}" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 w-full sm:w-auto">
                     View Orders
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                    <x-heroicon-o-arrow-right class="w-5 h-5" />
                 </a>
             </div>
             </div>
@@ -340,23 +340,23 @@
                                     @csrf
                                     <button type="submit" class="p-2 transition-colors {{ $category->is_visible ? 'text-emerald-500 hover:text-emerald-600 bg-emerald-50 rounded-lg' : 'text-gray-400 hover:text-gray-600' }}" title="{{ $category->is_visible ? 'Visible on menu' : 'Hidden from menu' }}">
                                         @if($category->is_visible)
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                            <x-heroicon-o-eye class="w-5 h-5" />
                                         @else
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
+                                            <x-heroicon-o-eye-slash class="w-5 h-5" />
                                         @endif
                                     </button>
                                 </form>
                                 <button @click="editingCategory = { id: {{ $category->id }}, name: '{{ addslashes($category->name) }}' }; showEditCategoryModal = true" class="p-2 text-gray-400 hover:text-indigo-600 transition-colors" title="Edit Category">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    <x-heroicon-o-pencil-square class="w-5 h-5" />
                                 </button>
                                 <form method="POST" action="{{ route('owner.category.destroy', $category) }}" class="inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" onclick="return confirm('Delete this category and all its items?')" class="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Delete Category">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        <x-heroicon-o-trash class="w-5 h-5" />
                                     </button>
                                 </form>
-                                <svg @click="open = !open" :class="open ? 'rotate-180' : ''" class="w-5 h-5 text-gray-400 transition-transform cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                <x-heroicon-o-chevron-down @click="open = !open" :class="open ? 'rotate-180' : ''" class="w-5 h-5 text-gray-400 transition-transform cursor-pointer" />
                             </div>
                         </div>
                         
@@ -369,7 +369,7 @@
                                                 <img src="{{ Storage::url($item->image) }}" class="w-full h-full object-cover">
                                             @else
                                                 <div class="w-full h-full flex items-center justify-center text-gray-300">
-                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                    <x-heroicon-o-photo class="w-6 h-6" />
                                                 </div>
                                             @endif
                                         </div>
@@ -404,16 +404,16 @@
                                                 is_on_sale: {{ $item->is_on_sale ? 'true' : 'false' }},
                                                 sale_price: {{ Js::from($item->sale_price) }}
                                             }; showEditMenuItemModal = true" title="Edit item" class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-400 hover:bg-indigo-100 hover:text-indigo-600 flex items-center justify-center transition-colors">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                <x-heroicon-o-pencil-square class="w-5 h-5" />
                                             </button>
 
                                             <form method="POST" action="{{ route('owner.menu-item.toggle', $item) }}">
                                                 @csrf
                                                 <button type="submit" title="{{ $item->is_available ? 'Mark unavailable' : 'Mark available' }}" class="w-10 h-10 rounded-xl flex items-center justify-center transition-colors {{ $item->is_available ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200' }}">
                                                     @if($item->is_available)
-                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                        <x-heroicon-o-check-circle class="w-5 h-5" />
                                                     @else
-                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                                        <x-heroicon-o-no-symbol class="w-5 h-5" />
                                                     @endif
                                                 </button>
                                             </form>
@@ -445,7 +445,8 @@
                                                 }
                                             }">
                                                 <button type="button" @click="toggleFeatured()" :disabled="loading" :title="isFeatured ? 'Remove featured' : 'Make featured'" class="w-10 h-10 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50" :class="isFeatured ? 'bg-amber-100 text-amber-500 hover:bg-amber-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'">
-                                                    <svg class="w-5 h-5" :fill="isFeatured ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                                                    <x-heroicon-s-star x-show="isFeatured" x-cloak class="w-5 h-5" />
+                                                    <x-heroicon-o-star x-show="!isFeatured" x-cloak class="w-5 h-5" />
                                                 </button>
                                             </div>
                                             
@@ -453,7 +454,7 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" onclick="return confirm('Delete this item?')" title="Delete item" class="w-10 h-10 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition-colors">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                    <x-heroicon-o-trash class="w-5 h-5" />
                                                 </button>
                                             </form>
                                         </div>
@@ -461,9 +462,7 @@
                                         <!-- Mobile Actions Dropdown -->
                                         <div class="sm:hidden flex items-center flex-shrink-0" x-data="{ open: false }">
                                             <button type="button" @click="open = !open" @click.away="open = false" class="w-10 h-10 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 flex items-center justify-center transition-colors" title="More actions" aria-label="More actions">
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                                </svg>
+                                                <x-heroicon-s-ellipsis-horizontal class="w-5 h-5" />
                                             </button>
 
                                             <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95 translate-y-1" x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 translate-y-1" class="absolute right-4 mt-12 w-48 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden z-20">
@@ -479,7 +478,7 @@
                                                     is_on_sale: {{ $item->is_on_sale ? 'true' : 'false' }},
                                                     sale_price: {{ Js::from($item->sale_price) }}
                                                 }; showEditMenuItemModal = true; open = false" class="w-full px-4 py-3 text-left text-sm font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center gap-2">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                    <x-heroicon-o-pencil-square class="w-4 h-4" />
                                                     Edit Item
                                                 </button>
 
@@ -487,10 +486,10 @@
                                                     @csrf
                                                     <button type="submit" @click="open = false" class="w-full px-4 py-3 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors flex items-center gap-2">
                                                         @if($item->is_available)
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                            <x-heroicon-o-check-circle class="w-4 h-4" />
                                                             Mark Unavailable
                                                         @else
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                                            <x-heroicon-o-no-symbol class="w-4 h-4" />
                                                             Mark Available
                                                         @endif
                                                     </button>
@@ -525,7 +524,8 @@
                                                         }
                                                      }"
                                                      @click="toggleFeatured()">
-                                                    <svg class="w-4 h-4" :fill="isFeatured ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                                                    <x-heroicon-s-star x-show="isFeatured" x-cloak class="w-4 h-4" />
+                                                    <x-heroicon-o-star x-show="!isFeatured" x-cloak class="w-4 h-4" />
                                                     <span x-text="isFeatured ? 'Remove Featured' : 'Mark Featured'"></span>
                                                 </div>
 
@@ -533,7 +533,7 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" onclick="return confirm('Delete this item?')" @click="open = false" class="w-full px-4 py-3 text-left text-sm font-bold text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                        <x-heroicon-o-trash class="w-4 h-4" />
                                                         Delete Item
                                                     </button>
                                                 </form>
@@ -609,7 +609,7 @@
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors" title="Delete Promo">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        <x-heroicon-o-trash class="w-5 h-5" />
                                     </button>
                                 </form>
                             </div>
@@ -634,7 +634,7 @@
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">{{ $restaurant ? 'Edit Restaurant' : ($latestRequest ? 'Update Registration Request' : 'Create Restaurant') }}</h3>
                     <button @click="showRestaurantModal = false" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <x-heroicon-o-x-mark class="w-4 h-4" />
                     </button>
                 </div>
             </div>
@@ -671,7 +671,7 @@
                             </template>
                             <template x-if="!logoPreview">
                                 <div class="text-center">
-                                    <svg class="w-8 h-8 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <x-heroicon-o-photo class="w-8 h-8 text-gray-400 mx-auto" />
                                     <p class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">Logo</p>
                                 </div>
                             </template>
@@ -691,7 +691,7 @@
                             </template>
                             <template x-if="!coverPreview">
                                 <div class="text-center">
-                                    <svg class="w-8 h-8 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <x-heroicon-o-photo class="w-8 h-8 text-gray-400 mx-auto" />
                                     <p class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">Banner</p>
                                 </div>
                             </template>
@@ -748,8 +748,8 @@
                     <div class="flex items-center justify-between mb-1.5">
                         <label class="block text-sm font-bold text-gray-700">Address</label>
                         <button type="button" @click="useCurrentLocation()" :disabled="gettingLocation" class="text-xs font-black text-indigo-600 hover:text-indigo-500 flex items-center gap-1 transition-all">
-                            <svg x-show="!gettingLocation" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                            <svg x-show="gettingLocation" class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            <x-heroicon-o-map-pin x-show="!gettingLocation" class="w-3.5 h-3.5" />
+                            <x-heroicon-o-arrow-path x-show="gettingLocation" class="w-3.5 h-3.5 animate-spin" />
                             <span x-text="gettingLocation ? 'Locating...' : 'Use Current Location'"></span>
                         </button>
                     </div>
@@ -851,7 +851,7 @@
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Add Category</h3>
                     <button @click="showCategoryModal = false" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <x-heroicon-o-x-mark class="w-4 h-4" />
                     </button>
                 </div>
             </div>
@@ -878,7 +878,7 @@
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Add Menu Item</h3>
                     <button @click="showMenuItemModal = false" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <x-heroicon-o-x-mark class="w-4 h-4" />
                     </button>
                 </div>
             </div>
@@ -1031,9 +1031,7 @@
                                 <button type="button"
                                         @click="removeVariantRow(index)"
                                         class="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
+                                    <x-heroicon-o-x-mark class="w-4 h-4" />
                                 </button>
                             </div>
                         </template>
@@ -1056,7 +1054,7 @@
                          class="relative border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center cursor-pointer hover:border-amber-500 hover:bg-amber-50/50 transition-all group">
                         <div class="flex flex-col items-center gap-3">
                             <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
-                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <x-heroicon-o-photo class="w-7 h-7" />
                             </div>
                             <div>
                                 <p class="text-sm font-bold text-gray-700">Drop an image here or <span class="text-amber-500">browse</span></p>
@@ -1070,7 +1068,7 @@
                         <img :src="imagePreview" alt="Preview" class="w-full h-48 object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
                         <button type="button" @click="removeImage()" class="absolute top-3 right-3 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            <x-heroicon-o-x-mark class="w-4 h-4" />
                         </button>
                         <div class="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
                             <p class="text-xs font-bold text-gray-700">✓ Image ready</p>
@@ -1096,7 +1094,7 @@
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Edit Category</h3>
                     <button @click="showEditCategoryModal = false" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <x-heroicon-o-x-mark class="w-4 h-4" />
                     </button>
                 </div>
             </div>
@@ -1124,7 +1122,7 @@
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Edit Menu Item</h3>
                     <button @click="showEditMenuItemModal = false" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <x-heroicon-o-x-mark class="w-4 h-4" />
                     </button>
                 </div>
             </div>
@@ -1278,9 +1276,7 @@
                                 <button type="button"
                                         @click="removeEditVariantRow(index)"
                                         class="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
+                                    <x-heroicon-o-x-mark class="w-4 h-4" />
                                 </button>
                             </div>
                         </template>
@@ -1306,14 +1302,14 @@
                             <div x-show="!newImagePreview"
                                  @click="$refs.editImageInput.click()"
                                  class="relative border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center cursor-pointer hover:border-indigo-500 hover:bg-indigo-50/50 transition-all group h-32 flex flex-col items-center justify-center">
-                                <svg class="w-6 h-6 text-gray-400 mb-1 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <x-heroicon-o-photo class="w-6 h-6 text-gray-400 mb-1 group-hover:scale-110 transition-transform" />
                                 <p class="text-[10px] font-bold text-gray-500">New Image</p>
                             </div>
 
                             <div x-show="newImagePreview" x-cloak class="relative rounded-2xl overflow-hidden border-2 border-indigo-500 bg-gray-50 h-32">
                                 <img :src="newImagePreview" alt="Preview" class="w-full h-full object-cover">
                                 <button type="button" @click="removeImage()" class="absolute top-1 right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-colors">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    <x-heroicon-o-x-mark class="w-3 h-3" />
                                 </button>
                                 <div class="absolute inset-x-0 bottom-0 bg-indigo-500 text-[10px] text-white text-center py-1 font-bold">NEW READY</div>
                             </div>

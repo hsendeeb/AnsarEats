@@ -58,6 +58,38 @@
                     </div>
                 @endif
 
+                <div class="space-y-3 mb-6">
+                    <a href="{{ route('social.redirect', 'google') }}" class="relative flex w-full items-center justify-center rounded-xl border border-[#dadce0] bg-white px-5 py-3.5 text-[15px] font-semibold text-[#3c4043] shadow-sm transition-all hover:bg-[#f8f9fa] hover:shadow-md focus:outline-none focus:ring-4 focus:ring-gray-200/70">
+                        <span class="absolute left-4 flex h-6 w-6 items-center justify-center" aria-hidden="true">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                                <path fill="#4285F4" d="M21.6 12.23c0-.68-.06-1.34-.17-1.97H12v3.73h5.39a4.62 4.62 0 0 1-2 3.03v2.52h3.24c1.9-1.75 2.97-4.33 2.97-7.31Z"/>
+                                <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.61-2.44l-3.24-2.52c-.9.6-2.05.95-3.37.95-2.59 0-4.79-1.75-5.58-4.1H3.07v2.6A9.99 9.99 0 0 0 12 22Z"/>
+                                <path fill="#FBBC05" d="M6.42 13.89A5.99 5.99 0 0 1 6.11 12c0-.66.11-1.3.31-1.89V7.51H3.07A9.99 9.99 0 0 0 2 12c0 1.61.39 3.14 1.07 4.49l3.35-2.6Z"/>
+                                <path fill="#EA4335" d="M12 6.01c1.47 0 2.79.5 3.82 1.48l2.87-2.87C16.95 2.98 14.69 2 12 2 8.09 2 4.72 4.24 3.07 7.51l3.35 2.6c.79-2.35 2.99-4.1 5.58-4.1Z"/>
+                            </svg>
+                        </span>
+                        <span class="w-full text-center">Continue with Google</span>
+                    </a>
+
+                    <a href="{{ route('social.redirect', 'facebook') }}" class="group flex w-full items-center justify-center gap-3 rounded-[1.35rem] border border-[#1877F2]/15 bg-[#1877F2] px-4 py-3.5 font-bold text-dark shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#1669d9] hover:shadow-lg hover:shadow-blue-200">
+                        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
+                            <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M24 12.1C24 5.4 18.6 0 12 0S0 5.4 0 12.1c0 6 4.4 11 10.1 11.9v-8.4H7.1v-3.5h3V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9v2.3h3.4l-.5 3.5h-2.9V24C19.6 23.1 24 18.1 24 12.1Z"/>
+                            </svg>
+                        </span>
+                        <span class="tracking-[0.01em]">Sign up with Facebook</span>
+                    </a>
+                </div>
+
+                <div class="mb-6 relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="bg-white px-4 font-bold text-gray-500">or create an account with email</span>
+                    </div>
+                </div>
+
                 <form method="POST" action="{{ route('register') }}" class="space-y-5">
                     @csrf
 

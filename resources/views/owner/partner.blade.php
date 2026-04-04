@@ -7,7 +7,7 @@
 
 <div class="min-h-screen bg-gray-50 py-10 px-4">
     <div class="max-w-5xl mx-auto">
-        <div class="bg-gradient-to-br from-emerald-600 via-teal-500 to-cyan-500 rounded-[2rem] p-8 md:p-12 mb-8 text-dark relative overflow-hidden shadow-2xl shadow-emerald-500/20">
+        <div class="bg-gradient-to-br from-emerald-600 via-teal-500 to-cyan-500 rounded-[2rem] p-8 md:p-12 mb-8 text-white relative overflow-hidden shadow-2xl shadow-emerald-500/20">
             <div class="absolute -top-12 -right-10 w-48 h-48 rounded-full bg-white/10"></div>
             <div class="absolute -bottom-12 -left-10 w-40 h-40 rounded-full bg-white/10"></div>
 

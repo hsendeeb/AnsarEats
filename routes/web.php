@@ -7,6 +7,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\Owner\DashboardController;
 use App\Http\Controllers\Owner\MenuItemController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RatingController;
@@ -29,6 +30,12 @@ Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [LoginController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [LoginController::class, 'register']);
+Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])
+    ->whereIn('provider', ['google', 'facebook'])
+    ->name('social.redirect');
+Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback'])
+    ->whereIn('provider', ['google', 'facebook'])
+    ->name('social.callback');
 
 // Cart routes (public — guests can use the cart)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');

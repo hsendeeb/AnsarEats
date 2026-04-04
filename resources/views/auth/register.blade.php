@@ -59,7 +59,7 @@
                 @endif
 
                 <div class="space-y-3 mb-6">
-                    <a href="{{ route('social.redirect', 'google') }}" class="relative flex w-full items-center justify-center rounded-xl border border-[#dadce0] bg-white px-5 py-3.5 text-[15px] font-semibold text-[#3c4043] shadow-sm transition-all hover:bg-[#f8f9fa] hover:shadow-md focus:outline-none focus:ring-4 focus:ring-gray-200/70">
+                    <a href="{{ route('social.redirect', 'google') }}" class="relative flex w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-5 py-3.5 text-[15px] font-semibold text-[#3c4043] shadow-sm transition-all hover:bg-[#f8f9fa] hover:shadow-md focus:outline-none focus:ring-4 focus:ring-gray-200/70">
                         <span class="absolute left-4 flex h-6 w-6 items-center justify-center" aria-hidden="true">
                             <svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
                                 <path fill="#4285F4" d="M21.6 12.23c0-.68-.06-1.34-.17-1.97H12v3.73h5.39a4.62 4.62 0 0 1-2 3.03v2.52h3.24c1.9-1.75 2.97-4.33 2.97-7.31Z"/>
@@ -71,13 +71,11 @@
                         <span class="w-full text-center">Continue with Google</span>
                     </a>
 
-                    <a href="{{ route('social.redirect', 'facebook') }}" class="group flex w-full items-center justify-center gap-3 rounded-[1.35rem] border border-[#1877F2]/15 bg-[#1877F2] px-4 py-3.5 font-bold text-dark shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#1669d9] hover:shadow-lg hover:shadow-blue-200">
-                        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
-                            <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M24 12.1C24 5.4 18.6 0 12 0S0 5.4 0 12.1c0 6 4.4 11 10.1 11.9v-8.4H7.1v-3.5h3V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9v2.3h3.4l-.5 3.5h-2.9V24C19.6 23.1 24 18.1 24 12.1Z"/>
-                            </svg>
-                        </span>
-                        <span class="tracking-[0.01em]">Sign up with Facebook</span>
+                    <a href="{{ route('social.redirect', 'facebook') }}" class="flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-gray-200 bg-[#1877F2] px-4 py-3 font-bold text-dark transition-all hover:bg-[#1669d9]">
+                        <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M24 12.1C24 5.4 18.6 0 12 0S0 5.4 0 12.1c0 6 4.4 11 10.1 11.9v-8.4H7.1v-3.5h3V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9v2.3h3.4l-.5 3.5h-2.9V24C19.6 23.1 24 18.1 24 12.1Z"/>
+                        </svg>
+                        Continue with Facebook
                     </a>
                 </div>
 

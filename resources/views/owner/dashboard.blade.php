@@ -12,7 +12,7 @@
     showEditMenuItemModal: false,
     selectedCategoryId: null,
     editingCategory: { id: null, name: '' },
-    editingMenuItem: { id: null, name: '', description: '', price: '', category_id: null, image_url: '', variants: null, variant_type: '', is_on_sale: false, sale_price: '' },
+    editingMenuItem: { id: null, name: '', description: '', price: '', category_id: null, image_url: '', variants: null, variant_type: '', is_on_sale: false, sale_price: '', discount_percentage: '' },
     isRestaurantOpen: {{ $restaurant && $restaurant->is_open ? 'true' : 'false' }},
     togglingStatus: false,
     async toggleRestaurantStatus() {
@@ -380,11 +380,15 @@
                                         </div>
                                         
                                         <div class="text-right flex-shrink-0">
-                                            @if($item->is_on_sale && $item->sale_price)
+                                            @if($item->isSaleActive())
                                                 <div class="flex flex-col items-end">
                                                     <span class="text-sm font-bold text-gray-400 line-through">${{ number_format($item->price, 2) }}</span>
-                                                    <span class="font-black text-emerald-500 text-lg">${{ number_format($item->sale_price, 2) }}</span>
-     
+                                                    <span class="font-black text-emerald-500 text-lg">${{ number_format($item->effectivePrice(), 2) }}</span>
+                                                    @if(!empty(data_get($item->variants, 'options', [])))
+                                                        <span class="text-[10px] font-bold text-emerald-500">
+                                                            {{ rtrim(rtrim(number_format($item->saleDiscountPercentage() ?? 0, 2), '0'), '.') }}% off variants
+                                                        </span>
+                                                    @endif
                                                 </div>
                                             @else
                                                 <span class="font-black text-emerald-500 text-lg">${{ number_format($item->price, 2) }}</span>
@@ -402,7 +406,8 @@
                                                 variants: {{ Js::from($item->variants) }},
                                                 variant_type: {{ Js::from($item->variants['type'] ?? '') }},
                                                 is_on_sale: {{ $item->is_on_sale ? 'true' : 'false' }},
-                                                sale_price: {{ Js::from($item->sale_price) }}
+                                                sale_price: {{ Js::from($item->sale_price) }},
+                                                discount_percentage: {{ Js::from($item->saleDiscountPercentage()) }}
                                             }; showEditMenuItemModal = true" title="Edit item" class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-400 hover:bg-indigo-100 hover:text-indigo-600 flex items-center justify-center transition-colors">
                                                 <x-heroicon-o-pencil-square class="w-5 h-5" />
                                             </button>
@@ -476,7 +481,8 @@
                                                     variants: {{ Js::from($item->variants) }},
                                                     variant_type: {{ Js::from($item->variants['type'] ?? '') }},
                                                     is_on_sale: {{ $item->is_on_sale ? 'true' : 'false' }},
-                                                    sale_price: {{ Js::from($item->sale_price) }}
+                                                    sale_price: {{ Js::from($item->sale_price) }},
+                                                    discount_percentage: {{ Js::from($item->saleDiscountPercentage()) }}
                                                 }; showEditMenuItemModal = true; open = false" class="w-full px-4 py-3 text-left text-sm font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center gap-2">
                                                     <x-heroicon-o-pencil-square class="w-4 h-4" />
                                                     Edit Item
@@ -885,10 +891,29 @@
             
             <form method="POST" action="{{ route('owner.menu-item.store') }}" enctype="multipart/form-data" class="p-6 space-y-4" x-data="{
                 imagePreview: null,
+                basePrice: '',
                 hasVariants: false,
                 isOnSale: false,
-                salePrice: '',
+                discountPercentage: '',
                 variants: [{ name: '', price: '' }],
+                parsedDiscount() {
+                    const value = parseFloat(this.discountPercentage);
+                    return Number.isNaN(value) ? null : value;
+                },
+                calculateDiscountedPrice(price) {
+                    const numericPrice = parseFloat(price);
+                    const percentage = this.parsedDiscount();
+                    if (Number.isNaN(numericPrice)) {
+                        return null;
+                    }
+                    if (!this.isOnSale || percentage === null || percentage <= 0) {
+                        return numericPrice.toFixed(2);
+                    }
+                    return Math.max(numericPrice * (1 - (percentage / 100)), 0).toFixed(2);
+                },
+                validVariants() {
+                    return this.variants.filter((variant) => `${variant.name ?? ''}`.trim() !== '' && variant.price !== '' && variant.price !== null);
+                },
                 handleFileSelect(event) {
                     const file = event.target.files[0];
                     if (file) {
@@ -920,14 +945,6 @@
                     } else {
                         this.variants[0] = { name: '', price: '' };
                     }
-                },
-                init() {
-                    this.$watch('hasVariants', (value) => {
-                        if (value) {
-                            this.isOnSale = false;
-                            this.salePrice = '';
-                        }
-                    });
                 }
             }">
                 @csrf
@@ -951,17 +968,17 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Price ($)</label>
-                    <input type="number" step="0.01" min="0" name="price" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 transition-all" placeholder="12.99">
+                    <input type="number" step="0.01" min="0" name="price" x-model="basePrice" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 transition-all" placeholder="12.99">
                 </div>
 
                 <div class="pt-2 border-t border-gray-100 space-y-3">
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <p class="text-sm font-bold text-gray-700">On Sale</p>
-                            <p class="text-xs font-medium text-gray-400" x-text="hasVariants ? 'Sales are available for single-price items only.' : 'Show the old price and the discounted price on the restaurant page.'"></p>
+                            <p class="text-xs font-medium text-gray-400">Enter one discount percentage and we'll calculate the sale price for the item and every variant.</p>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer" :class="hasVariants ? 'opacity-50 cursor-not-allowed' : ''">
-                            <input type="checkbox" name="is_on_sale" value="1" x-model="isOnSale" :disabled="hasVariants" class="sr-only peer">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="is_on_sale" value="1" x-model="isOnSale" class="sr-only peer">
                             <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/20 peer-checked:bg-emerald-500 transition-colors relative">
                                 <div class="absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
                                      :class="isOnSale ? 'translate-x-5' : 'translate-x-0'"></div>
@@ -969,18 +986,45 @@
                         </label>
                     </div>
 
-                    <div x-show="isOnSale && !hasVariants" x-transition class="space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
-                        <label class="block text-xs font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Sale Price ($)</label>
+                    <div x-show="isOnSale" x-transition class="space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
+                        <label class="block text-xs font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Discount Percentage (%)</label>
                         <input type="number"
                                step="0.01"
-                               min="0"
-                               name="sale_price"
-                               x-model="salePrice"
-                               :required="isOnSale && !hasVariants"
-                               :disabled="!isOnSale || hasVariants"
+                               min="0.01"
+                               max="100"
+                               name="discount_percentage"
+                               x-model="discountPercentage"
+                               :required="isOnSale"
+                               :disabled="!isOnSale"
                                class="block w-full px-3 py-2.5 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                               placeholder="9.99">
-                        <p class="mt-1 text-[11px] text-emerald-600 font-medium">Set a lower price than the regular price so customers can see how much they save.</p>
+                               placeholder="15">
+                        <p class="mt-1 text-[11px] text-emerald-600 font-medium">The system will calculate discounted prices automatically, including each variant option.</p>
+
+                        <div x-show="parsedDiscount() !== null" x-cloak class="space-y-2 rounded-xl border border-emerald-200 bg-white/80 p-3">
+                            <div class="flex items-center justify-between text-[11px] font-bold text-emerald-700">
+                                <span>Live Preview</span>
+                                <span x-text="`${parsedDiscount().toFixed(2)}% off`"></span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="font-medium text-gray-600">Base item</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-400 line-through" x-show="basePrice !== ''" x-text="'$' + parseFloat(basePrice || 0).toFixed(2)"></span>
+                                    <span class="font-black text-emerald-600" x-show="basePrice !== ''" x-text="'$' + calculateDiscountedPrice(basePrice)"></span>
+                                </div>
+                            </div>
+                            <div x-show="hasVariants && validVariants().length > 0" x-cloak class="space-y-2 border-t border-emerald-100 pt-2">
+                                <template x-for="(variant, index) in validVariants()" :key="`${variant.name}-${index}`">
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="font-medium text-gray-600" x-text="variant.name"></span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-gray-400 line-through" x-text="'$' + parseFloat(variant.price).toFixed(2)"></span>
+                                            <span class="font-bold text-emerald-600" x-text="'$' + calculateDiscountedPrice(variant.price)"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            <p x-show="hasVariants && validVariants().length === 0" x-cloak class="text-[11px] font-medium text-emerald-600">Add variant names and prices to preview their sale prices.</p>
+                        </div>
                     </div>
                 </div>
 
@@ -1131,9 +1175,27 @@
                 newImagePreview: null,
                 editHasVariants: false,
                 editIsOnSale: false,
-                editSalePrice: '',
+                editDiscountPercentage: '',
                 editVariantType: '',
                 editVariants: [{ name: '', price: '' }],
+                parsedEditDiscount() {
+                    const value = parseFloat(this.editDiscountPercentage);
+                    return Number.isNaN(value) ? null : value;
+                },
+                calculateEditDiscountedPrice(price) {
+                    const numericPrice = parseFloat(price);
+                    const percentage = this.parsedEditDiscount();
+                    if (Number.isNaN(numericPrice)) {
+                        return null;
+                    }
+                    if (!this.editIsOnSale || percentage === null || percentage <= 0) {
+                        return numericPrice.toFixed(2);
+                    }
+                    return Math.max(numericPrice * (1 - (percentage / 100)), 0).toFixed(2);
+                },
+                validEditVariants() {
+                    return this.editVariants.filter((variant) => `${variant.name ?? ''}`.trim() !== '' && variant.price !== '' && variant.price !== null);
+                },
                 
                 init() {
                     this.$watch('editingMenuItem', (val) => {
@@ -1149,17 +1211,10 @@
                                 this.editVariants = [{ name: '', price: '' }];
                             }
 
-                            this.editIsOnSale = !!val.is_on_sale && !this.editHasVariants;
-                            this.editSalePrice = val.sale_price || '';
+                            this.editIsOnSale = !!val.is_on_sale;
+                            this.editDiscountPercentage = val.discount_percentage || '';
                         }
                     }, { immediate: true });
-
-                    this.$watch('editHasVariants', (value) => {
-                        if (value) {
-                            this.editIsOnSale = false;
-                            this.editSalePrice = '';
-                        }
-                    });
                 },
                 handleFileSelect(event) {
                     const file = event.target.files[0];
@@ -1203,10 +1258,10 @@
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <p class="text-sm font-bold text-gray-700">On Sale</p>
-                            <p class="text-xs font-medium text-gray-400" x-text="editHasVariants ? 'Sales are available for single-price items only.' : 'Customers will see the old price, sale price, and savings.'"></p>
+                            <p class="text-xs font-medium text-gray-400">Enter one discount percentage and we'll apply it to the item and all of its variants.</p>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer" :class="editHasVariants ? 'opacity-50 cursor-not-allowed' : ''">
-                            <input type="checkbox" name="is_on_sale" value="1" x-model="editIsOnSale" :disabled="editHasVariants" class="sr-only peer">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="is_on_sale" value="1" x-model="editIsOnSale" class="sr-only peer">
                             <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/20 peer-checked:bg-emerald-500 transition-colors relative">
                                 <div class="absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
                                      :class="editIsOnSale ? 'translate-x-5' : 'translate-x-0'"></div>
@@ -1214,18 +1269,45 @@
                         </label>
                     </div>
 
-                    <div x-show="editIsOnSale && !editHasVariants" x-transition class="space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
-                        <label class="block text-xs font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Sale Price ($)</label>
+                    <div x-show="editIsOnSale" x-transition class="space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
+                        <label class="block text-xs font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Discount Percentage (%)</label>
                         <input type="number"
                                step="0.01"
-                               min="0"
-                               name="sale_price"
-                               x-model="editSalePrice"
-                               :required="editIsOnSale && !editHasVariants"
-                               :disabled="!editIsOnSale || editHasVariants"
+                               min="0.01"
+                               max="100"
+                               name="discount_percentage"
+                               x-model="editDiscountPercentage"
+                               :required="editIsOnSale"
+                               :disabled="!editIsOnSale"
                                class="block w-full px-3 py-2.5 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                               placeholder="9.99">
-                        <p class="mt-1 text-[11px] text-emerald-600 font-medium">Set a lower price than the regular price so customers can see the discount.</p>
+                               placeholder="15">
+                        <p class="mt-1 text-[11px] text-emerald-600 font-medium">The system calculates the discounted sale price automatically for the item and every variant.</p>
+
+                        <div x-show="parsedEditDiscount() !== null" x-cloak class="space-y-2 rounded-xl border border-emerald-200 bg-white/80 p-3">
+                            <div class="flex items-center justify-between text-[11px] font-bold text-emerald-700">
+                                <span>Live Preview</span>
+                                <span x-text="`${parsedEditDiscount().toFixed(2)}% off`"></span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="font-medium text-gray-600">Base item</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-400 line-through" x-show="editingMenuItem.price !== ''" x-text="'$' + parseFloat(editingMenuItem.price || 0).toFixed(2)"></span>
+                                    <span class="font-black text-emerald-600" x-show="editingMenuItem.price !== ''" x-text="'$' + calculateEditDiscountedPrice(editingMenuItem.price)"></span>
+                                </div>
+                            </div>
+                            <div x-show="editHasVariants && validEditVariants().length > 0" x-cloak class="space-y-2 border-t border-emerald-100 pt-2">
+                                <template x-for="(variant, index) in validEditVariants()" :key="`${variant.name}-${index}`">
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="font-medium text-gray-600" x-text="variant.name"></span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-gray-400 line-through" x-text="'$' + parseFloat(variant.price).toFixed(2)"></span>
+                                            <span class="font-bold text-emerald-600" x-text="'$' + calculateEditDiscountedPrice(variant.price)"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            <p x-show="editHasVariants && validEditVariants().length === 0" x-cloak class="text-[11px] font-medium text-emerald-600">Add variant names and prices to preview their sale prices.</p>
+                        </div>
                     </div>
                 </div>
 

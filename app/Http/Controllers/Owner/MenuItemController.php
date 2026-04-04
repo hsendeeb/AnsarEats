@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\Storage;
 
 class MenuItemController extends Controller
 {
-    public function store(Request $request)
+    private function validateMenuItem(Request $request): array
     {
-        $request->validate([
-            'menu_category_id' => 'required|exists:menu_categories,id',
+        return $request->validate([
+            'menu_category_id' => 'sometimes|required|exists:menu_categories,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
@@ -26,49 +26,80 @@ class MenuItemController extends Controller
             'variant_prices' => 'required_if:has_variants,1|nullable|array',
             'variant_prices.*' => 'nullable|numeric|min:0',
             'is_on_sale' => 'sometimes|boolean',
-            'sale_price' => 'nullable|required_if:is_on_sale,1|numeric|min:0|lt:price',
+            'discount_percentage' => 'nullable|required_if:is_on_sale,1|numeric|min:0.01|max:100',
         ]);
+    }
+
+    private function buildVariantsPayload(Request $request): ?array
+    {
+        if (! $request->boolean('has_variants')) {
+            return null;
+        }
+
+        $names = $request->input('variant_names', []);
+        $prices = $request->input('variant_prices', []);
+        $options = [];
+
+        foreach ($names as $index => $name) {
+            $name = trim((string) $name);
+            $price = $prices[$index] ?? null;
+
+            if ($name === '' || $price === null || $price === '') {
+                continue;
+            }
+
+            $options[] = [
+                'label' => $name,
+                'price' => (float) $price,
+            ];
+        }
+
+        if (empty($options)) {
+            return null;
+        }
+
+        return [
+            'type' => $request->input('variant_type'),
+            'options' => $options,
+        ];
+    }
+
+    private function calculateDiscountedPrice(float $price, float $discountPercentage): float
+    {
+        return round(max($price * (1 - ($discountPercentage / 100)), 0), 2);
+    }
+
+    private function applySaleFields(array &$data, Request $request): void
+    {
+        $data['is_on_sale'] = $request->boolean('is_on_sale');
+
+        if (! $data['is_on_sale']) {
+            $data['sale_price'] = null;
+            $data['discount_percentage'] = null;
+
+            return;
+        }
+
+        $discountPercentage = round((float) $request->input('discount_percentage'), 2);
+
+        $data['discount_percentage'] = $discountPercentage;
+        $data['sale_price'] = $this->calculateDiscountedPrice((float) $data['price'], $discountPercentage);
+    }
+
+    public function store(Request $request)
+    {
+        $this->validateMenuItem($request);
 
         $category = MenuCategory::findOrFail($request->menu_category_id);
-        
+
         // Ensure the category belongs to the current user's restaurant
         if ($category->restaurant->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
         $data = $request->only('name', 'description', 'price');
-        $hasAppliedVariants = false;
-
-        if ($request->boolean('has_variants')) {
-            $names = $request->input('variant_names', []);
-            $prices = $request->input('variant_prices', []);
-            $options = [];
-
-            foreach ($names as $index => $name) {
-                $name = trim((string) $name);
-                $price = $prices[$index] ?? null;
-
-                if ($name === '' || $price === null || $price === '') {
-                    continue;
-                }
-
-                $options[] = [
-                    'label' => $name,
-                    'price' => (float) $price,
-                ];
-            }
-
-            if (!empty($options)) {
-                $hasAppliedVariants = true;
-                $data['variants'] = [
-                    'type' => $request->input('variant_type'),
-                    'options' => $options,
-                ];
-            }
-        }
-
-        $data['is_on_sale'] = $request->boolean('is_on_sale') && ! $hasAppliedVariants;
-        $data['sale_price'] = $data['is_on_sale'] ? $request->input('sale_price') : null;
+        $data['variants'] = $this->buildVariantsPayload($request);
+        $this->applySaleFields($data, $request);
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('menu-items', 'public');
@@ -96,55 +127,11 @@ class MenuItemController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp',
-            'has_variants' => 'sometimes|boolean',
-            'variant_type' => 'required_if:has_variants,1|nullable|string|max:255',
-            'variant_names' => 'required_if:has_variants,1|nullable|array',
-            'variant_names.*' => 'nullable|string|max:255',
-            'variant_prices' => 'required_if:has_variants,1|nullable|array',
-            'variant_prices.*' => 'nullable|numeric|min:0',
-            'is_on_sale' => 'sometimes|boolean',
-            'sale_price' => 'nullable|required_if:is_on_sale,1|numeric|min:0|lt:price',
-        ]);
+        $this->validateMenuItem($request);
 
         $data = $request->only('name', 'description', 'price');
-
-        $data['variants'] = null;
-        $hasAppliedVariants = false;
-        if ($request->boolean('has_variants')) {
-            $names = $request->input('variant_names', []);
-            $prices = $request->input('variant_prices', []);
-            $options = [];
-
-            foreach ($names as $index => $name) {
-                $name = trim((string) $name);
-                $price = $prices[$index] ?? null;
-
-                if ($name === '' || $price === null || $price === '') {
-                    continue;
-                }
-
-                $options[] = [
-                    'label' => $name,
-                    'price' => (float) $price,
-                ];
-            }
-
-            if (!empty($options)) {
-                $hasAppliedVariants = true;
-                $data['variants'] = [
-                    'type' => $request->input('variant_type'),
-                    'options' => $options,
-                ];
-            }
-        }
-
-        $data['is_on_sale'] = $request->boolean('is_on_sale') && ! $hasAppliedVariants;
-        $data['sale_price'] = $data['is_on_sale'] ? $request->input('sale_price') : null;
+        $data['variants'] = $this->buildVariantsPayload($request);
+        $this->applySaleFields($data, $request);
 
         if ($request->hasFile('image')) {
             // Delete old image if exists

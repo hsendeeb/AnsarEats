@@ -223,54 +223,90 @@
         };
     };
 
-    window.menuItemPricing = function(basePrice, variants, isOnSale, salePrice) {
+    window.menuItemPricing = function(basePrice, variants, isOnSale, salePrice, discountPercentage) {
         return {
             basePrice: parseFloat(basePrice || 0),
             variants: variants && variants.options ? variants.options : [],
             variantType: variants && variants.type ? variants.type : null,
             isOnSale: !!isOnSale,
             salePrice: salePrice !== null && salePrice !== undefined && salePrice !== '' ? parseFloat(salePrice) : null,
+            discountPercentage: discountPercentage !== null && discountPercentage !== undefined && discountPercentage !== '' ? parseFloat(discountPercentage) : null,
             selectedIndex: 0,
             get hasVariants() {
                 return this.variants && this.variants.length > 0;
             },
+            formatCurrency(value) {
+                const numericValue = parseFloat(value);
+                return '$' + (Number.isNaN(numericValue) ? 0 : numericValue).toFixed(2);
+            },
+            calculateDiscountedPrice(price) {
+                const numericPrice = parseFloat(price);
+                if (Number.isNaN(numericPrice)) {
+                    return this.basePrice;
+                }
+
+                if (this.discountPercentage !== null && !Number.isNaN(this.discountPercentage) && this.discountPercentage > 0) {
+                    return Math.max(numericPrice * (1 - (this.discountPercentage / 100)), 0);
+                }
+
+                if (!this.hasVariants && this.salePrice !== null && !Number.isNaN(this.salePrice) && this.salePrice < this.basePrice) {
+                    return this.salePrice;
+                }
+
+                return numericPrice;
+            },
             get hasActiveSale() {
-                return !this.hasVariants
-                    && this.isOnSale
-                    && this.salePrice !== null
-                    && !Number.isNaN(this.salePrice)
-                    && this.salePrice < this.basePrice;
+                return this.isOnSale
+                    && (
+                        (this.discountPercentage !== null && !Number.isNaN(this.discountPercentage) && this.discountPercentage > 0)
+                        || (!this.hasVariants && this.salePrice !== null && !Number.isNaN(this.salePrice) && this.salePrice < this.basePrice)
+                    );
             },
             get currentOption() {
                 if (!this.hasVariants) return null;
                 return this.variants[this.selectedIndex] || this.variants[0];
             },
-            get currentPrice() {
-                if (this.hasActiveSale) {
-                    return this.salePrice;
-                }
+            get currentOriginalPrice() {
                 if (this.currentOption && this.currentOption.price !== undefined && this.currentOption.price !== null) {
                     return parseFloat(this.currentOption.price);
                 }
                 return this.basePrice;
             },
+            get currentPrice() {
+                return this.hasActiveSale
+                    ? this.calculateDiscountedPrice(this.currentOriginalPrice)
+                    : this.currentOriginalPrice;
+            },
             get originalPrice() {
-                return this.hasActiveSale ? this.basePrice : null;
+                return this.hasActiveSale ? this.currentOriginalPrice : null;
             },
             get formattedPrice() {
-                return '$' + this.currentPrice.toFixed(2);
+                return this.formatCurrency(this.currentPrice);
             },
             get formattedOriginalPrice() {
-                return this.originalPrice !== null ? '$' + this.originalPrice.toFixed(2) : '';
+                return this.originalPrice !== null ? this.formatCurrency(this.originalPrice) : '';
             },
             get savingsAmount() {
-                return this.hasActiveSale ? this.basePrice - this.salePrice : 0;
+                return this.hasActiveSale ? Math.max(this.originalPrice - this.currentPrice, 0) : 0;
             },
             get formattedSavings() {
-                return '$' + this.savingsAmount.toFixed(2);
+                return this.formatCurrency(this.savingsAmount);
             },
             get currentLabel() {
                 return this.currentOption ? this.currentOption.label : null;
+            },
+            optionOriginalPrice(option) {
+                const numericPrice = parseFloat(option?.price);
+                return Number.isNaN(numericPrice) ? this.basePrice : numericPrice;
+            },
+            optionSalePrice(option) {
+                return this.calculateDiscountedPrice(this.optionOriginalPrice(option));
+            },
+            formattedOptionOriginalPrice(option) {
+                return this.formatCurrency(this.optionOriginalPrice(option));
+            },
+            formattedOptionSalePrice(option) {
+                return this.formatCurrency(this.optionSalePrice(option));
             }
         };
     };
@@ -602,7 +638,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             @foreach($category->menuItems as $item)
                                 <div id="item-card-{{ $item->id }}" class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow group {{ !$item->is_available ? 'opacity-60 grayscale' : '' }}"
-                                     x-data="menuItemPricing({{ $item->price }}, @js($item->variants), {{ $item->is_on_sale ? 'true' : 'false' }}, {{ Js::from($item->sale_price) }})">
+                                     x-data="menuItemPricing({{ $item->price }}, @js($item->variants), {{ $item->is_on_sale ? 'true' : 'false' }}, {{ Js::from($item->sale_price) }}, {{ Js::from($item->saleDiscountPercentage()) }})">
                                     <!-- Item Image -->
                                     <div id="item-img-{{ $item->id }}" class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative">
                                         @if($item->image)
@@ -702,7 +738,8 @@
                                                                 ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' 
                                                                 : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'">
                                                         <span x-text="opt.label"></span>
-                                                        <span class="ml-1 opacity-80" x-text="'· $' + parseFloat(opt.price).toFixed(2)"></span>
+                                                        <span x-show="hasActiveSale" x-cloak class="ml-1 text-[10px] text-gray-400 line-through" x-text="formattedOptionOriginalPrice(opt)"></span>
+                                                        <span class="ml-1 opacity-80" :class="hasActiveSale ? 'font-bold text-emerald-500 opacity-100' : ''" x-text="hasActiveSale ? formattedOptionSalePrice(opt) : formattedOptionOriginalPrice(opt)"></span>
                                                     </button>
                                                 </template>
                                             </div>

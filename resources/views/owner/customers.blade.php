@@ -145,7 +145,7 @@
                                                 @csrf
                                                 <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-4 py-2 text-sm font-black text-white shadow-lg shadow-red-500/20 transition-all hover:bg-red-400">
                                                     <x-heroicon-o-x-circle class="w-4 h-4" />
-                                                    Block Customer
+                                                  
                                                 </button>
                                             </form>
                                         @endif

@@ -377,26 +377,79 @@
                              x-data="{
                                 adding: false,
                                 basePrice: parseFloat('{{ $meal->price }}'),
+                                isOnSale: {{ $meal->is_on_sale ? 'true' : 'false' }},
+                                salePrice: {{ Js::from($meal->sale_price) }},
+                                discountPercentage: {{ Js::from($meal->saleDiscountPercentage()) }},
                                 variants: @js(data_get($meal->variants, 'options', [])),
                                 variantType: @js(data_get($meal->variants, 'type')),
                                 selectedIndex: 0,
                                 get hasVariants() {
                                     return this.variants && this.variants.length > 0;
                                 },
+                                formatCurrency(value) {
+                                    const numericValue = parseFloat(value);
+                                    return '$' + (Number.isNaN(numericValue) ? 0 : numericValue).toFixed(2);
+                                },
+                                calculateDiscountedPrice(price) {
+                                    const numericPrice = parseFloat(price);
+                                    if (Number.isNaN(numericPrice)) {
+                                        return this.basePrice;
+                                    }
+
+                                    if (this.discountPercentage !== null && this.discountPercentage !== '' && !Number.isNaN(parseFloat(this.discountPercentage))) {
+                                        return Math.max(numericPrice * (1 - (parseFloat(this.discountPercentage) / 100)), 0);
+                                    }
+
+                                    if (!this.hasVariants && this.salePrice !== null && this.salePrice !== '' && !Number.isNaN(parseFloat(this.salePrice)) && parseFloat(this.salePrice) < this.basePrice) {
+                                        return parseFloat(this.salePrice);
+                                    }
+
+                                    return numericPrice;
+                                },
+                                get hasActiveSale() {
+                                    return this.isOnSale && (
+                                        (this.discountPercentage !== null && this.discountPercentage !== '' && !Number.isNaN(parseFloat(this.discountPercentage)) && parseFloat(this.discountPercentage) > 0)
+                                        || (!this.hasVariants && this.salePrice !== null && this.salePrice !== '' && !Number.isNaN(parseFloat(this.salePrice)) && parseFloat(this.salePrice) < this.basePrice)
+                                    );
+                                },
                                 get currentOption() {
                                     if (!this.hasVariants) return null;
                                     return this.variants[this.selectedIndex] || this.variants[0];
                                 },
-                                get currentPrice() {
+                                get currentOriginalPrice() {
                                     if (!this.currentOption) return this.basePrice;
-                                    const v = parseFloat(this.currentOption.price);
-                                    return Number.isNaN(v) ? this.basePrice : v;
+                                    const value = parseFloat(this.currentOption.price);
+                                    return Number.isNaN(value) ? this.basePrice : value;
+                                },
+                                get currentPrice() {
+                                    return this.hasActiveSale
+                                        ? this.calculateDiscountedPrice(this.currentOriginalPrice)
+                                        : this.currentOriginalPrice;
+                                },
+                                get originalPrice() {
+                                    return this.hasActiveSale ? this.currentOriginalPrice : null;
                                 },
                                 get currentLabel() {
                                     return this.currentOption ? this.currentOption.label : null;
                                 },
                                 get formattedPrice() {
-                                    return '$' + this.currentPrice.toFixed(2);
+                                    return this.formatCurrency(this.currentPrice);
+                                },
+                                get formattedOriginalPrice() {
+                                    return this.originalPrice !== null ? this.formatCurrency(this.originalPrice) : '';
+                                },
+                                optionOriginalPrice(option) {
+                                    const numericPrice = parseFloat(option?.price);
+                                    return Number.isNaN(numericPrice) ? this.basePrice : numericPrice;
+                                },
+                                optionSalePrice(option) {
+                                    return this.calculateDiscountedPrice(this.optionOriginalPrice(option));
+                                },
+                                formattedOptionOriginalPrice(option) {
+                                    return this.formatCurrency(this.optionOriginalPrice(option));
+                                },
+                                formattedOptionSalePrice(option) {
+                                    return this.formatCurrency(this.optionSalePrice(option));
                                 },
                                 async addToCart(itemId) {
                                     if (this.adding) return;
@@ -478,7 +531,12 @@
                                                 <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ $meal->menuCategory->name }}</span>
                                             </div>
                                         </a>
-                                        <span class="shrink-0 font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">${{ number_format($meal->price, 2) }}</span>
+                                        <div class="shrink-0 text-right whitespace-nowrap">
+                                            <div class="flex items-center justify-end gap-2">
+                                                <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>
+                                                <span class="font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">${{ number_format($meal->price, 2) }}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                     @if($meal->description)
                                         <p class="text-sm text-gray-500 font-medium line-clamp-2 mt-2 break-words">{{ $meal->description }}</p>
@@ -494,7 +552,8 @@
                                                     class="px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all"
                                                     :class="selectedIndex === idx ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'">
                                                 <span x-text="opt.label"></span>
-                                                <span class="ml-1 opacity-80" x-text="'• $' + parseFloat(opt.price).toFixed(2)"></span>
+                                                <span x-show="hasActiveSale" x-cloak class="ml-1 text-[10px] text-gray-400 line-through" x-text="formattedOptionOriginalPrice(opt)"></span>
+                                                <span class="ml-1 opacity-80" :class="hasActiveSale ? 'font-bold text-emerald-500 opacity-100' : ''" x-text="hasActiveSale ? formattedOptionSalePrice(opt) : formattedOptionOriginalPrice(opt)"></span>
                                             </button>
                                         </template>
                                     </div>

@@ -47,6 +47,7 @@ class BrowseController extends Controller
                         'is_on_sale'      => $meal->is_on_sale,
                         'sale_price'      => $meal->sale_price !== null ? number_format($meal->sale_price, 2) : null,
                         'raw_sale_price'  => $meal->sale_price,
+                        'discount_percentage' => $meal->saleDiscountPercentage(),
                         'image'           => $meal->image ? asset('storage/' . $meal->image) : null,
                         'category_name'   => $meal->menuCategory->name ?? '',
                         'restaurant_id'   => $meal->menuCategory->restaurant->id ?? null,

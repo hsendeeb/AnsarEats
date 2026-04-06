@@ -32,6 +32,21 @@ class HomeController extends Controller
             }
         );
 
+        $globeRestaurants = PerformanceCache::remember(
+            'home',
+            'globe-restaurants:user:'.($authUserId ?? 'guest'),
+            now()->addSeconds(config('performance.cache_ttl.home')),
+            function () use ($authUserId) {
+                $query = Restaurant::query()->where('is_open', true);
+
+                if ($authUserId) {
+                    $query->where('user_id', '!=', $authUserId);
+                }
+
+                return $query->latest()->get();
+            }
+        );
+
         $trendingMeals = PerformanceCache::remember(
             'home',
             'trending-meals',
@@ -45,6 +60,6 @@ class HomeController extends Controller
                 ->get()
         );
 
-        return view('home', compact('restaurants', 'trendingMeals'));
+        return view('home', compact('restaurants', 'globeRestaurants', 'trendingMeals'));
     }
 }

@@ -1,6 +1,34 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    .scroll-reveal {
+        opacity: 0;
+        transform: translate3d(0, var(--reveal-distance, 36px), 0) scale(0.985);
+        filter: blur(8px);
+        transition-property: opacity, transform, filter;
+        transition-duration: var(--reveal-duration, 700ms);
+        transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+        transition-delay: var(--reveal-delay, 0ms);
+        will-change: opacity, transform, filter;
+    }
+
+    .scroll-reveal.is-visible {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .scroll-reveal,
+        .scroll-reveal.is-visible {
+            opacity: 1;
+            transform: none;
+            filter: none;
+            transition: none;
+        }
+    }
+</style>
 <div class="relative bg-white dark:bg-gray-900 transition-colors pt-6 md:pt-8 pb-32 overflow-x-clip z-[30]" x-data="{ 
     activeLottie: 0,
     animations: [
@@ -19,7 +47,10 @@
     <div class="container mx-auto px-4 relative z-10">
         <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
             <!-- Left Content -->
-            <div class="w-full lg:w-1/2 text-center lg:text-left">
+            <div class="w-full lg:w-1/2 text-center lg:text-left scroll-reveal"
+                 x-data="scrollReveal(0, 26)"
+                 x-intersect.once.margin.-100px.0.0.0="reveal()"
+                 :class="{ 'is-visible': shown }">
                 
                 
                 <h1 class="text-5xl md:text-7xl lg:text-8xl font-black outfit text-gray-900 leading-[0.9] tracking-tighter mb-8">
@@ -161,7 +192,10 @@
             </div>
 
             <!-- Right Visual (Lottie Slideshow) -->
-            <div class="hidden w-full lg:flex lg:w-1/2 relative items-center justify-center">
+            <div class="hidden w-full lg:flex lg:w-1/2 relative items-center justify-center scroll-reveal"
+                 x-data="scrollReveal(140, 42)"
+                 x-intersect.once.margin.-100px.0.0.0="reveal()"
+                 :class="{ 'is-visible': shown }">
                 <div class="relative w-[350px] md:w-[500px] h-[350px] md:h-[500px]">
                     <!-- Main Animation Wrapper -->
                     <div class="w-full h-full p-8 md:p-12 bg-white rounded-[4rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] border border-gray-50 relative z-10 flex items-center justify-center group">
@@ -205,7 +239,10 @@
 <section class="pt-8 pb-20 bg-gray-50 relative z-20">
     <div class="container mx-auto px-4">
         <!-- Browse By Category Section -->
-        <div class="mb-20">
+        <div class="mb-20 scroll-reveal"
+             x-data="scrollReveal(0, 30)"
+             x-intersect.once.margin.-80px.0.0.0="reveal()"
+             :class="{ 'is-visible': shown }">
             <div class="flex flex-wrap justify-between items-end mb-10 px-4">
                 <div>
                     <h2 class="text-4xl outfit font-black text-gray-900 tracking-tight">Browse by Category</h2>
@@ -277,7 +314,12 @@
             </div>
         </div>
 
-        <div class="flex flex-wrap justify-between items-end mb-12 px-4">
+        @include('partials.restaurant-globe', ['restaurants' => $globeRestaurants ?? $restaurants ?? collect()])
+
+        <div class="mt-24 flex flex-wrap justify-between items-end mb-12 px-4 scroll-reveal"
+             x-data="scrollReveal(0, 24)"
+             x-intersect.once.margin.-80px.0.0.0="reveal()"
+             :class="{ 'is-visible': shown }">
             <div>
                 <h2 class="text-4xl outfit font-black text-gray-900 tracking-tight">Trending Spots</h2>
                 <div class="w-24 h-2 bg-emerald-500 rounded-full mt-2"></div>
@@ -290,7 +332,10 @@
 
         <div class="flex flex-wrap">
             @forelse($restaurants ?? [] as $restaurant)
-                <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-10 group">
+                <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-10 group scroll-reveal"
+                     x-data="scrollReveal({{ ($loop->index % 3) * 90 }}, 34)"
+                     x-intersect.once.margin.-60px.0.0.0="reveal()"
+                     :class="{ 'is-visible': shown }">
                     <a href="{{ route('restaurant.show', $restaurant) }}" class="block h-full relative">
                         <div class="relative flex flex-col min-w-0 break-words bg-white w-full h-full shadow-md hover:shadow-2xl rounded-3xl transition-all duration-300 transform group-hover:-translate-y-2 border border-gray-100 overflow-hidden">
                             <!-- Image -->
@@ -341,7 +386,10 @@
                     </a>
                 </div>
             @empty
-                <div class="w-full py-20 text-center">
+                <div class="w-full py-20 text-center scroll-reveal"
+                     x-data="scrollReveal(80, 30)"
+                     x-intersect.once.margin.-60px.0.0.0="reveal()"
+                     :class="{ 'is-visible': shown }">
                     <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-emerald-100 text-emerald-500 mb-6 group hover:rotate-12 transition-transform">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                     </div>
@@ -353,7 +401,10 @@
             @endforelse
         </div>
 
-        <div class="mt-8 flex justify-center lg:hidden">
+        <div class="mt-8 flex justify-center lg:hidden scroll-reveal"
+             x-data="scrollReveal(120, 22)"
+             x-intersect.once.margin.-60px.0.0.0="reveal()"
+             :class="{ 'is-visible': shown }">
             <a href="{{ route('restaurants.index') }}" class="inline-flex items-center gap-2 px-8 py-4 bg-white border border-gray-200 text-gray-900 font-black rounded-2xl shadow-sm hover:bg-gray-50 transition-all active:scale-95 group">
                 <span>View All Spots</span>
                 <svg class="w-5 h-5 text-emerald-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
@@ -363,7 +414,10 @@
         <!-- Trending Meals Section -->
         @if(isset($trendingMeals) && $trendingMeals->count() > 0)
         <div class="mt-32">
-            <div class="flex flex-wrap justify-between items-end mb-12 px-4">
+            <div class="flex flex-wrap justify-between items-end mb-12 px-4 scroll-reveal"
+                 x-data="scrollReveal(0, 24)"
+                 x-intersect.once.margin.-80px.0.0.0="reveal()"
+                 :class="{ 'is-visible': shown }">
                 <div>
                     <h2 class="text-4xl outfit font-black text-gray-900 tracking-tight">Most Loved Meals</h2>
                     <div class="w-24 h-2 bg-emerald-500 rounded-full mt-2"></div>
@@ -372,7 +426,11 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($trendingMeals as $meal)
-                    <div class="group" id="browse-card-[homemeal]-{{ $meal->id }}">
+                    <div class="group scroll-reveal"
+                         id="browse-card-[homemeal]-{{ $meal->id }}"
+                         x-data="scrollReveal({{ ($loop->index % 3) * 100 }}, 30)"
+                         x-intersect.once.margin.-60px.0.0.0="reveal()"
+                         :class="{ 'is-visible': shown }">
                         <div class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow relative overflow-hidden h-full"
                              x-data="{
                                 adding: false,
@@ -593,6 +651,7 @@
         @if(!auth()->check() || !auth()->user()->restaurant)
         <div class="mt-28 w-full" x-data="{
             hasCounted: false,
+            revealed: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
             menuReady: 0,
             reach: 0,
             profileProgress: 0,
@@ -615,8 +674,16 @@
                 this.animateCounter('menuReady', 48, 1400);
                 this.animateCounter('reach', 320, 1600);
                 this.animateCounter('profileProgress', 88, 1500);
+            },
+            revealSection() {
+                this.revealed = true;
+                this.startCounters();
             }
-        }" x-intersect.once="startCounters()">
+        }"
+        x-intersect.once.margin.-80px.0.0.0="revealSection()"
+        class="scroll-reveal"
+        style="--reveal-delay: 40ms; --reveal-distance: 34px;"
+        :class="{ 'is-visible': revealed }">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center rounded-[2.5rem] border border-emerald-100 bg-white shadow-[0_30px_80px_-30px_rgba(16,185,129,0.25)] overflow-hidden">
                 <div class="p-8 md:p-12 lg:p-14">
                     <p class="text-xs font-black uppercase tracking-[0.35em] text-emerald-500 mb-4">Partner With Us</p>
@@ -717,4 +784,27 @@
     </div>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('alpine:init', () => {
+        if (window.homeScrollRevealRegistered) {
+            return;
+        }
+
+        window.homeScrollRevealRegistered = true;
+
+        Alpine.data('scrollReveal', (delay = 0, distance = 36) => ({
+            shown: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+            init() {
+                this.$el.style.setProperty('--reveal-delay', `${delay}ms`);
+                this.$el.style.setProperty('--reveal-distance', `${distance}px`);
+            },
+            reveal() {
+                this.shown = true;
+            },
+        }));
+    });
+</script>
+@endpush
 

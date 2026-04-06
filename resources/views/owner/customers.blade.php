@@ -132,7 +132,7 @@
                                                   onsubmit="return confirm('Unblock {{ addslashes($customer->name) }} and allow them to order from your restaurant again?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-black text-white shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-400">
+                                                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-black text-white  transition-all hover:bg-emerald-400">
                                                     <x-heroicon-o-check-circle class="w-4 h-4" />
                                                     Unblock Customer
                                                 </button>
@@ -143,7 +143,7 @@
                                                   class="inline-block"
                                                   onsubmit="return confirm('Block {{ addslashes($customer->name) }} from ordering from your restaurant?');">
                                                 @csrf
-                                                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-4 py-2 text-sm font-black text-white shadow-lg shadow-red-500/20 transition-all hover:bg-red-400">
+                                                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-4 py-2 text-sm font-black text-white 0 transition-all hover:bg-red-400">
                                                     <x-heroicon-o-x-circle class="w-4 h-4" />
                                                   
                                                 </button>

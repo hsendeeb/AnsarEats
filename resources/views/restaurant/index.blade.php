@@ -227,7 +227,7 @@
 
 @push('scripts')
 <script>
-    function restaurantLocationFilter(locations) {
+    window.restaurantLocationFilter = function(locations) {
         return {
             open: false,
             search: '',
@@ -270,6 +270,6 @@
                 return url.toString();
             },
         };
-    }
+    };
 </script>
 @endpush

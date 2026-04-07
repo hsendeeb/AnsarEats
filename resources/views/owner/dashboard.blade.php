@@ -324,7 +324,7 @@
             <!-- Categories & Items List -->
             <div class="space-y-8">
                 @foreach($restaurant->menuCategories as $category)
-                    <div class="relative bg-white rounded-3xl border border-gray-100 overflow-visible" x-data="{ open: true, actionsOpen: false }">
+                    <div class="relative bg-white rounded-3xl border border-gray-100 overflow-visible" :class="actionsOpen ? 'z-[110]' : 'z-0'" x-data="{ open: true, actionsOpen: false }">
                         <div class="relative z-10 w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors">
                             <div class="flex items-center gap-4 cursor-pointer" @click="open = !open">
                                 <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-indigo-500/20">
@@ -355,7 +355,7 @@
                                         x-transition:leave="transition ease-in duration-150"
                                         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                                         x-transition:leave-end="opacity-0 scale-95 translate-y-1"
-                                        class="absolute right-0 top-full mt-2 w-52 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden z-30"
+                                        class="absolute right-0 top-full mt-2 w-52 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden z-[120]"
                                         x-cloak
                                     >
                                         <form method="POST" action="{{ route('owner.category.toggle-visibility', $category) }}" class="w-full">

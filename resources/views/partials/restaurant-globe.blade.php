@@ -13,9 +13,9 @@
 @endphp
 
 <section class="mt-16 sm:mt-20 lg:mt-24">
-    <div class="mx-auto grid max-w-6xl items-center gap-8 px-4 md:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] md:gap-10 lg:gap-12">
-        <div class="max-w-2xl">
-            <h2 class="text-center text-3xl font-black leading-tight text-gray-900 outfit sm:text-5xl md:text-left lg:text-6xl">
+    <div class="mx-auto grid max-w-6xl gap-8 px-4 md:gap-10 lg:grid-cols-2 lg:items-center lg:gap-12">
+        <div class="flex h-full items-center">
+            <h2 class="w-full text-center text-3xl font-black leading-tight text-gray-900 outfit sm:text-5xl lg:text-left lg:text-6xl">
                 Land on your next favorite restaurant.
             </h2>
         </div>
@@ -26,7 +26,7 @@
            
             <div
                 id="home-restaurant-globe"
-                class="relative h-[28rem] w-full overflow-hidden rounded-[1.7rem] sm:h-[34rem] sm:rounded-[2rem] md:h-[40rem] lg:h-[44rem] lg:rounded-[2.25rem]"
+                class="relative h-[32rem] w-full overflow-hidden rounded-[1.7rem] sm:h-[38rem] sm:rounded-[2rem] md:h-[44rem] lg:h-[48rem] lg:rounded-[2.25rem]"
                 data-restaurants='@json($globeRestaurantsPayload)'
             >
                 <div class="flex h-full items-center justify-center text-sm font-bold text-slate-300/70">

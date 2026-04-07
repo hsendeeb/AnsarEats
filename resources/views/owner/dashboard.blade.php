@@ -131,7 +131,7 @@
 
             <div id="dashboard-live-sections">
             <!-- Analytics Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-6 mb-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-10">
                 <!-- Total Revenue -->
                 <div class="bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
@@ -324,8 +324,8 @@
             <!-- Categories & Items List -->
             <div class="space-y-8">
                 @foreach($restaurant->menuCategories as $category)
-                    <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden" x-data="{ open: true }">
-                        <div class="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors">
+                    <div class="relative bg-white rounded-3xl border border-gray-100 overflow-visible" x-data="{ open: true, actionsOpen: false }">
+                        <div class="relative z-10 w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors">
                             <div class="flex items-center gap-4 cursor-pointer" @click="open = !open">
                                 <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-indigo-500/20">
                                     {{ substr($category->name, 0, 1) }}
@@ -336,27 +336,60 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-3">
-                                <form method="POST" action="{{ route('owner.category.toggle-visibility', $category) }}" class="inline">
-                                    @csrf
-                                    <button type="submit" class="p-2 transition-colors {{ $category->is_visible ? 'text-emerald-500 hover:text-emerald-600 bg-emerald-50 rounded-lg' : 'text-gray-400 hover:text-gray-600' }}" title="{{ $category->is_visible ? 'Visible on menu' : 'Hidden from menu' }}">
-                                        @if($category->is_visible)
-                                            <x-heroicon-o-eye class="w-5 h-5" />
-                                        @else
-                                            <x-heroicon-o-eye-slash class="w-5 h-5" />
-                                        @endif
+                                <div class="relative" @click.away="actionsOpen = false">
+                                    <button
+                                        type="button"
+                                        @click.stop="actionsOpen = !actionsOpen"
+                                        class="w-10 h-10 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 flex items-center justify-center transition-colors"
+                                        title="More category actions"
+                                        aria-label="More category actions"
+                                    >
+                                        <x-heroicon-s-ellipsis-horizontal class="w-5 h-5" />
                                     </button>
-                                </form>
-                                <button @click="editingCategory = { id: {{ $category->id }}, name: '{{ addslashes($category->name) }}' }; showEditCategoryModal = true" class="p-2 text-gray-400 hover:text-indigo-600 transition-colors" title="Edit Category">
-                                    <x-heroicon-o-pencil-square class="w-5 h-5" />
+
+                                    <div
+                                        x-show="actionsOpen"
+                                        x-transition:enter="transition ease-out duration-200"
+                                        x-transition:enter-start="opacity-0 scale-95 translate-y-1"
+                                        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                        x-transition:leave="transition ease-in duration-150"
+                                        x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                        x-transition:leave-end="opacity-0 scale-95 translate-y-1"
+                                        class="absolute right-0 top-full mt-2 w-52 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden z-30"
+                                        x-cloak
+                                    >
+                                        <form method="POST" action="{{ route('owner.category.toggle-visibility', $category) }}" class="w-full">
+                                            @csrf
+                                            <button type="submit" @click="actionsOpen = false" class="w-full px-4 py-3 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors flex items-center gap-2">
+                                                @if($category->is_visible)
+                                                    <x-heroicon-o-eye-slash class="w-4 h-4" />
+                                                    Hide Category
+                                                @else
+                                                    <x-heroicon-o-eye class="w-4 h-4" />
+                                                    Show Category
+                                                @endif
+                                            </button>
+                                        </form>
+
+                                        <button type="button" @click="editingCategory = { id: {{ $category->id }}, name: '{{ addslashes($category->name) }}' }; showEditCategoryModal = true; actionsOpen = false" class="w-full px-4 py-3 text-left text-sm font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center gap-2">
+                                            <x-heroicon-o-pencil-square class="w-4 h-4" />
+                                            Edit Category
+                                        </button>
+
+                                        <form method="POST" action="{{ route('owner.category.destroy', $category) }}" class="w-full">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" onclick="return confirm('Delete this category and all its items?')" @click="actionsOpen = false" class="w-full px-4 py-3 text-left text-sm font-bold text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2">
+                                                <x-heroicon-o-trash class="w-4 h-4" />
+                                                Delete Category
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <button type="button" @click="open = !open" class="w-10 h-10 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 flex items-center justify-center transition-colors" title="Toggle category">
+                                    <x-heroicon-o-chevron-down :class="open ? 'rotate-180' : ''" class="w-5 h-5 transition-transform" />
                                 </button>
-                                <form method="POST" action="{{ route('owner.category.destroy', $category) }}" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" onclick="return confirm('Delete this category and all its items?')" class="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Delete Category">
-                                        <x-heroicon-o-trash class="w-5 h-5" />
-                                    </button>
-                                </form>
-                                <x-heroicon-o-chevron-down @click="open = !open" :class="open ? 'rotate-180' : ''" class="w-5 h-5 text-gray-400 transition-transform cursor-pointer" />
                             </div>
                         </div>
                         

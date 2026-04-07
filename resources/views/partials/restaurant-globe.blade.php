@@ -20,10 +20,7 @@
             </h2>
         </div>
 
-        <div class="relative overflow-hidden rounded-[2rem] bg-[#04111f] p-1.5 sm:rounded-[2.4rem] sm:p-2.5 lg:rounded-[2.75rem] lg:p-3">
-            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(125,211,252,0.28),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(16,185,129,0.18),_transparent_28%),linear-gradient(135deg,_rgba(2,6,23,0.92),_rgba(6,23,41,0.98))]"></div>
-           
-           
+        <div class="relative overflow-hidden rounded-[2rem] p-1.5 sm:rounded-[2.4rem] sm:p-2.5 lg:rounded-[2.75rem] lg:p-3">
             <div
                 id="home-restaurant-globe"
                 class="relative h-[32rem] w-full overflow-hidden rounded-[1.7rem] sm:h-[38rem] sm:rounded-[2rem] md:h-[44rem] lg:h-[48rem] lg:rounded-[2.25rem]"
@@ -67,7 +64,7 @@
 
                 const scene = new THREE.Scene();
                 const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 1000);
-                camera.position.set(0, 1.2, 15.5);
+                camera.position.set(0, 1.1, 19);
 
                 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
                 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -84,8 +81,8 @@
                 controls.enableDamping = true;
                 controls.dampingFactor = 0.065;
                 controls.rotateSpeed = 0.7;
-                controls.minDistance = 10;
-                controls.maxDistance = 23;
+                controls.minDistance = 14;
+                controls.maxDistance = 28;
                 controls.autoRotate = restaurants.length > 0;
                 controls.autoRotateSpeed = 0.45;
 
@@ -226,8 +223,9 @@
 
                     renderer.setSize(clientWidth, clientHeight, false);
                     camera.aspect = clientWidth / clientHeight;
-                    camera.position.set(0, clientWidth < 640 ? 1.35 : 1.2, clientWidth < 640 ? 17.2 : clientWidth < 1024 ? 16.2 : 15.5);
+                    camera.position.set(0, clientWidth < 640 ? 1.2 : 1.1, clientWidth < 640 ? 21 : clientWidth < 1024 ? 20 : 19);
                     camera.updateProjectionMatrix();
+                    controls.update();
                 }
 
                 function updatePointer(event) {

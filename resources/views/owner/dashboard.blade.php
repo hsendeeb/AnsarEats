@@ -933,6 +933,13 @@
                     const value = parseFloat(this.discountPercentage);
                     return Number.isNaN(value) ? null : value;
                 },
+                formatDiscountLabel() {
+                    return `${(this.parsedDiscount() ?? 0).toFixed(2)}% off`;
+                },
+                formatMoney(value) {
+                    const numericValue = parseFloat(value);
+                    return `$${(Number.isNaN(numericValue) ? 0 : numericValue).toFixed(2)}`;
+                },
                 calculateDiscountedPrice(price) {
                     const numericPrice = parseFloat(price);
                     const percentage = this.parsedDiscount();
@@ -1036,12 +1043,12 @@
                         <div x-show="parsedDiscount() !== null" x-cloak class="space-y-2 rounded-xl border border-emerald-200 bg-white/80 p-3">
                             <div class="flex items-center justify-between text-[11px] font-bold text-emerald-700">
                                 <span>Live Preview</span>
-                                <span x-text="`${parsedDiscount().toFixed(2)}% off`"></span>
+                                <span x-text="formatDiscountLabel()"></span>
                             </div>
                             <div class="flex items-center justify-between text-sm">
                                 <span class="font-medium text-gray-600">Base item</span>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-gray-400 line-through" x-show="basePrice !== ''" x-text="'$' + parseFloat(basePrice || 0).toFixed(2)"></span>
+                                    <span class="text-gray-400 line-through" x-show="basePrice !== ''" x-text="formatMoney(basePrice)"></span>
                                     <span class="font-black text-emerald-600" x-show="basePrice !== ''" x-text="'$' + calculateDiscountedPrice(basePrice)"></span>
                                 </div>
                             </div>
@@ -1050,7 +1057,7 @@
                                     <div class="flex items-center justify-between text-sm">
                                         <span class="font-medium text-gray-600" x-text="variant.name"></span>
                                         <div class="flex items-center gap-2">
-                                            <span class="text-gray-400 line-through" x-text="'$' + parseFloat(variant.price).toFixed(2)"></span>
+                                            <span class="text-gray-400 line-through" x-text="formatMoney(variant.price)"></span>
                                             <span class="font-bold text-emerald-600" x-text="'$' + calculateDiscountedPrice(variant.price)"></span>
                                         </div>
                                     </div>
@@ -1215,6 +1222,13 @@
                     const value = parseFloat(this.editDiscountPercentage);
                     return Number.isNaN(value) ? null : value;
                 },
+                formatEditDiscountLabel() {
+                    return `${(this.parsedEditDiscount() ?? 0).toFixed(2)}% off`;
+                },
+                formatEditMoney(value) {
+                    const numericValue = parseFloat(value);
+                    return `$${(Number.isNaN(numericValue) ? 0 : numericValue).toFixed(2)}`;
+                },
                 calculateEditDiscountedPrice(price) {
                     const numericPrice = parseFloat(price);
                     const percentage = this.parsedEditDiscount();
@@ -1319,12 +1333,12 @@
                         <div x-show="parsedEditDiscount() !== null" x-cloak class="space-y-2 rounded-xl border border-emerald-200 bg-white/80 p-3">
                             <div class="flex items-center justify-between text-[11px] font-bold text-emerald-700">
                                 <span>Live Preview</span>
-                                <span x-text="`${parsedEditDiscount().toFixed(2)}% off`"></span>
+                                <span x-text="formatEditDiscountLabel()"></span>
                             </div>
                             <div class="flex items-center justify-between text-sm">
                                 <span class="font-medium text-gray-600">Base item</span>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-gray-400 line-through" x-show="editingMenuItem.price !== ''" x-text="'$' + parseFloat(editingMenuItem.price || 0).toFixed(2)"></span>
+                                    <span class="text-gray-400 line-through" x-show="editingMenuItem.price !== ''" x-text="formatEditMoney(editingMenuItem.price)"></span>
                                     <span class="font-black text-emerald-600" x-show="editingMenuItem.price !== ''" x-text="'$' + calculateEditDiscountedPrice(editingMenuItem.price)"></span>
                                 </div>
                             </div>
@@ -1333,7 +1347,7 @@
                                     <div class="flex items-center justify-between text-sm">
                                         <span class="font-medium text-gray-600" x-text="variant.name"></span>
                                         <div class="flex items-center gap-2">
-                                            <span class="text-gray-400 line-through" x-text="'$' + parseFloat(variant.price).toFixed(2)"></span>
+                                            <span class="text-gray-400 line-through" x-text="formatEditMoney(variant.price)"></span>
                                             <span class="font-bold text-emerald-600" x-text="'$' + calculateEditDiscountedPrice(variant.price)"></span>
                                         </div>
                                     </div>

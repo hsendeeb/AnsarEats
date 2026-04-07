@@ -143,7 +143,7 @@
                                                   class="inline-block"
                                                   onsubmit="return confirm('Block {{ addslashes($customer->name) }} from ordering from your restaurant?');">
                                                 @csrf
-                                                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-4 py-2 text-sm font-black text-white 0 transition-all hover:bg-red-400">
+                                                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-2xl  px-4 py-2 cursor-pointer text-2xl font-black text-red-500 0 transition-all hover:text-red-900">
                                                     <x-heroicon-o-x-circle class="w-4 h-4" />
                                                   
                                                 </button>

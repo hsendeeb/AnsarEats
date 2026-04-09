@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Laravel') }}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/ansareats-logo-v2.svg') }}">
     
     <!-- Alpine.js Plugins (MUST be before core) -->
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
@@ -72,7 +73,7 @@
     @php
         $hasActiveOrders = auth()->check()
             ? \App\Models\Order::where('user_id', auth()->id())
-                ->whereIn('status', ['pending', 'accepted', 'preparing'])
+                ->whereIn('status', ['pending', 'accepted', 'preparing', 'out_for_delivery'])
                 ->exists()
             : false;
         $hasRestaurant = auth()->check() && auth()->user()->restaurant;
@@ -94,9 +95,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20">
                 <div class="flex items-center">
-                    <a href="{{ url('/') }}" class="flex items-center  group">
-                        <div class="w-24 h-24 flex items-center justify-center transform group-hover:scale-110 transition-all duration-300">
-                            <dotlottie-player src="https://lottie.host/87132d2c-ba34-4710-a301-28e49f292ac0/zItpws4UYi.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
+                    <a href="{{ url('/') }}" class="flex items-center group gap-1.5">
+                        <div class="w-14 h-14 flex items-center justify-center transform group-hover:scale-105 transition-all duration-300">
+                            <img src="{{ asset('images/brand/ansareats-logo-v2.svg') }}" alt="AnsarEats logo" class="w-full h-full" width="56" height="56">
                         </div>
                         <span class="font-extrabold text-2xl outfit text-gray-900 group-hover:text-emerald-500 tracking-tight transition-colors">AnsarEats</span>
                     </a>
@@ -104,7 +105,7 @@
                     <div class="hidden lg:flex items-center ml-10 space-x-8">
                         <a href="{{ route('restaurants.index') }}" class="text-sm font-bold text-gray-600 hover:text-emerald-500 transition-colors uppercase tracking-widest">Explore</a>
                         @if(! $hasRestaurant)
-                            <a href="{{ route('partner.with.us') }}" class="font-bold px-6 py-2.5 rounded-full text-black transition-all">Partner with us</a>
+                            <a href="{{ route('partner.with.us') }}" class="text-sm font-bold text-gray-600 hover:text-emerald-500 transition-colors uppercase tracking-widest">Partner with us</a>
                         @endif
                     </div>
                 </div>
@@ -337,7 +338,12 @@
 
                     <!-- Mobile Menu Button -->
                     <button @click="mobileMenuOpen = true" class="md:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-emerald-500 transition-all active:scale-90">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                        <span class="relative inline-flex">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                            @if($hasActiveOrders)
+                                <span class="absolute right-0 top-0 block h-2 w-2 -translate-y-1/4 translate-x-1/4 rounded-full bg-emerald-500"></span>
+                            @endif
+                        </span>
                     </button>
                 </div>
             </div>
@@ -370,8 +376,8 @@
                     <!-- Header -->
                     <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-br from-gray-50 to-white">
                         <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 flex items-center justify-center">
-                                <dotlottie-player src="https://lottie.host/87132d2c-ba34-4710-a301-28e49f292ac0/zItpws4UYi.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
+                            <div class="w-11 h-11 flex items-center justify-center">
+                                <img src="{{ asset('images/brand/ansareats-logo-v2.svg') }}" alt="AnsarEats logo" class="w-full h-full" width="44" height="44">
                             </div>
                             <span class="font-black text-2xl outfit text-gray-900">AnsarEats</span>
                         </div>
@@ -649,7 +655,7 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12 border-b border-gray-800/80 pb-12">
                 <div class="col-span-1 md:col-span-1">
                     <div class="flex items-center gap-2 mb-6">
-                        <svg class="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <img src="{{ asset('images/brand/ansareats-logo-v2.svg') }}" alt="AnsarEats logo" class="w-8 h-8" width="32" height="32">
                         <span class="font-extrabold text-3xl outfit text-white tracking-tight">AnsarEats</span>
                     </div>
                     <p class="text-gray-400 font-medium text-sm mb-6">Connecting you with the best restaurants, bakeries, and markets. Fresh food delivered to your doorstep in minutes.</p>

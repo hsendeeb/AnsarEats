@@ -100,6 +100,7 @@
         <meta name="robots" content="noindex">
 
         <title>{{ $title }} | {{ $brand }}</title>
+        <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/ansareats-logo-v2.svg') }}">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

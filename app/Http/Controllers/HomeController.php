@@ -37,13 +37,15 @@ class HomeController extends Controller
             'globe-restaurants:user:'.($authUserId ?? 'guest'),
             now()->addSeconds(config('performance.cache_ttl.home')),
             function () use ($authUserId) {
-                $query = Restaurant::query()->where('is_open', true);
+                $query = Restaurant::query()
+                    ->orderByDesc('is_open')
+                    ->latest();
 
                 if ($authUserId) {
                     $query->where('user_id', '!=', $authUserId);
                 }
 
-                return $query->latest()->get();
+                return $query->get();
             }
         );
 

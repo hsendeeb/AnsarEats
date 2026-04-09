@@ -223,7 +223,7 @@
 
                     renderer.setSize(clientWidth, clientHeight, false);
                     camera.aspect = clientWidth / clientHeight;
-                    camera.position.set(0, clientWidth < 640 ? 1.2 : 1.1, clientWidth < 640 ? 21 : clientWidth < 1024 ? 20 : 19);
+                    camera.position.set(0, clientWidth < 640 ? 1.2 : 1.1, clientWidth < 640 ? 22 : clientWidth < 1024 ? 20 : 19);
                     camera.updateProjectionMatrix();
                     controls.update();
                 }

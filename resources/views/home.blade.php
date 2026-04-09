@@ -330,76 +330,199 @@
             </a>
         </div>
 
-        <div class="flex flex-wrap">
-            @forelse($restaurants ?? [] as $restaurant)
-                <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-10 group scroll-reveal"
-                     x-data="scrollReveal({{ ($loop->index % 3) * 90 }}, 34)"
-                     x-intersect.once.margin.-60px.0.0.0="reveal()"
-                     :class="{ 'is-visible': shown }">
-                    <a href="{{ route('restaurant.show', $restaurant) }}" class="block h-full relative">
-                        <div class="relative flex flex-col min-w-0 break-words bg-white w-full h-full shadow-md hover:shadow-2xl rounded-3xl transition-all duration-300 transform group-hover:-translate-y-2 border border-gray-100 overflow-hidden">
-                            <!-- Image -->
-                            <div class="h-48 relative overflow-hidden bg-gray-100 flex items-center justify-center">
-                        
-                               @if($restaurant->logo)
-                                    <img alt="{{ $restaurant->name }}" src="{{ Storage::url($restaurant->logo) }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out"/>
-                                @else
-                                    <div class="w-full h-full bg-gradient-to-br from-emerald-400 via-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-6xl outfit opacity-80 group-hover:scale-110 transition-transform duration-700 ease-in-out">
-                                        {{ substr($restaurant->name, 0, 1) }}
+        @if(($restaurants ?? collect())->isNotEmpty())
+            <div class="md:hidden px-4 overflow-hidden scroll-reveal"
+                 x-data="{
+                    shown: false,
+                    isInteracting: false,
+                    animationFrame: null,
+                    reveal() { this.shown = true; },
+                    initTrendingSpotsMarquee() {
+                        const viewport = this.$refs.trendingViewport;
+                        const track = this.$refs.trendingTrack;
+
+                        if (!viewport || !track) {
+                            return;
+                        }
+
+                        const getLoopWidth = () => track.scrollWidth / 2;
+                        let lastTimestamp = null;
+
+                        const tick = (timestamp) => {
+                            if (lastTimestamp === null) {
+                                lastTimestamp = timestamp;
+                            }
+
+                            const delta = timestamp - lastTimestamp;
+                            lastTimestamp = timestamp;
+
+                            if (!this.isInteracting) {
+                                viewport.scrollLeft += delta * 0.03;
+                                const loopWidth = getLoopWidth();
+
+                                if (loopWidth > 0 && viewport.scrollLeft >= loopWidth) {
+                                    viewport.scrollLeft -= loopWidth;
+                                }
+                            }
+
+                            this.animationFrame = requestAnimationFrame(tick);
+                        };
+
+                        const pause = () => {
+                            this.isInteracting = true;
+                        };
+
+                        const resume = () => {
+                            this.isInteracting = false;
+                            const loopWidth = getLoopWidth();
+
+                            if (loopWidth > 0 && viewport.scrollLeft >= loopWidth) {
+                                viewport.scrollLeft -= loopWidth;
+                            }
+                        };
+
+                        viewport.addEventListener('pointerdown', pause);
+                        viewport.addEventListener('pointerup', resume);
+                        viewport.addEventListener('pointercancel', resume);
+                        viewport.addEventListener('touchstart', pause, { passive: true });
+                        viewport.addEventListener('touchend', resume);
+                        viewport.addEventListener('scroll', () => {
+                            const loopWidth = getLoopWidth();
+
+                            if (loopWidth > 0 && viewport.scrollLeft >= loopWidth) {
+                                viewport.scrollLeft -= loopWidth;
+                            }
+                        }, { passive: true });
+
+                        this.animationFrame = requestAnimationFrame(tick);
+                    }
+                 }"
+                 x-init="initTrendingSpotsMarquee()"
+                 x-intersect.once.margin.-60px.0.0.0="reveal()"
+                 :class="{ 'is-visible': shown }">
+                <div x-ref="trendingViewport"
+                     class="overflow-x-auto no-scrollbar"
+                     style="-webkit-overflow-scrolling: touch; scroll-behavior: auto; touch-action: pan-x; cursor: grab;">
+                    <div x-ref="trendingTrack"
+                         class="flex items-stretch gap-4"
+                         style="width: max-content; flex-wrap: nowrap;">
+                        @for($duplicate = 0; $duplicate < 2; $duplicate++)
+                            @foreach($restaurants ?? [] as $restaurant)
+                                <div class="shrink-0 pb-2" style="width: min(84vw, 24rem);">
+                                    <a href="{{ route('restaurant.show', $restaurant) }}" class="block h-full relative">
+                                        <div class="relative flex h-full flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-md transition-all duration-300">
+                                            <div class="relative flex h-48 items-center justify-center overflow-hidden bg-gray-100">
+                                                @if($restaurant->logo)
+                                                    <img alt="{{ $restaurant->name }}" src="{{ Storage::url($restaurant->logo) }}" class="h-full w-full object-cover transition-transform duration-700 ease-in-out"/>
+                                                @else
+                                                    <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-400 via-indigo-500 to-purple-600 text-6xl font-black text-white outfit opacity-80">
+                                                        {{ substr($restaurant->name, 0, 1) }}
+                                                    </div>
+                                                @endif
+                                                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent"></div>
+
+                                                <div class="absolute right-4 top-4">
+                                                    <div class="flex items-center gap-1.5 rounded-full bg-white/90 px-4 py-1.5 text-xs font-bold text-gray-900 shadow-lg backdrop-blur-md">
+                                                        <div class="h-2 w-2 rounded-full {{ $restaurant->isOpenNow() ? 'bg-emerald-500' : 'bg-red-500' }}"></div>
+                                                        {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
+                                                    </div>
+                                                </div>
+
+                                                <div class="absolute bottom-4 left-4 flex items-center gap-2">
+                                                    <div class="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-bold text-gray-900 shadow-lg">
+                                                        <svg class="h-3 w-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                                        @if(($restaurant->ratings_count ?? 0) > 0)
+                                                            {{ number_format($restaurant->ratings_avg_rating ?? 0, 1) }}
+                                                        @else
+                                                            New
+                                                        @endif
+                                                    </div>
+                                                    <div class="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white shadow-lg backdrop-blur-md">
+                                                        {{ $restaurant->menu_categories_count }} Categories
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex-auto p-6">
+                                                <h6 class="mt-2 text-2xl font-black text-gray-900 outfit transition-colors">{{ $restaurant->name }}</h6>
+                                                <p class="mt-2 mb-4 line-clamp-2 font-medium text-gray-500">
+                                                    {{ $restaurant->description ?? 'Amazing food, cooked with perfection and delivered straight to you.' }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            @endforeach
+                        @endfor
+                    </div>
+                </div>
+            </div>
+
+            <div class="hidden md:flex md:flex-wrap">
+                @foreach($restaurants ?? [] as $restaurant)
+                    <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-10 group scroll-reveal"
+                         x-data="scrollReveal({{ ($loop->index % 3) * 90 }}, 34)"
+                         x-intersect.once.margin.-60px.0.0.0="reveal()"
+                         :class="{ 'is-visible': shown }">
+                        <a href="{{ route('restaurant.show', $restaurant) }}" class="block h-full relative">
+                            <div class="relative flex flex-col min-w-0 break-words bg-white w-full h-full shadow-md hover:shadow-2xl rounded-3xl transition-all duration-300 transform group-hover:-translate-y-2 border border-gray-100 overflow-hidden">
+                                <div class="h-48 relative overflow-hidden bg-gray-100 flex items-center justify-center">
+                                    @if($restaurant->logo)
+                                        <img alt="{{ $restaurant->name }}" src="{{ Storage::url($restaurant->logo) }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out"/>
+                                    @else
+                                        <div class="w-full h-full bg-gradient-to-br from-emerald-400 via-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-6xl outfit opacity-80 group-hover:scale-110 transition-transform duration-700 ease-in-out">
+                                            {{ substr($restaurant->name, 0, 1) }}
+                                        </div>
+                                    @endif
+                                    <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent"></div>
+
+                                    <div class="absolute top-4 right-4">
+                                        <div class="bg-white/90 backdrop-blur-md text-gray-900 font-bold px-4 py-1.5 rounded-full text-xs shadow-lg flex items-center gap-1.5">
+                                            <div class="w-2 h-2 rounded-full {{ $restaurant->isOpenNow() ? 'bg-emerald-500' : 'bg-red-500' }}"></div>
+                                            {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
+                                        </div>
                                     </div>
-                                @endif
-                                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent"></div>
-                                
-                                <div class="absolute top-4 right-4">
-                                    <div class="bg-white/90 backdrop-blur-md text-gray-900 font-bold px-4 py-1.5 rounded-full text-xs shadow-lg flex items-center gap-1.5">
-                                        <div class="w-2 h-2 rounded-full {{ $restaurant->isOpenNow() ? 'bg-emerald-500' : 'bg-red-500' }}"></div>
-                                        {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
+
+                                    <div class="absolute bottom-4 left-4 flex items-center gap-2">
+                                        <div class="bg-white text-gray-900 font-bold px-3 py-1 rounded-full text-xs flex items-center gap-1 shadow-lg">
+                                            <svg class="w-3 h-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                            @if(($restaurant->ratings_count ?? 0) > 0)
+                                                {{ number_format($restaurant->ratings_avg_rating ?? 0, 1) }}
+                                            @else
+                                                New
+                                            @endif
+                                        </div>
+                                        <div class="bg-white/20 backdrop-blur-md text-white font-bold px-3 py-1 rounded-full text-xs shadow-lg">
+                                            {{ $restaurant->menu_categories_count }} Categories
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="absolute bottom-4 left-4 flex items-center gap-2">
-                                    <div class="bg-white text-gray-900 font-bold px-3 py-1 rounded-full text-xs flex items-center gap-1 shadow-lg">
-                                        <svg class="w-3 h-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                                        @if(($restaurant->ratings_count ?? 0) > 0)
-                                            {{ number_format($restaurant->ratings_avg_rating ?? 0, 1) }}
-                                        @else
-                                            New
-                                        @endif
-                                    </div>
-                                    <div class="bg-white/20 backdrop-blur-md text-white font-bold px-3 py-1 rounded-full text-xs shadow-lg">
-                                        {{ $restaurant->menu_categories_count }} Categories
-                                    </div>
+                                <div class="flex-auto p-6 relative">
+                                    <h6 class="text-2xl font-black outfit text-gray-900 mt-2 group-hover:text-emerald-500 transition-colors">{{ $restaurant->name }}</h6>
+                                    <p class="mt-2 mb-4 text-gray-500 font-medium line-clamp-2">
+                                        {{ $restaurant->description ?? 'Amazing food, cooked with perfection and delivered straight to you.' }}
+                                    </p>
                                 </div>
                             </div>
-                            
-                            <div class="flex-auto p-6 relative">
-                                <h6 class="text-2xl font-black outfit text-gray-900 mt-2 group-hover:text-emerald-500 transition-colors">{{ $restaurant->name }}</h6>
-                                <p class="mt-2 mb-4 text-gray-500 font-medium line-clamp-2">
-                                    {{ $restaurant->description ?? 'Amazing food, cooked with perfection and delivered straight to you.' }}
-                                </p>
-                                
-                                
-                            
-                            </div>
-                            
-                        </div>
-                    </a>
-                </div>
-            @empty
-                <div class="w-full py-20 text-center scroll-reveal"
-                     x-data="scrollReveal(80, 30)"
-                     x-intersect.once.margin.-60px.0.0.0="reveal()"
-                     :class="{ 'is-visible': shown }">
-                    <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-emerald-100 text-emerald-500 mb-6 group hover:rotate-12 transition-transform">
-                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        </a>
                     </div>
-                    <h3 class="text-3xl font-black outfit text-gray-900 mb-2">No restaurants around yet!</h3>
-                    <p class="text-gray-500 text-lg font-medium">Be the first to partner with us or come back later.</p>
-                    
-                    <a href="{{ route('register') }}" class="inline-block mt-8 font-bold px-8 py-4 rounded-full bg-gray-900 text-white hover:bg-emerald-500 hover:shadow-xl hover:shadow-emerald-500/40 transition-all transform hover:-translate-y-1">Open Your Store</a>
+                @endforeach
+            </div>
+        @else
+            <div class="w-full py-20 text-center scroll-reveal"
+                 x-data="scrollReveal(80, 30)"
+                 x-intersect.once.margin.-60px.0.0.0="reveal()"
+                 :class="{ 'is-visible': shown }">
+                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-emerald-100 text-emerald-500 mb-6 group hover:rotate-12 transition-transform">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                 </div>
-            @endforelse
-        </div>
+                <h3 class="text-3xl font-black outfit text-gray-900 mb-2">No restaurants around yet!</h3>
+                <p class="text-gray-500 text-lg font-medium">Be the first to partner with us or come back later.</p>
+
+                <a href="{{ route('register') }}" class="inline-block mt-8 font-bold px-8 py-4 rounded-full bg-gray-900 text-white hover:bg-emerald-500 hover:shadow-xl hover:shadow-emerald-500/40 transition-all transform hover:-translate-y-1">Open Your Store</a>
+            </div>
+        @endif
 
         <div class="mt-8 flex justify-center lg:hidden scroll-reveal"
              x-data="scrollReveal(120, 22)"
@@ -807,4 +930,3 @@
     });
 </script>
 @endpush
-

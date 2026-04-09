@@ -1,0 +1,25 @@
+{
+  "name": "AnsarEats",
+  "short_name": "AnsarEats",
+  "description": "Order from your favorite restaurants, bakeries, and markets with fast delivery.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8faf8",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "/images/brand/ansareats-app-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/brand/ansareats-app-icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

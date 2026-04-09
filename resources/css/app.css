@@ -83,6 +83,41 @@ html.dark .wave-fill { fill: #0b0f1a !important; }
     transition: transform 0.5s ease;
 }
 
+.trending-spots-marquee {
+    overflow: hidden;
+}
+
+.trending-spots-track {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    width: max-content;
+    animation: trending-spots-marquee 28s linear infinite;
+    will-change: transform;
+}
+
+.trending-spots-group {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.trending-spots-card {
+    flex: 0 0 auto;
+    width: min(84vw, 24rem);
+}
+
+@keyframes trending-spots-marquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(calc(-50% - 0.5rem));
+    }
+}
+
 /* Utilities */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

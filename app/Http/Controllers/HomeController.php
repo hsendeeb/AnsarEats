@@ -20,9 +20,12 @@ class HomeController extends Controller
             now()->addSeconds(config('performance.cache_ttl.home')),
             function () use ($authUserId) {
                 $query = Restaurant::withCount('menuCategories')
+                    ->withCount('orders')
                     ->withAvg('ratings', 'rating')
                     ->withCount('ratings')
-                    ->where('is_open', true);
+                    ->where('is_open', true)
+                    ->orderByDesc('orders_count')
+                    ->latest();
 
                 if ($authUserId) {
                     $query->where('user_id', '!=', $authUserId);

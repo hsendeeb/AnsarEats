@@ -934,9 +934,9 @@
 
                             this.pollInFlight = true;
                             try {
-                                const url = '{{ route("owner.dashboard.poll-new-orders") }}?since_id=' + this.latestOrderId;
+                                const url = '{{ route("owner.dashboard.poll-new-orders") }}?since_id=' + this.latestOrderId + '&_t=' + Date.now();
                                 const res = await fetch(url, {
-                                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json', 'Cache-Control': 'no-cache' }
                                 });
                                 if (!res.ok) {
                                     this.schedulePoll(this.pollConfig.retry);
@@ -1462,8 +1462,11 @@
                             this.filterLoading = true;
 
                             try {
-                                const res = await fetch(normalizedUrl, {
-                                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                const fetchUrl = new URL(normalizedUrl, window.location.href);
+                                fetchUrl.searchParams.set('_t', Date.now());
+
+                                const res = await fetch(fetchUrl.toString(), {
+                                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Cache-Control': 'no-cache' }
                                 });
                                 const html = await res.text();
 
@@ -1568,8 +1571,11 @@
                             const container = document.getElementById('orders');
                             if (!container) return;
 
-                            const res = await fetch(window.location.href, {
-                                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                            const fetchUrl = new URL(window.location.href);
+                            fetchUrl.searchParams.set('_t', Date.now());
+
+                            const res = await fetch(fetchUrl.toString(), {
+                                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Cache-Control': 'no-cache' }
                             });
                             const html = await res.text();
                             const parser = new DOMParser();
@@ -1595,6 +1601,12 @@
                                 }
                             }
 
+                            const newFilters = newOrders.querySelector('#orders-filters');
+                            const currentFilters = container.querySelector('#orders-filters');
+                            if (newFilters && currentFilters) {
+                                currentFilters.innerHTML = newFilters.innerHTML;
+                            }
+
                             const newPagination = newOrders.querySelector('#orders-pagination');
                             const currentPagination = container.querySelector('#orders-pagination');
                             if (newPagination && currentPagination) {
@@ -1614,10 +1626,30 @@
 
                             this.$nextTick(() => {
                                 this.initInteractiveSections([
+                                    currentFilters,
                                     currentContent,
                                     container.querySelector('#orders-pagination'),
                                 ]);
                                 this.syncSelectionWithVisibleOrders();
+
+                                if (currentFilters) {
+                                    container.querySelectorAll('#orders-filters .order-filter-link').forEach(link => {
+                                        link.addEventListener('click', (e) => {
+                                            e.preventDefault();
+                                            this.applyFilter(link.href);
+                                        });
+                                    });
+
+                                    const dropdownRoot = container.querySelector('#orders-filters [x-data]');
+                                    if (dropdownRoot) {
+                                        dropdownRoot.querySelectorAll('.order-filter-link').forEach(link => {
+                                            link.addEventListener('click', (e) => {
+                                                e.preventDefault();
+                                                this.applyFilter(link.href);
+                                            });
+                                        });
+                                    }
+                                }
 
                                 container.querySelectorAll('#orders-pagination .order-filter-link').forEach(link => {
                                     link.addEventListener('click', (e) => {

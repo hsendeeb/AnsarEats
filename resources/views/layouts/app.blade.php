@@ -741,7 +741,7 @@
                     count: 0,
                     async init() {
                         try {
-                            const res = await fetch('/cart');
+                            const res = await fetch('/cart?_t=' + Date.now());
                             const data = await res.json();
                             this.count = data.count || 0;
                         } catch(e) {}
@@ -759,7 +759,7 @@
                     
                     async init() {
                         try {
-                            const res = await fetch('/cart');
+                            const res = await fetch('/cart?_t=' + Date.now());
                             this.cart = await res.json();
                             this.cart.count = this.cart.count || 0;
                             this.cart.total = this.cart.total || 0;

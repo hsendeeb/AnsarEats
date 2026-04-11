@@ -228,6 +228,11 @@ function orderTracker() {
         terminalStatuses: ['delivered', 'cancelled'],
 
         init() {
+            // Force clear the cart UI after order placement
+            window.dispatchEvent(new CustomEvent('cart-updated', { 
+                detail: { count: 0, items: {}, total: 0, subtotal: 0, discount: 0, delivery_fee: 0 } 
+            }));
+
             setTimeout(() => this.show = true, 100);
             this.usingEcho = this.subscribeToRealtime();
 

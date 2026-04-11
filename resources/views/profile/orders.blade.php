@@ -149,7 +149,7 @@
                                 const ctx = this.$refs.canvas;
                                 const lastOrders = {{ $orders->take(7)->reverse()->values() }};
                                 const labels = lastOrders.map(o => new Date(o.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
-                                const data = lastOrders.map(o => o.total);
+                                const data = lastOrders.map(o => parseFloat(o.total));
 
                                 new Chart(ctx, {
                                     type: 'line',
@@ -163,14 +163,17 @@
                                             borderWidth: 3,
                                             fill: true,
                                             tension: 0.4,
-                                            pointRadius: 0
+                                            pointRadius: lastOrders.length === 1 ? 4 : 0
                                         }]
                                     },
                                     options: {
                                         responsive: true,
                                         maintainAspectRatio: false,
                                         plugins: { legend: { display: false }, tooltip: { enabled: true } },
-                                        scales: { x: { display: false }, y: { display: false } }
+                                        scales: { 
+                                            x: { display: false }, 
+                                            y: { display: false, beginAtZero: true } 
+                                        }
                                     }
                                 });
                             }

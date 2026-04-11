@@ -884,6 +884,13 @@
             window.addEventListener('beforeunload', () => {
                 window.showPageLoader();
             });
+
+            // Hide loader if arriving via back/forward cache
+            window.addEventListener('pageshow', (event) => {
+                if (event.persisted) {
+                    window.hidePageLoader();
+                }
+            });
         });
     </script>
     @stack('scripts')

@@ -209,7 +209,7 @@ class CartController extends Controller
         }
 
         // Prevent owner from ordering from their own restaurant
-        if ($restaurant->user_id === Auth::id()) {
+        if ($restaurant->user_id == Auth::id()) {
             return response()->json(['message' => 'You cannot order from your own restaurant.'], 403);
         }
 
@@ -412,7 +412,7 @@ class CartController extends Controller
 
         // Prevent owner from ordering from their own restaurant
         $restaurant = \App\Models\Restaurant::find($cart['restaurant_id']);
-        if ($restaurant && $restaurant->user_id === Auth::id()) {
+        if ($restaurant && $restaurant->user_id == Auth::id()) {
             return redirect()->route('home')->with('error', 'You cannot order from your own restaurant.');
         }
 
@@ -461,7 +461,7 @@ class CartController extends Controller
      */
     public function confirmation(Order $order)
     {
-        if ($order->user_id !== Auth::id()) {
+        if ($order->user_id != Auth::id()) {
             abort(403);
         }
 
@@ -475,7 +475,7 @@ class CartController extends Controller
      */
     public function pollStatus(Order $order)
     {
-        if ($order->user_id !== Auth::id()) {
+        if ($order->user_id != Auth::id()) {
             abort(403);
         }
 

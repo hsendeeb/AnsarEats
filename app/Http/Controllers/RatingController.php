@@ -17,7 +17,7 @@ class RatingController extends Controller
         ]);
 
         // Don't allow owners to rate their own restaurant
-        if (Auth::id() === $restaurant->user_id) {
+        if (Auth::id() == $restaurant->user_id) {
             return response()->json(['message' => 'You cannot rate your own restaurant.'], 403);
         }
 

@@ -595,7 +595,7 @@ class DashboardController extends Controller
 
     public function acceptOrder(Request $request, \App\Models\Order $order)
     {
-        if ($order->restaurant->user_id !== Auth::id()) {
+        if ($order->restaurant->user_id != Auth::id()) {
             abort(403);
         }
 
@@ -617,7 +617,7 @@ class DashboardController extends Controller
 
     public function prepareOrder(\App\Models\Order $order)
     {
-        if ($order->restaurant->user_id !== Auth::id()) abort(403);
+        if ($order->restaurant->user_id != Auth::id()) abort(403);
 
         $previousStatus = $order->status;
         $order->update(['status' => 'preparing']);
@@ -634,7 +634,7 @@ class DashboardController extends Controller
 
     public function outForDeliveryOrder(\App\Models\Order $order)
     {
-        if ($order->restaurant->user_id !== Auth::id()) abort(403);
+        if ($order->restaurant->user_id != Auth::id()) abort(403);
 
         $previousStatus = $order->status;
         $order->update(['status' => 'out_for_delivery']);
@@ -651,7 +651,7 @@ class DashboardController extends Controller
 
     public function rejectOrder(Request $request, \App\Models\Order $order)
     {
-        if ($order->restaurant->user_id !== Auth::id()) {
+        if ($order->restaurant->user_id != Auth::id()) {
             abort(403);
         }
 
@@ -673,7 +673,7 @@ class DashboardController extends Controller
 
     public function deliverOrder(\App\Models\Order $order)
     {
-        if ($order->restaurant->user_id !== Auth::id()) {
+        if ($order->restaurant->user_id != Auth::id()) {
             abort(403);
         }
 
@@ -692,7 +692,7 @@ class DashboardController extends Controller
 
     public function printOrder(\App\Models\Order $order)
     {
-        if ($order->restaurant->user_id !== Auth::id()) {
+        if ($order->restaurant->user_id != Auth::id()) {
             abort(403);
         }
 
@@ -702,7 +702,7 @@ class DashboardController extends Controller
 
     public function destroyOrder(Request $request, \App\Models\Order $order)
     {
-        if ($order->restaurant->user_id !== Auth::id()) {
+        if ($order->restaurant->user_id != Auth::id()) {
             abort(403);
         }
 
@@ -884,7 +884,7 @@ class DashboardController extends Controller
 
     public function updateCategory(Request $request, MenuCategory $category)
     {
-        if ($category->restaurant->user_id !== Auth::id()) {
+        if ($category->restaurant->user_id != Auth::id()) {
             abort(403);
         }
 
@@ -896,7 +896,7 @@ class DashboardController extends Controller
 
     public function destroyCategory(MenuCategory $category)
     {
-        if ($category->restaurant->user_id !== Auth::id()) {
+        if ($category->restaurant->user_id != Auth::id()) {
             abort(403);
         }
 
@@ -923,7 +923,7 @@ class DashboardController extends Controller
 
     public function toggleCategoryVisibility(MenuCategory $category)
     {
-        if ($category->restaurant->user_id !== Auth::id()) abort(403);
+        if ($category->restaurant->user_id != Auth::id()) abort(403);
         
         $category->update(['is_visible' => !$category->is_visible]);
         return back()->with('success', 'Category is now ' . ($category->is_visible ? 'Visible' : 'Hidden') . '!');
@@ -931,7 +931,7 @@ class DashboardController extends Controller
 
     public function toggleItemAvailability(\App\Models\MenuItem $item)
     {
-        if ($item->menuCategory->restaurant->user_id !== Auth::id()) abort(403);
+        if ($item->menuCategory->restaurant->user_id != Auth::id()) abort(403);
 
         $item->update(['is_available' => !$item->is_available]);
         return back()->with('success', 'Menu item is now ' . ($item->is_available ? 'Available' : 'Out of Stock') . '!');
@@ -939,7 +939,7 @@ class DashboardController extends Controller
 
     public function toggleItemFeatured(\App\Models\MenuItem $item)
     {
-        if ($item->menuCategory->restaurant->user_id !== Auth::id()) abort(403);
+        if ($item->menuCategory->restaurant->user_id != Auth::id()) abort(403);
 
         $item->update(['is_featured' => !$item->is_featured]);
         
@@ -972,7 +972,7 @@ class DashboardController extends Controller
 
     public function destroyPromotion(\App\Models\Promotion $promotion)
     {
-        if ($promotion->restaurant->user_id !== Auth::id()) abort(403);
+        if ($promotion->restaurant->user_id != Auth::id()) abort(403);
         $promotion->delete();
         return back()->with('success', 'Promotion removed!');
     }

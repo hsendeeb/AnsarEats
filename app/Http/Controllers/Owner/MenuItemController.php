@@ -93,7 +93,7 @@ class MenuItemController extends Controller
         $category = MenuCategory::findOrFail($request->menu_category_id);
 
         // Ensure the category belongs to the current user's restaurant
-        if ($category->restaurant->user_id !== Auth::id()) {
+        if ($category->restaurant->user_id != Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -112,7 +112,7 @@ class MenuItemController extends Controller
 
     public function toggleAvailability(MenuItem $menuItem)
     {
-        if ($menuItem->menuCategory->restaurant->user_id !== Auth::id()) {
+        if ($menuItem->menuCategory->restaurant->user_id != Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -123,7 +123,7 @@ class MenuItemController extends Controller
 
     public function update(Request $request, MenuItem $menuItem)
     {
-        if ($menuItem->menuCategory->restaurant->user_id !== Auth::id()) {
+        if ($menuItem->menuCategory->restaurant->user_id != Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -148,7 +148,7 @@ class MenuItemController extends Controller
 
     public function destroy(MenuItem $menuItem)
     {
-        if ($menuItem->menuCategory->restaurant->user_id !== Auth::id()) {
+        if ($menuItem->menuCategory->restaurant->user_id != Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 

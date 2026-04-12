@@ -178,7 +178,7 @@
 <section class="mt-4 md:mt-8 pt-4 md:pt-8 pb-4 bg-white relative z-20">
     <div class="container mx-auto px-4">
         <!-- Browse By Category Section -->
-        <div class="mb-16 md:mb-20 scroll-reveal"
+        <div class="mb-4 md:mb-6 scroll-reveal"
              x-data="scrollReveal(0, 30)"
              x-intersect.once.margin.-80px.0.0.0="reveal()"
              :class="{ 'is-visible': shown }">

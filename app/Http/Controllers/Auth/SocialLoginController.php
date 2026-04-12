@@ -134,6 +134,10 @@ class SocialLoginController extends Controller
             return route('filament.admin.pages.dashboard');
         }
 
-        return 'owner/dashboard';
+        if ($user->role === 'owner') {
+            return 'owner/dashboard';
+        }
+
+        return '/';
     }
 }

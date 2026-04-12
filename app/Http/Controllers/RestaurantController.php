@@ -23,13 +23,14 @@ class RestaurantController extends Controller
                 'q' => (string) $request->get('q', ''),
                 'location' => (string) $request->get('location', ''),
                 'sort' => $sort ?? '',
+                'page' => $request->get('page', 1),
             ]),
             now()->addSeconds(config('performance.cache_ttl.restaurants')),
-            function () use ($request, $sort) {
+            function () use ($sort) {
                 $query = Restaurant::query();
 
-                if ($request->filled('q')) {
-                    $term = $request->get('q');
+                if (request()->filled('q')) {
+                    $term = request()->get('q');
                     $query->where(function ($q) use ($term) {
                         $q->where('name', 'like', '%' . $term . '%')
                             ->orWhereHas('menuCategories.menuItems', function ($mi) use ($term) {
@@ -38,8 +39,8 @@ class RestaurantController extends Controller
                     });
                 }
 
-                if ($request->filled('location')) {
-                    $query->where('address', 'like', '%' . $request->location . '%');
+                if (request()->filled('location')) {
+                    $query->where('address', 'like', '%' . request()->location . '%');
                 }
 
                 $query->withCount('menuCategories')
@@ -62,9 +63,17 @@ class RestaurantController extends Controller
                         break;
                 }
 
-                return $query->get();
+                return $query->paginate(20);
             }
         );
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('restaurant.partials.list', ['restaurants' => $restaurants])->render(),
+                'hasMore' => $restaurants->hasMorePages(),
+                'nextPage' => $restaurants->currentPage() + 1
+            ]);
+        }
 
         $locations = PerformanceCache::remember(
             'restaurants',

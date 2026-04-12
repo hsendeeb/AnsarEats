@@ -750,13 +750,12 @@
                 </template>
             </div>
 
-            <div x-show="loading" x-cloak class="mt-8 flex justify-center">
-                <div class="inline-flex items-center gap-3 rounded-full bg-white px-5 py-3 shadow-sm border border-gray-100 text-sm font-bold text-gray-500">
-                    <svg class="h-5 w-5 animate-spin text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                    </svg>
-                    <span>Loading more stores...</span>
+            <!-- Loading Spinner & Intersection Trigger -->
+            <div x-show="nextPage" 
+                 class="mt-12 flex justify-center py-8">
+                <div x-show="loading" class="flex flex-col items-center gap-3">
+                    <div class="w-10 h-10 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin"></div>
+                    <span class="text-sm font-bold text-gray-400 uppercase tracking-widest">Loading more stores...</span>
                 </div>
             </div>
 

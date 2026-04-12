@@ -13,7 +13,7 @@
                 </div>
                 <div class="flex-1 px-4">
                     <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Status</p>
-                    <p class="text-sm font-bold text-gray-900">{{ $restaurants->count() }} places found</p>
+                    <p class="text-sm font-bold text-gray-900">{{ $restaurants->total() }} places found</p>
                 </div>
             </div>
         </div>
@@ -162,64 +162,67 @@
         </div>
 
         <!-- Main Listing -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            @forelse($restaurants as $restaurant)
-                <div class="group">
-                    <a href="{{ route('restaurant.show', $restaurant) }}" class="block h-full relative">
-                        <div class="bg-white rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-300 transform group-hover:-translate-y-2 flex flex-col h-full">
-                            <!-- Image / Logo -->
-                            <div class="h-48 relative overflow-hidden bg-gray-100">
-                                @if($restaurant->logo)
-                                    <img alt="{{ $restaurant->name }}" src="{{ Storage::url($restaurant->logo) }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out"/>
-                                @else
-                                    <div class="w-full h-full bg-gradient-to-br from-emerald-400 via-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-6xl outfit opacity-80 group-hover:scale-110 transition-transform duration-700 ease-in-out">
-                                        {{ substr($restaurant->name, 0, 1) }}
-                                    </div>
-                                @endif
-                                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-gray-900/20 to-transparent"></div>
-                                
-                                <div class="absolute top-4 right-4">
-                                    <div class="bg-white/90 backdrop-blur-md text-gray-900 font-bold px-4 py-1.5 rounded-full text-xs shadow-lg flex items-center gap-1.5">
-                                        <div class="w-2 h-2 rounded-full {{ $restaurant->isOpenNow() ? 'bg-emerald-500' : 'bg-red-500' }}"></div>
-                                        {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
-                                    </div>
-                                </div>
-                            </div>
+        <div x-data="{
+                restaurants: [],
+                page: 1,
+                hasMore: {{ $restaurants->hasMorePages() ? 'true' : 'false' }},
+                loading: false,
+                init() {
+                    // Page 1 is already rendered via Blade
+                },
+                async loadMore() {
+                    if (this.loading || !this.hasMore) return;
+                    
+                    this.loading = true;
+                    const nextPage = this.page + 1;
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('page', nextPage);
 
-                            <div class="p-6 flex-1 flex flex-col">
-                                <h3 class="text-xl font-black outfit text-gray-900 group-hover:text-emerald-500 transition-colors mb-2">{{ $restaurant->name }}</h3>
-                                <p class="text-sm text-gray-500 font-medium mb-4 line-clamp-2">{{ $restaurant->description ?? 'Amazing food, cooked with perfection and delivered straight to you.' }}</p>
-                                
-                                {{-- Star Rating --}}
-                                <div class="mb-4">
-                                    @include('layouts.partials.star-rating', ['rating' => round($restaurant->ratings_avg_rating ?? 0, 1), 'count' => $restaurant->ratings_count ?? 0, 'size' => 'sm'])
-                                </div>
-                                
-                                <div class="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between">
-                                    <div class="flex items-center gap-4">
-                                        <div class="flex items-center gap-1.5 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                            <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                            {{ head(explode(',', $restaurant->address)) }}
-                                        </div>
-                                    </div>
-                                    <div class="text-[10px] font-black text-emerald-500 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-tighter">
-                                        {{ $restaurant->menu_categories_count }} menus
-                                    </div>
-                                </div>
-                            </div>
+                    try {
+                        const response = await fetch(url, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+                        const data = await response.json();
+                        
+                        // Append HTML to the grid
+                        const grid = document.getElementById('restaurant-grid');
+                        grid.insertAdjacentHTML('beforeend', data.html);
+                        
+                        this.page = nextPage;
+                        this.hasMore = data.hasMore;
+                    } catch (error) {
+                        console.error('Error loading more restaurants:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }">
+            <div id="restaurant-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                @forelse($restaurants as $restaurant)
+                    @include('restaurant.partials.list', ['restaurants' => [$restaurant]])
+                @empty
+                    <div class="col-span-full py-20 text-center">
+                        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                         </div>
-                    </a>
-                </div>
-            @empty
-                <div class="col-span-full py-20 text-center">
-                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
-                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        <h3 class="text-3xl font-black outfit text-gray-900 mb-2">No results found</h3>
+                        <p class="text-gray-500 text-lg font-medium">Try adjusting your filters or search for something else.</p>
+                        <a href="{{ route('restaurants.index') }}" class="inline-block mt-8 font-bold px-8 py-4 bg-gray-900 text-white rounded-2xl hover:bg-emerald-500 transition-all">View All Places</a>
                     </div>
-                    <h3 class="text-3xl font-black outfit text-gray-900 mb-2">No results found</h3>
-                    <p class="text-gray-500 text-lg font-medium">Try adjusting your filters or search for something else.</p>
-                    <a href="{{ route('restaurants.index') }}" class="inline-block mt-8 font-bold px-8 py-4 bg-gray-900 text-white rounded-2xl hover:bg-emerald-500 transition-all">View All Places</a>
+                @endforelse
+            </div>
+
+            <!-- Loading Spinnner & Intersection Observer -->
+            <div x-show="hasMore" 
+                 x-intersect.full="loadMore()" 
+                 class="mt-12 flex justify-center py-8">
+                <div x-show="loading" class="flex flex-col items-center gap-3">
+                    <div class="w-10 h-10 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin"></div>
+                    <span class="text-sm font-bold text-gray-400 uppercase tracking-widest">Loading more places...</span>
                 </div>
-            @endforelse
+            </div>
         </div>
     </div>
 </div>

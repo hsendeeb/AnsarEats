@@ -397,7 +397,7 @@
 
 
     <!-- Main Content -->
-    <main class="flex-grow relative z-10">
+    <main class="flex-grow">
         @if(session('success'))
             <div class="bg-emerald-100 border-b border-emerald-200">
                 <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-center">
@@ -422,6 +422,8 @@
 
         @yield('content')
     </main>
+
+    @stack('modals')
 
     
     <script>

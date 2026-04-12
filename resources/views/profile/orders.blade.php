@@ -258,7 +258,12 @@
                                     @endif
                                 </div>
                                 <div class="flex flex-col">
-                                    <span class="text-sm font-bold text-gray-900 line-clamp-1">{{ $item->name }}</span>
+                                    <span class="text-sm font-bold text-gray-900 line-clamp-1">
+                                        {{ $item->name }}
+                                        @if($item->variant_label)
+                                            <span class="text-gray-400 font-medium text-xs">({{ $item->variant_label }})</span>
+                                        @endif
+                                    </span>
                                     <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">{{ $item->quantity }}x @ ${{ number_format($item->price, 2) }}</span>
                                 </div>
                             </div>

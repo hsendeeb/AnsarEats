@@ -617,7 +617,12 @@
                                             @foreach($order->orderItems as $item)
                                                 <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-xl border border-gray-100 shadow-sm">
                                                     <span class="text-[10px] font-black text-emerald-500">{{ $item->quantity }}x</span>
-                                                    <span class="text-[11px] font-bold text-gray-700">{{ $item->name }}</span>
+                                                    <span class="text-[11px] font-bold text-gray-700">
+                                                        {{ $item->name }}
+                                                        @if($item->variant_label)
+                                                            <span class="text-gray-400 font-medium">({{ $item->variant_label }})</span>
+                                                        @endif
+                                                    </span>
                                                 </div>
                                             @endforeach
                                         </div>

@@ -158,7 +158,12 @@
                         <div class="flex items-center justify-between py-2 {{ !$loop->last ? 'border-b border-gray-100' : '' }}">
                             <div class="flex items-center gap-3">
                                 <span class="w-7 h-7 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center font-bold text-xs">{{ $item->quantity }}×</span>
-                                <span class="font-medium text-gray-800">{{ $item->name }}</span>
+                                <span class="font-medium text-gray-800">
+                                    {{ $item->name }}
+                                    @if($item->variant_label)
+                                        <span class="text-gray-400 font-medium text-sm">({{ $item->variant_label }})</span>
+                                    @endif
+                                </span>
                             </div>
                             <span class="font-bold text-gray-900">${{ number_format($item->price * $item->quantity, 2) }}</span>
                         </div>

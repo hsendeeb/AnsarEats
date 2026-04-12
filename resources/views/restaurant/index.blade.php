@@ -4,7 +4,7 @@
 <div class="bg-white py-12 border-b border-gray-50">
     <div class="container mx-auto px-4">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-8">
-             <h1 class="text-4xl font-black outfit text-gray-900">Explore Restaurants</h1>
+
            
             
             <div class="bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center min-w-[300px]">

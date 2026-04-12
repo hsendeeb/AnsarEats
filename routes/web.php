@@ -15,6 +15,7 @@ use App\Http\Controllers\RatingController;
 use App\Http\Controllers\BrowseController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/home/stores', [HomeController::class, 'stores'])->name('home.stores');
 Route::get('/restaurants', [RestaurantController::class, 'index'])->name('restaurants.index');
 Route::get('/restaurant/{restaurant}', [RestaurantController::class, 'show'])->name('restaurant.show');
 Route::get('/search/suggestions', [SearchController::class, 'suggestions'])->name('search.suggestions');

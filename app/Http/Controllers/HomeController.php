@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\HomeRestaurantResource;
 use App\Models\Restaurant;
-use Illuminate\Http\Request;
-
 use App\Models\MenuItem;
 use App\Support\PerformanceCache;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
@@ -65,6 +67,43 @@ class HomeController extends Controller
                 ->get()
         );
 
-        return view('home', compact('restaurants', 'globeRestaurants', 'trendingMeals'));
+        $allStores = $this->allStoresQuery($authUserId)->paginate(15);
+        $initialAllStores = HomeRestaurantResource::collection($allStores->getCollection())->resolve();
+        $allStoresNextPage = $allStores->hasMorePages() ? $allStores->currentPage() + 1 : null;
+
+        return view('home', compact(
+            'restaurants',
+            'globeRestaurants',
+            'trendingMeals',
+            'initialAllStores',
+            'allStoresNextPage',
+        ));
+    }
+
+    public function stores(Request $request): JsonResponse
+    {
+        $page = max($request->integer('page', 1), 1);
+        $stores = $this->allStoresQuery(auth()->id())->paginate(15, ['*'], 'page', $page);
+
+        return response()->json([
+            'data' => HomeRestaurantResource::collection($stores->getCollection())->resolve(),
+            'next_page' => $stores->hasMorePages() ? $stores->currentPage() + 1 : null,
+        ]);
+    }
+
+    protected function allStoresQuery(?int $authUserId): Builder
+    {
+        $query = Restaurant::query()
+            ->withCount('menuCategories')
+            ->withAvg('ratings', 'rating')
+            ->withCount('ratings')
+            ->orderByDesc('is_open')
+            ->latest();
+
+        if ($authUserId) {
+            $query->where('user_id', '!=', $authUserId);
+        }
+
+        return $query;
     }
 }

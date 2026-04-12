@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-gray-50 antialiased">
+<html lang="en" class="bg-white antialiased">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -81,7 +81,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen flex flex-col text-gray-800 bg-gray-50 dark:bg-gray-900 overflow-x-hidden relative page-loading transition-theme">
+<body class="min-h-screen flex flex-col text-gray-800 bg-white dark:bg-gray-900 overflow-x-hidden relative page-loading transition-theme">
     @php
         $hasActiveOrders = auth()->check()
             ? \App\Models\Order::where('user_id', auth()->id())
@@ -91,15 +91,9 @@
         $hasRestaurant = auth()->check() && auth()->user()->restaurant;
     @endphp
 
-    <!-- Decorative background blobs -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div class="absolute top-0 -left-4 w-72 h-72 bg-emerald-300 rounded-full mix-blend-multiply filter blur-2xl opacity-10 animate-blob"></div>
-        <div class="absolute top-0 -right-4 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-2xl opacity-10 animate-blob animation-delay-2000"></div>
-    </div>
-
     <!-- Global Page Loader -->
-    <div id="page-loader" class="fixed inset-0 flex items-center justify-center bg-emerald-50/80 backdrop-blur-sm z-[120]">
-        <div class="w-14 h-14 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin"></div>
+    <div id="page-loader" class="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-[120]">
+        <div class="w-14 h-14 rounded-full border-4 border-gray-300 border-t-gray-900 animate-spin"></div>
     </div>
     
     <!-- Navigation -->

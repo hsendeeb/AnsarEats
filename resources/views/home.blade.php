@@ -29,49 +29,28 @@
         }
     }
 </style>
-<div class="relative bg-white dark:bg-gray-900 transition-colors pt-6 md:pt-8 pb-32 overflow-x-clip z-[30]" x-data="{ 
-    activeLottie: 0,
-    animations: [
-        'https://lottie.host/a52b1c0b-6390-42ee-ad5c-fca5db1b7dfa/hcsHrorguN.lottie',
-        'https://lottie.host/af111bea-9c55-43f3-bb88-523d8d8d7155/1zjR1EoVso.lottie',
-        'https://lottie.host/c18f0392-ca5f-4ed6-9bde-04d2bec9f2ce/GMwQJXw8QD.lottie',
-    ],
-    nextAnimation() {
-        this.activeLottie = (this.activeLottie + 1) % this.animations.length;
-    }
-}">
-    <!-- Background Accents -->
-    <div class="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-emerald-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
-    <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-[400px] h-[400px] bg-indigo-50 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
-
+<div class="relative bg-white dark:bg-gray-900 transition-colors pt-6 md:pt-8 pb-0 overflow-x-clip z-[30]">
     <div class="container mx-auto px-4 relative z-10">
-        <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+        <div class="flex flex-col items-center">
             <!-- Left Content -->
-            <div class="w-full lg:w-1/2 text-center lg:text-left scroll-reveal"
+            <div class="w-full text-center lg:text-left scroll-reveal"
                  x-data="scrollReveal(0, 26)"
                  x-intersect.once.margin.-100px.0.0.0="reveal()"
                  :class="{ 'is-visible': shown }">
                 
                 
-                <h1 class="text-5xl md:text-7xl lg:text-8xl font-black outfit text-gray-900 leading-[0.9] tracking-tighter mb-8">
-                    Craving? <br>
-                    <span class="text-emerald-500">Just Tap &</span><br>
-                    <span class="relative">
-                        Enjoy.
-                        <svg class="absolute -bottom-2 left-0 w-full h-3 text-emerald-200" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 25 0, 50 5 T 100 5" stroke="currentColor" stroke-width="4" fill="none"/></svg>
-                    </span>
-                </h1>
-                
-                <p class="text-xl text-gray-500 font-medium mb-12 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-                    Connecting you with the best restaurants, bakeries, and markets. Fresh food delivered to your doorstep in minutes.
-                </p>
-
-                <div class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start" 
+                <div class="w-full" 
                      x-data="{ 
                         query: '', 
                         results: { restaurants: [], meals: [] }, 
                         show: false,
                         loading: false,
+                        search() {
+                            const normalized = this.query ? this.query.trim() : '';
+                            if (normalized.length) {
+                                window.location.href = '{{ route('restaurants.index') }}?q=' + encodeURIComponent(normalized);
+                            }
+                        },
                         async fetchSuggestions() {
                             if (this.query.length < 2) {
                                 this.results = { restaurants: [], meals: [] };
@@ -92,7 +71,7 @@
                      }"
                      @click.away="show = false">
                     
-                    <div class="relative w-full max-w-md group">
+                    <div class="relative w-full group">
                         <!-- Search Input -->
                         <div class="relative">
                             <input type="text" 
@@ -100,11 +79,17 @@
                                    name="q"
                                    @input.debounce.300ms="fetchSuggestions()"
                                    @focus="if(query.length >= 2) show = true"
-                                   @keydown.enter.prevent="if(query && query.trim().length){ window.location.href='{{ route('restaurants.index') }}?q=' + encodeURIComponent(query.trim()); }"
+                                   @keydown.enter.prevent="search()"
                                    placeholder="What are you eating today?" 
                                    class="w-full pl-12 pr-12 py-5 bg-gray-100 border-none focus:ring-4 focus:ring-emerald-500/20 rounded-3xl font-bold text-gray-900 placeholder-gray-400 shadow-inner transition-all">
                             
-                            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <button type="button"
+                                    @click="search()"
+                                    aria-label="Search restaurants"
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-2xl text-gray-400 hover:text-emerald-500 transition-colors duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    :disabled="!query.trim().length">
+                                <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </button>
                             
                             <!-- Loading Spinner -->
                             <div x-show="loading" class="absolute right-4 top-1/2 -translate-y-1/2">
@@ -180,77 +165,23 @@
                             </div>
                         </div>
                     </div>
-
-                    <button type="button"
-                            @click="if(query && query.trim().length){ window.location.href='{{ route('restaurants.index') }}?q=' + encodeURIComponent(query.trim()); }"
-                            class="w-full sm:w-auto px-10 py-5 bg-gray-900 text-white font-black rounded-3xl hover:bg-emerald-500 transition-all hover:shadow-2xl hover:shadow-emerald-500/30 transform hover:-translate-y-1 active:scale-95">
-                        Find Food
-                    </button>
                 </div>
                 
                
             </div>
 
-            <!-- Right Visual (Lottie Slideshow) -->
-            <div class="hidden w-full lg:flex lg:w-1/2 relative items-center justify-center scroll-reveal"
-                 x-data="scrollReveal(140, 42)"
-                 x-intersect.once.margin.-100px.0.0.0="reveal()"
-                 :class="{ 'is-visible': shown }">
-                <div class="relative w-[350px] md:w-[500px] h-[350px] md:h-[500px]">
-                    <!-- Main Animation Wrapper -->
-                    <div class="w-full h-full p-8 md:p-12 bg-white rounded-[4rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] border border-gray-50 relative z-10 flex items-center justify-center group">
-                        <template x-for="(ani, index) in animations" :key="index">
-                            <template x-if="activeLottie === index">
-                                <div x-transition:enter="transition ease-out duration-700 delay-300"
-                                     x-transition:enter-start="opacity-0 scale-90 translate-y-10"
-                                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                                     x-transition:leave="transition ease-in duration-500"
-                                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                                     x-transition:leave-end="opacity-0 scale-110 -translate-y-10"
-                                     class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <dotlottie-player 
-                                        :src="ani" 
-                                        background="transparent" 
-                                        speed="1" 
-                                        autoplay
-                                        class="w-[80%] h-[80%]"
-                                        @complete="nextAnimation()"></dotlottie-player>
-                                </div>
-                            </template>
-                        </template>
-                    </div>
-                    
-                    <!-- Back blobs -->
-                    <div class="absolute inset-0 bg-emerald-500/10 rounded-[4rem] rotate-3 scale-105"></div>
-                    <div class="absolute inset-0 bg-indigo-500/5 rounded-[4rem] -rotate-3 scale-105"></div>
-                </div>
-            </div>
         </div>
     </div>
     
-    <!-- Wave Bottom -->
-    <div class="absolute bottom-0 left-0 right-0 h-24 pointer-events-none">
-        <svg class="w-full h-full preserve-3d" viewBox="0 0 1440 320" preserveAspectRatio="none">
-            <path class="wave-fill transition-colors" fill="#f9fafb" fill-opacity="1" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,112C672,107,768,149,864,154.7C960,160,1056,128,1152,112C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-        </svg>
-    </div>
 </div>
 
-<section class="pt-8 pb-20 bg-gray-50 relative z-20">
+<section class="mt-8 pt-16 md:pt-16 pb-8 bg-white relative z-20">
     <div class="container mx-auto px-4">
         <!-- Browse By Category Section -->
-        <div class="mb-20 scroll-reveal"
+        <div class="mb-16 md:mb-20 scroll-reveal"
              x-data="scrollReveal(0, 30)"
              x-intersect.once.margin.-80px.0.0.0="reveal()"
              :class="{ 'is-visible': shown }">
-            <div class="flex flex-wrap justify-between items-end mb-10 px-4">
-                <div>
-                    <h2 class="text-4xl outfit font-black text-gray-900 tracking-tight">Browse by Category</h2>
-                    <div class="w-24 h-2 bg-emerald-500 rounded-full mt-2"></div>
-                    <p class="mt-3 text-gray-500 font-medium">Find what you're craving, fast.</p>
-                </div>
-            </div>
-
             @php
                 $homeCategories = \App\Http\Controllers\BrowseController::categories();
                 $homeCategories = array_filter($homeCategories, fn($c) => $c['slug'] !== 'all');
@@ -277,52 +208,37 @@
                         disableOnInteraction: false,
                     },
                     breakpoints: {
-                        320: { slidesPerView: 2, spaceBetween: 10 },
-                        640: { slidesPerView: 3, spaceBetween: 20 },
-                        1024: { slidesPerView: 5, spaceBetween: 30 }
+                        320: { slidesPerView: 2.4, spaceBetween: 8 },
+                        640: { slidesPerView: 3.4, spaceBetween: 12 },
+                        1024: { slidesPerView: 5, spaceBetween: 18 }
                     }
                 });
             }}" x-init="initSwiper()">
                 <div class="swiper category-swiper !overflow-hidden md:!overflow-visible">
                     <div class="swiper-wrapper">
                         @foreach($homeCategories as $cat)
-                            <div class="swiper-slide !w-40 sm:!w-48 lg:!w-56">
+                            <div class="swiper-slide !w-28 sm:!w-32 lg:!w-36">
                                 <a href="{{ route('browse.index', ['category' => $cat['slug']]) }}"
-                                   class="group flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] bg-white border border-gray-100 shadow-sm hover:shadow-2xl hover:border-emerald-200 transition-all duration-500 cursor-pointer block text-center">
-                                    <div class="w-20 h-20 rounded-3xl bg-gray-50 group-hover:bg-emerald-500 flex items-center justify-center text-4xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 transform shadow-inner group-hover:shadow-emerald-200">
-                                        {{ $cat['emoji'] }}
-                                    </div>
-                                    <div class="space-y-1">
-                                        <span class="block font-black text-gray-900 group-hover:text-emerald-600 text-base transition-colors">{{ $cat['label'] }}</span>
-                        
-                                    </div>
+                                   class="group flex flex-col items-center justify-center gap-1.5 w-full aspect-square rounded-full transition-all duration-300 cursor-pointer text-center">
+                                    <span class="text-2xl sm:text-[1.7rem] leading-none transition-transform duration-300 group-hover:scale-110">{{ $cat['emoji'] }}</span>
+                                    <span class="block font-black text-gray-900 group-hover:text-emerald-600 text-[11px] sm:text-xs leading-tight transition-colors">{{ $cat['label'] }}</span>
                                 </a>
                             </div>
                         @endforeach
                     </div>
                 </div>
                 
-                <!-- Custom Navigation (Optional but adds premium feel) -->
-                <div class="hidden lg:flex justify-center gap-4 mt-12">
-                    <div class="p-3 rounded-full bg-white shadow-md border border-gray-100 text-gray-400 hover:text-emerald-500 hover:border-emerald-200 transition-all cursor-pointer transform active:scale-95" onclick="document.querySelector('.category-swiper').swiper.slidePrev()">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
-                    </div>
-                    <div class="p-3 rounded-full bg-white shadow-md border border-gray-100 text-gray-400 hover:text-emerald-500 hover:border-emerald-200 transition-all cursor-pointer transform active:scale-95" onclick="document.querySelector('.category-swiper').swiper.slideNext()">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
-                    </div>
-                </div>
+                
+                
             </div>
         </div>
 
-        @include('partials.restaurant-globe', ['restaurants' => $globeRestaurants ?? $restaurants ?? collect()])
-
-        <div class="mt-24 flex flex-wrap justify-between items-end mb-12 px-4 scroll-reveal"
+        <div class="flex flex-wrap justify-between items-end mb-12 px-4 scroll-reveal"
              x-data="scrollReveal(0, 24)"
              x-intersect.once.margin.-80px.0.0.0="reveal()"
              :class="{ 'is-visible': shown }">
             <div>
                 <h2 class="text-4xl outfit font-black text-gray-900 tracking-tight">Trending Spots</h2>
-                <div class="w-24 h-2 bg-emerald-500 rounded-full mt-2"></div>
             </div>
             <a href="{{ route('restaurants.index') }}" class="hidden sm:inline-block font-bold text-emerald-600 hover:text-emerald-500 flex items-center gap-2 group transition-all">
                 <span>See all</span>
@@ -331,7 +247,7 @@
         </div>
 
         @if(($restaurants ?? collect())->isNotEmpty())
-            <div class="md:hidden px-4 overflow-hidden scroll-reveal"
+            <div class="md:hidden relative left-1/2 w-screen -translate-x-1/2 overflow-hidden scroll-reveal"
                  x-data="{
                     shown: false,
                     isInteracting: false,
@@ -533,6 +449,8 @@
                 <svg class="w-5 h-5 text-emerald-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
             </a>
         </div>
+
+        @include('partials.restaurant-globe', ['restaurants' => $globeRestaurants ?? $restaurants ?? collect()])
         
         <!-- Trending Meals Section -->
         @if(isset($trendingMeals) && $trendingMeals->count() > 0)
@@ -543,7 +461,6 @@
                  :class="{ 'is-visible': shown }">
                 <div>
                     <h2 class="text-4xl outfit font-black text-gray-900 tracking-tight">Most Loved Meals</h2>
-                    <div class="w-24 h-2 bg-emerald-500 rounded-full mt-2"></div>
                 </div>
             </div>
 
@@ -771,6 +688,85 @@
         </div>
         @endif
 
+        <div class="mt-28"
+             x-data="allStoresFeed({
+                items: @js($initialAllStores ?? []),
+                nextPage: @js($allStoresNextPage ?? null),
+                endpoint: '{{ route('home.stores') }}'
+             })">
+            <div class="flex flex-wrap justify-between items-end mb-12 px-4 scroll-reveal"
+                 x-data="scrollReveal(0, 24)"
+                 x-intersect.once.margin.-80px.0.0.0="reveal()"
+                 :class="{ 'is-visible': shown }">
+                <div>
+                    <h2 class="text-4xl outfit font-black text-gray-900 tracking-tight">All Stores</h2>
+
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+                <template x-for="(store, index) in stores" :key="store.id">
+                    <article class="group bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300"
+                             x-intersect.margin.250px="handleLastVisible(index)">
+                        <a :href="store.url" class="block h-full">
+                            <div class="relative h-52 bg-gray-100 overflow-hidden">
+                                <template x-if="store.logo_url">
+                                    <img :src="store.logo_url" :alt="store.name" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                                </template>
+                                <template x-if="!store.logo_url">
+                                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 text-white text-6xl font-black outfit">
+                                        <span x-text="store.name.charAt(0)"></span>
+                                    </div>
+                                </template>
+
+                                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/75 via-gray-900/20 to-transparent"></div>
+
+                                <div class="absolute top-4 right-4">
+                                    <div class="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold shadow-lg backdrop-blur-md"
+                                         :class="store.is_open_now ? 'bg-white/90 text-gray-900' : 'bg-red-50/90 text-red-600'">
+                                        <div class="h-2 w-2 rounded-full" :class="store.is_open_now ? 'bg-emerald-500' : 'bg-red-500'"></div>
+                                        <span x-text="store.is_open_now ? 'Open Now' : 'Closed'"></span>
+                                    </div>
+                                </div>
+
+                                <div class="absolute bottom-4 left-4 flex items-center gap-2">
+                                    <div class="rounded-full bg-white px-3 py-1 text-xs font-bold text-gray-900 shadow-lg flex items-center gap-1">
+                                        <svg class="w-3 h-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                        <span x-text="store.rating ?? 'New'"></span>
+                                    </div>
+                                    <div class="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white shadow-lg backdrop-blur-md">
+                                        <span x-text="`${store.menu_categories_count} Categories`"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-6">
+                                <h3 class="text-2xl font-black outfit text-gray-900 group-hover:text-emerald-500 transition-colors" x-text="store.name"></h3>
+                                <p class="mt-3 text-sm text-gray-500 font-medium line-clamp-2 min-h-[2.75rem]"
+                                   x-text="store.description || 'Fresh food, signature flavors, and a storefront ready to explore.'"></p>
+                            </div>
+                        </a>
+                    </article>
+                </template>
+            </div>
+
+            <div x-show="loading" x-cloak class="mt-8 flex justify-center">
+                <div class="inline-flex items-center gap-3 rounded-full bg-white px-5 py-3 shadow-sm border border-gray-100 text-sm font-bold text-gray-500">
+                    <svg class="h-5 w-5 animate-spin text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <span>Loading more stores...</span>
+                </div>
+            </div>
+
+            <div x-show="!stores.length" x-cloak class="px-4">
+                <div class="rounded-3xl border border-dashed border-gray-200 bg-white/80 p-8 text-center text-gray-500 font-medium">
+                    No stores are available right now.
+                </div>
+            </div>
+        </div>
+
         @if(!auth()->check() || !auth()->user()->restaurant)
         <div class="mt-28 w-full" x-data="{
             hasCounted: false,
@@ -925,6 +921,46 @@
             },
             reveal() {
                 this.shown = true;
+            },
+        }));
+
+        Alpine.data('allStoresFeed', ({ items = [], nextPage = null, endpoint }) => ({
+            stores: items,
+            nextPage,
+            endpoint,
+            loading: false,
+            async loadMore() {
+                if (this.loading || !this.nextPage) {
+                    return;
+                }
+
+                this.loading = true;
+
+                try {
+                    const response = await fetch(`${this.endpoint}?page=${this.nextPage}`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Unable to load more stores.');
+                    }
+
+                    const payload = await response.json();
+                    this.stores = [...this.stores, ...(payload.data || [])];
+                    this.nextPage = payload.next_page;
+                } catch (error) {
+                    console.error(error);
+                } finally {
+                    this.loading = false;
+                }
+            },
+            handleLastVisible(index) {
+                if (index === this.stores.length - 1) {
+                    this.loadMore();
+                }
             },
         }));
     });

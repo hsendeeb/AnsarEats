@@ -97,6 +97,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Profile & Orders
+    Route::get('/account', [ProfileController::class, 'account'])->name('profile.account');
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/orders', [ProfileController::class, 'orders'])->name('profile.orders');

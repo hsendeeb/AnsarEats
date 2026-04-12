@@ -54,13 +54,10 @@ window.waitForRealtimeConnection = (timeout = 2500) => new Promise((resolve) => 
 });
 
 window.Echo = new Echo({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost,
-    wsPort: reverbPort,
-    wssPort: reverbPort,
-    forceTLS: reverbScheme === 'https' || pageScheme === 'https',
-    enabledTransports: ['ws', 'wss'],
+    broadcaster: 'pusher',
+    key: import.meta.env.VITE_PUSHER_APP_KEY,
+    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+    forceTLS: true,
     authEndpoint: '/broadcasting/auth',
     auth: {
         headers: csrfToken ? {

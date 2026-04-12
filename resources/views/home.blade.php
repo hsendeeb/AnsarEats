@@ -175,7 +175,7 @@
     
 </div>
 
-<section class="mt-8 pt-16 md:pt-16 pb-8 bg-white relative z-20">
+<section class="mt-12 md:mt-16 pt-16 md:pt-20 pb-8 bg-white relative z-20">
     <div class="container mx-auto px-4">
         <!-- Browse By Category Section -->
         <div class="mb-16 md:mb-20 scroll-reveal"

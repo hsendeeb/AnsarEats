@@ -81,7 +81,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen flex flex-col text-gray-800 bg-white dark:bg-gray-900 overflow-x-hidden relative page-loading transition-theme">
+<body class="min-h-screen flex flex-col text-gray-800 bg-white dark:bg-gray-900 overflow-x-hidden relative page-loading transition-theme pb-20 md:pb-0">
     @php
         $hasActiveOrders = auth()->check()
             ? \App\Models\Order::where('user_id', auth()->id())
@@ -92,8 +92,8 @@
     @endphp
 
     <!-- Global Page Loader -->
-    <div id="page-loader" class="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-[120]">
-        <div class="w-14 h-14 rounded-full border-4 border-gray-300 border-t-gray-900 animate-spin"></div>
+    <div id="page-loader" class="fixed inset-0 flex items-center justify-center bg-emerald-50/80 backdrop-blur-sm z-[120]">
+        <div class="w-14 h-14 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin"></div>
     </div>
     
     <!-- Navigation -->
@@ -342,276 +342,49 @@
                         @endguest
                     </div>
 
-                    <!-- Mobile Menu Button -->
-                    <button @click="mobileMenuOpen = true" class="md:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-emerald-500 transition-all active:scale-90">
-                        <span class="relative inline-flex">
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-                            @if($hasActiveOrders)
-                                <span class="absolute right-0 top-0 block h-2 w-2 -translate-y-1/4 translate-x-1/4 rounded-full bg-emerald-500"></span>
-                            @endif
-                        </span>
-                    </button>
                 </div>
             </div>
         </div>
-
-        <!-- Mobile Menu Drawer Sidebar -->
-        <template x-teleport="body">
-            <div x-show="mobileMenuOpen" x-cloak class="fixed inset-0 z-[100] overflow-hidden">
-                <!-- Overlay -->
-                <div x-show="mobileMenuOpen" 
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0"
-                     x-transition:enter-end="opacity-100"
-                     x-transition:leave="transition ease-in duration-200"
-                     x-transition:leave-start="opacity-100"
-                     x-transition:leave-end="opacity-0"
-                     @click="mobileMenuOpen = false" 
-                     class="fixed inset-0 bg-gray-900/60 backdrop-blur-md"></div>
-                
-                <!-- Sidebar -->
-                <div x-show="mobileMenuOpen"
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="-translate-x-full"
-                     x-transition:enter-end="translate-x-0"
-                     x-transition:leave="transition ease-in duration-200"
-                     x-transition:leave-start="translate-x-0"
-                     x-transition:leave-end="-translate-x-full"
-                     class="fixed left-0 top-0 bottom-0 h-full w-4/5 max-w-sm bg-white shadow-2xl flex flex-col overflow-hidden">
-                    
-                    <!-- Header -->
-                    <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-br from-gray-50 to-white">
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 flex items-center justify-center">
-                                <img src="{{ asset('images/brand/ansareats-logo-v2.svg') }}" alt="AnsarEats logo" class="w-full h-full" width="44" height="44">
-                            </div>
-                            <span class="font-black text-2xl outfit text-gray-900">AnsarEats</span>
-                        </div>
-                        <button @click="mobileMenuOpen = false" class="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-900 transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-                    </div>
-
-                    <!-- Mobile Search -->
-                    <div class="px-6 py-4 border-b border-gray-100" 
-                         x-data="{ 
-                            query: '', 
-                            results: { restaurants: [], meals: [] }, 
-                            show: false, 
-                            loading: false,
-                            async fetchSuggestions() {
-                                if (this.query.length < 2) {
-                                    this.results = { restaurants: [], meals: [] };
-                                    this.show = false;
-                                    return;
-                                }
-                                this.loading = true;
-                                try {
-                                    const response = await fetch(`/search/suggestions?q=${encodeURIComponent(this.query)}`);
-                                    this.results = await response.json();
-                                    this.show = true;
-                                } catch (e) {
-                                    console.error('Search error:', e);
-                                } finally {
-                                    this.loading = false;
-                                }
-                            }
-                         }"
-                         @click.away="show = false">
-                        
-                        <div class="relative">
-                            <div class="flex items-center bg-gray-100 rounded-2xl px-4 h-12 border border-transparent transition-all">
-                                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <input x-model="query"
-                                       @input.debounce.300ms="fetchSuggestions()"
-                                       @focus="if(query.length >= 2) show = true"
-                                       type="text"
-                                       placeholder="Search for food..."
-                                       class="bg-transparent border-none shadow-none focus:outline-none focus:ring-0 focus:border-transparent focus:shadow-none text-sm font-bold text-gray-900 w-full placeholder-gray-400 ml-2 py-0"
-                                       style="outline: none !important; box-shadow: none !important; -webkit-box-shadow: none !important;">
-                                
-                                <div x-show="loading">
-                                    <svg class="animate-spin h-4 w-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <!-- Mobile Dropdown Results -->
-                            <div x-show="show && (results.restaurants.length > 0 || results.meals.length > 0)"
-                                 x-transition:enter="transition ease-out duration-200"
-                                 x-transition:enter-start="opacity-0 translate-y-2 scale-95"
-                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                                 class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-[110]"
-                                 x-cloak>
-                                
-                                <div class="h-72 overflow-y-auto overscroll-contain no-scrollbar pb-4" style="-webkit-overflow-scrolling: touch;">
-                                <template x-if="results.restaurants.length > 0">
-                                    <div class="p-2">
-                                        <div class="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Restaurants</div>
-                                        <template x-for="r in results.restaurants" :key="r.id">
-                                            <a :href="r.url" @click="mobileMenuOpen = false" class="flex items-center gap-3 p-2 rounded-xl hover:bg-emerald-50 transition-colors group">
-                                                <div class="w-8 h-8 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
-                                                    <template x-if="r.logo">
-                                                        <img :src="r.logo" class="w-full h-full object-cover">
-                                                    </template>
-                                                    <template x-if="!r.logo">
-                                                        <span class="text-xs font-black text-gray-400" x-text="r.name.charAt(0)"></span>
-                                                    </template>
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="font-bold text-xs text-gray-900 truncate" x-text="r.name"></div>
-                                                </div>
-                                            </a>
-                                        </template>
-                                    </div>
-                                </template>
-
-                                <template x-if="results.meals.length > 0">
-                                    <div class="p-2 border-t border-gray-50">
-                                        <div class="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Meals</div>
-                                        <template x-for="m in results.meals" :key="m.id">
-                                            <a :href="m.url" @click="mobileMenuOpen = false" class="flex items-center gap-3 p-2 rounded-xl hover:bg-emerald-50 transition-colors group">
-                                                <div class="w-8 h-8 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
-                                                    <template x-if="m.image">
-                                                        <img :src="m.image" class="w-full h-full object-cover">
-                                                    </template>
-                                                    <template x-if="!m.image">
-                                                        <div class="bg-emerald-100 w-full h-full flex items-center justify-center text-emerald-500">
-                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="font-bold text-xs text-gray-900 truncate" x-text="m.name"></div>
-                                                    <div class="text-[10px] text-gray-500 font-bold uppercase truncate" x-text="m.restaurant_name"></div>
-                                                </div>
-                                            </a>
-                                        </template>
-                                    </div>
-                                </template>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Actions -->
-                    <div class="px-6 py-4 border-b border-gray-100">
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Quick Actions</p>
-                        <button @click="$dispatch('toggle-cart'); mobileMenuOpen = false" class="w-full py-4 bg-emerald-500 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                            View Cart
-                        </button>
-                    </div>
-
-                    <div class="overflow-y-auto max-h-[calc(100vh-320px)] p-6 space-y-2">
-                        <a href="{{ url('/') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
-                            <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                            </div>
-                            Home
-                        </a>
-
-                        <a href="{{ route('restaurants.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
-                            <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                            </div>
-                            Explore
-                        </a>
-                        
-                        @guest
-                            <a href="{{ route('login') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
-                                <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                                </div>
-                                Log In
-                            </a>
-                            <a href="{{ route('register') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
-                                <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-                                </div>
-                                Register
-                            </a>
-                            <a href="{{ route('partner.with.us') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
-                                <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                </div>
-                                Partner with us
-                            </a>
-                        @else
-                            <a href="{{ route('profile.show') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
-                                <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                                </div>
-                                Profile
-                            </a>
-
-                            <a href="{{ route('profile.orders') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                                    </div>
-                                    Orders
-                                </div>
-                                @if($hasActiveOrders)
-                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                                @endif
-                            </a>
-
-                            @if(auth()->user()->role !== 'super_admin' && auth()->user()->restaurant)
-                                <a href="{{ route('owner.dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold  hover:bg-indigo-100 transition-all group">
-                                    <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-indigo-600 shadow-sm">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                                    </div>
-                                    Dashboard
-                                </a>
-                            @elseif(auth()->user()->role !== 'super_admin')
-                                <a href="{{ route('partner.with.us') }}" @click="mobileMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl font-bold text-gray-900 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
-                                    <div class="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-500 group-hover:text-emerald-600 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                    </div>
-                                    Partner with us
-                                </a>
-                            @endif
-                            
-                            <hr class="my-4 border-gray-100">
-                            
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="w-full flex items-center gap-4 p-4 rounded-2xl font-bold text-red-500 hover:bg-red-50 transition-all group text-left">
-                                    <div class="w-10 h-10 rounded-xl bg-red-100 group-hover:bg-red-200 flex items-center justify-center text-red-500 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                                    </div>
-                                    Log Out
-                                </button>
-                            </form>
-                        @endguest
-
-                        <hr class="my-4 border-gray-100 dark:border-gray-800">
-
-                        <!-- Mobile Dark Mode Toggle (Global) -->
-                        <div class="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-white dark:bg-gray-700 flex items-center justify-center text-gray-400">
-                                    <svg x-show="!$store.darkMode.on" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                                    <svg x-show="$store.darkMode.on" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                                </div>
-                                <span class="font-bold text-gray-900 dark:text-gray-100">Dark Mode</span>
-                            </div>
-                            <button @click="$store.darkMode.toggle()" 
-                                    class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" 
-                                    :class="$store.darkMode.on ? 'bg-emerald-500' : 'bg-gray-200'">
-                                <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" 
-                                      :class="$store.darkMode.on ? 'translate-x-5' : 'translate-x-0'"></span>
-                            </button>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </template>
     </nav>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-[100] pb-3 pt-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+        <div class="flex w-full px-2">
+            <!-- Home -->
+            <a href="{{ url('/') }}" class="flex-1 flex flex-col items-center justify-center p-2 {{ request()->is('/') ? 'text-emerald-500' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-colors' }}">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span class="text-[10px] font-bold">Home</span>
+            </a>
+            
+            <!-- Orders -->
+            <a href="{{ auth()->check() ? route('profile.orders') : route('login') }}" class="flex-1 flex flex-col items-center justify-center p-2 relative {{ request()->routeIs('profile.orders') ? 'text-emerald-500' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-colors' }}">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                @if($hasActiveOrders)
+                    <span class="absolute top-2 right-[calc(50%-12px)] w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white"></span>
+                @endif
+                <span class="text-[10px] font-bold">Orders</span>
+            </a>
+
+            <!-- Dashboard / Partner -->
+            @if(auth()->check() && auth()->user()->role !== 'super_admin' && auth()->user()->restaurant)
+            <a href="{{ route('owner.dashboard') }}" class="flex-1 flex flex-col items-center justify-center p-2 {{ request()->routeIs('owner.dashboard') ? 'text-indigo-500' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-colors' }}">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <span class="text-[10px] font-bold">Dashboard</span>
+            </a>
+            @else
+            <a href="{{ route('partner.with.us') }}" class="flex-1 flex flex-col items-center justify-center p-2 {{ request()->routeIs('partner.with.us') ? 'text-emerald-500' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-colors' }}">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                <span class="text-[10px] font-bold">Partner</span>
+            </a>
+            @endif
+
+            <!-- Account -->
+            <a href="{{ auth()->check() ? route('profile.show') : route('login') }}" class="flex-1 flex flex-col items-center justify-center p-2 {{ request()->routeIs('profile.show') || request()->routeIs('login') ? 'text-emerald-500' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-colors' }}">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <span class="text-[10px] font-bold">Account</span>
+            </a>
+        </div>
+    </div>
 
     @include('layouts.partials.cart-drawer')
     @include('layouts.partials.toast-notification')

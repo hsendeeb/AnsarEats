@@ -51,13 +51,7 @@
                         <span class="whitespace-nowrap">Account Info</span>
                     </a>
 
-                    <a href="{{ route('profile.orders') }}" 
-                       @click="clickTab($event, '{{ route('profile.orders') }}')"
-                       class="relative flex-shrink-0 flex items-center justify-center md:justify-start gap-3 px-4 py-3 md:py-4 font-bold transition-colors"
-                       :class="activeTab.includes('{{ route('profile.orders') }}') ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-800'">
-                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                        <span class="whitespace-nowrap">Order History</span>
-                    </a>
+
 
                     @if(auth()->user()->restaurant)
                     <a href="{{ route('owner.dashboard') }}" 

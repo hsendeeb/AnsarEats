@@ -92,7 +92,7 @@
     @endphp
 
     <!-- Global Page Loader -->
-    <div id="page-loader" class="fixed inset-0 flex items-center justify-center bg-emerald-50/80 backdrop-blur-sm z-[120]">
+    <div id="page-loader" class="fixed inset-0 flex items-center justify-center bg-emerald-50/80 backdrop-blur-sm z-40">
         <div class="w-14 h-14 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin"></div>
     </div>
     

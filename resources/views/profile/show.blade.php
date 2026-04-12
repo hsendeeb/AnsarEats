@@ -9,7 +9,7 @@
             </div>
             Back to Account
         </a>
-        <h1 class="text-4xl font-extrabold text-gray-900 outfit tracking-tight mb-2">My Profile</h1>
+        <h1 class="text-2xl md:text-4xl font-extrabold text-gray-900 outfit tracking-tight mb-2">My Profile</h1>
         <p class="text-gray-500 font-medium">Manage your personal information and security settings.</p>
     </div>
 

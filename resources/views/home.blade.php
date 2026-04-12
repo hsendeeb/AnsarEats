@@ -238,7 +238,7 @@
              x-intersect.once.margin.-80px.0.0.0="reveal()"
              :class="{ 'is-visible': shown }">
             <div>
-                <h2 class="text-4xl outfit font-black text-gray-900 tracking-tight">Trending Spots</h2>
+                <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 tracking-tight">Trending Spots</h2>
             </div>
             <a href="{{ route('restaurants.index') }}" class="hidden sm:inline-block font-bold text-emerald-600 hover:text-emerald-500 flex items-center gap-2 group transition-all">
                 <span>See all</span>
@@ -360,7 +360,7 @@
                                             </div>
 
                                             <div class="flex-auto p-6">
-                                                <h6 class="mt-2 text-2xl font-black text-gray-900 outfit transition-colors">{{ $restaurant->name }}</h6>
+                                                <h6 class="mt-2 text-xl md:text-2xl font-black text-gray-900 outfit transition-colors">{{ $restaurant->name }}</h6>
                                                 <p class="mt-2 mb-4 line-clamp-2 font-medium text-gray-500">
                                                     {{ $restaurant->description ?? 'Amazing food, cooked with perfection and delivered straight to you.' }}
                                                 </p>
@@ -415,7 +415,7 @@
                                 </div>
 
                                 <div class="flex-auto p-6 relative">
-                                    <h6 class="text-2xl font-black outfit text-gray-900 mt-2 group-hover:text-emerald-500 transition-colors">{{ $restaurant->name }}</h6>
+                                    <h6 class="text-xl md:text-2xl font-black outfit text-gray-900 mt-2 group-hover:text-emerald-500 transition-colors">{{ $restaurant->name }}</h6>
                                     <p class="mt-2 mb-4 text-gray-500 font-medium line-clamp-2">
                                         {{ $restaurant->description ?? 'Amazing food, cooked with perfection and delivered straight to you.' }}
                                     </p>
@@ -433,7 +433,7 @@
                 <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-emerald-100 text-emerald-500 mb-6 group hover:rotate-12 transition-transform">
                     <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                 </div>
-                <h3 class="text-3xl font-black outfit text-gray-900 mb-2">No restaurants around yet!</h3>
+                <h3 class="text-2xl md:text-3xl font-black outfit text-gray-900 mb-2">No restaurants around yet!</h3>
                 <p class="text-gray-500 text-lg font-medium">Be the first to partner with us or come back later.</p>
 
                 <a href="{{ route('register') }}" class="inline-block mt-8 font-bold px-8 py-4 rounded-full bg-gray-900 text-white hover:bg-emerald-500 hover:shadow-xl hover:shadow-emerald-500/40 transition-all transform hover:-translate-y-1">Open Your Store</a>
@@ -460,7 +460,7 @@
                  x-intersect.once.margin.-80px.0.0.0="reveal()"
                  :class="{ 'is-visible': shown }">
                 <div>
-                    <h2 class="text-4xl outfit font-black text-gray-900 tracking-tight">Most Loved Meals</h2>
+                    <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 tracking-tight">Most Loved Meals</h2>
                 </div>
             </div>
 
@@ -699,7 +699,7 @@
                  x-intersect.once.margin.-80px.0.0.0="reveal()"
                  :class="{ 'is-visible': shown }">
                 <div>
-                    <h2 class="text-4xl outfit font-black text-gray-900 tracking-tight">All Stores</h2>
+                    <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 tracking-tight">All Stores</h2>
 
                 </div>
             </div>
@@ -805,7 +805,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center rounded-[2.5rem] border border-emerald-100 bg-white shadow-[0_30px_80px_-30px_rgba(16,185,129,0.25)] overflow-hidden">
                 <div class="p-8 md:p-12 lg:p-14">
                     <p class="text-xs font-black uppercase tracking-[0.35em] text-emerald-500 mb-4">Partner With Us</p>
-                    <h2 class="text-4xl md:text-5xl outfit font-black text-gray-900 tracking-tight leading-tight">
+                    <h2 class="text-2xl md:text-4xl lg:text-5xl outfit font-black text-gray-900 tracking-tight leading-tight">
                         Turn your kitchen into the next favorite spot in town.
                     </h2>
                     <p class="mt-5 text-gray-500 font-medium text-lg leading-relaxed max-w-xl">
@@ -868,12 +868,12 @@
                                             <div class="grid grid-cols-2 gap-4">
                                                 <div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-4">
                                                     <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600">Menu Ready</p>
-                                                    <p class="mt-3 text-2xl font-black outfit text-gray-900" x-text="menuReady">0</p>
+                                                    <p class="mt-3 text-xl md:text-2xl font-black outfit text-gray-900" x-text="menuReady">0</p>
                                                     <p class="text-xs font-medium text-gray-500">items prepared</p>
                                                 </div>
                                                 <div class="rounded-2xl bg-cyan-50 border border-cyan-100 p-4">
                                                     <p class="text-[10px] font-black uppercase tracking-widest text-cyan-600">Reach</p>
-                                                    <p class="mt-3 text-2xl font-black outfit text-gray-900" x-text="'+' + reach + '%'">+0%</p>
+                                                    <p class="mt-3 text-xl md:text-2xl font-black outfit text-gray-900" x-text="'+' + reach + '%'">+0%</p>
                                                     <p class="text-xs font-medium text-gray-500">more discovery</p>
                                                 </div>
                                             </div>

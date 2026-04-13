@@ -937,7 +937,15 @@
                         schedulePoll(delay = null) {
                             this.stopPolling();
 
-                            if (document.hidden || !navigator.onLine) {
+                            // Determine if we are actually SUBSCRIBED to the restaurant channel
+                            const channel = window.Echo?.connector?.channels['private-restaurant.{{ $restaurant->id }}.orders'];
+                            const isSubscribed = channel && channel.subscribed;
+
+                            if (isSubscribed) {
+                                this.usingEcho = true;
+                            }
+
+                            if (this.usingEcho || document.hidden || !navigator.onLine) {
                                 return;
                             }
 

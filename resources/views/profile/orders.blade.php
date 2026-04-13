@@ -442,14 +442,19 @@ function ordersTracker() {
         schedulePoll(delay = null) {
             this.stopPolling();
 
-            // Check if Echo is actually connected to avoid unnecessary polling
-            const isEchoConnected = window.Echo?.connector?.pusher?.connection?.state === 'connected';
-            if (isEchoConnected) {
+            // Check if we have any successfully subscribed channels
+            const activeIds = this.getActiveIds();
+            const hasSubscribedChannel = activeIds.some(id => {
+                const channel = window.Echo?.connector?.channels[`private-order.${id}`];
+                return channel && channel.subscribed;
+            });
+
+            if (hasSubscribedChannel) {
                 this.usingEcho = true;
             }
 
             // Bail if Echo is active, tab is hidden, offline, or no orders to track
-            if (this.usingEcho || isEchoConnected || document.hidden || !navigator.onLine || this.getActiveIds().length === 0) {
+            if (this.usingEcho || document.hidden || !navigator.onLine || activeIds.length === 0) {
                 return;
             }
 

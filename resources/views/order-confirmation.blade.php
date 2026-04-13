@@ -313,9 +313,12 @@ function orderTracker() {
         },
 
         async fetchStatus() {
-            // Bail if Echo is now connected during the poll cycle
-            const isEchoConnected = window.Echo?.connector?.pusher?.connection?.state === 'connected';
-            if (isEchoConnected) {
+            // ONLY stop polling if we are actually SUBSCRIBED to the channel, 
+            // not just if the socket is "connected".
+            const channel = window.Echo?.connector?.channels['private-order.{{ $order->id }}'];
+            const isSubscribed = channel && channel.subscribed;
+
+            if (isSubscribed) {
                 this.usingEcho = true;
                 this.stopPolling();
                 return;
@@ -340,7 +343,7 @@ function orderTracker() {
                     this.stopPolling();
                 }
             } catch (e) {
-                console.warn('Status poll failed:', e);
+                // Silently handle poll failures
             }
         },
 

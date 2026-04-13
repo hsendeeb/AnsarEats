@@ -548,7 +548,7 @@
 
 <div class="relative bg-white">
     <!-- Cover Layer -->
-    <div class="h-[500px] sm:h-[320px] md:h-[360px] lg:h-96 relative w-full">
+    <div class="h-[400px] sm:h-[360px] md:h-[400px] lg:h-96 relative w-full">
         @if($restaurant->cover_image)
             <img src="{{ Storage::url($restaurant->cover_image) }}" alt="Cover" class="w-full h-full object-cover">
         @else

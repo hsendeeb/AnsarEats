@@ -78,13 +78,66 @@
 
                     // Request notification permission after a short delay so it's not intrusive
                     @auth
-                    if ('Notification' in window && Notification.permission === 'default') {
-                        setTimeout(() => {
-                            Notification.requestPermission();
-                        }, 3000);
+                    const subscribeToPush = async () => {
+                        if (Notification.permission !== 'granted') return;
+                        try {
+                            const vapidPublicKey = "{{ env('VAPID_PUBLIC_KEY') }}";
+                            if (!vapidPublicKey) return;
+                            
+                            const urlB64ToUint8Array = (base64String) => {
+                                const padding = '='.repeat((4 - base64String.length % 4) % 4);
+                                const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+                                const rawData = window.atob(base64);
+                                const outputArray = new Uint8Array(rawData.length);
+                                for (let i = 0; i < rawData.length; ++i) {
+                                    outputArray[i] = rawData.charCodeAt(i);
+                                }
+                                return outputArray;
+                            };
+
+                            let subscription = await reg.pushManager.getSubscription();
+                            if (!subscription) {
+                                subscription = await reg.pushManager.subscribe({
+                                    userVisibleOnly: true,
+                                    applicationServerKey: urlB64ToUint8Array(vapidPublicKey)
+                                });
+                            }
+
+                            const key = subscription.getKey ? subscription.getKey('p256dh') : '';
+                            const auth = subscription.getKey ? subscription.getKey('auth') : '';
+
+                            await fetch('/push-subscriptions', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                body: JSON.stringify({
+                                    endpoint: subscription.endpoint,
+                                    public_key: key ? btoa(String.fromCharCode.apply(null, new Uint8Array(key))) : null,
+                                    auth_token: auth ? btoa(String.fromCharCode.apply(null, new Uint8Array(auth))) : null
+                                })
+                            });
+                        } catch (e) {
+                            console.error('Push subscription failed:', e);
+                        }
+                    };
+
+                    if ('Notification' in window) {
+                        if (Notification.permission === 'granted') {
+                            subscribeToPush();
+                        } else if (Notification.permission === 'default') {
+                            setTimeout(() => {
+                                Notification.requestPermission().then(permission => {
+                                    if (permission === 'granted') {
+                                        subscribeToPush();
+                                    }
+                                });
+                            }, 3000);
+                        }
                     }
                     @endauth
-                }).catch(() => {});
+                }).catch((e) => { console.error('SW Error:', e); });
             });
         }
 

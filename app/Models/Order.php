@@ -63,6 +63,16 @@ class Order extends Model
         try {
             $pendingBroadcast = broadcast(new OrderUpdated($order, $type, $previousStatus))->toOthers();
             unset($pendingBroadcast);
+
+            // Send actual Web Push Background Notification
+            if ($type === 'status_updated' && $this->user) {
+                app(\App\Services\PushNotificationService::class)->sendToUser($this->user, [
+                    'title' => 'Order #' . $this->id . ' Update',
+                    'body' => 'Your order status changed to ' . $this->statusLabel(),
+                    'url' => route('profile.orders', [], false),
+                    'tag' => 'order-' . $this->id,
+                ]);
+            }
         } catch (Throwable $e) {
             Log::warning('Realtime order broadcast failed.', [
                 'order_id' => $this->id,

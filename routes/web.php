@@ -54,6 +54,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/order/{order}/status', [CartController::class, 'pollStatus'])->name('order.status');
     Route::get('/orders/batch-status', [CartController::class, 'batchStatus'])->name('orders.batch-status');
 
+    // Push Subscriptions
+    Route::post('/push-subscriptions', [\App\Http\Controllers\Api\PushSubscriptionController::class, 'subscribe']);
+    Route::post('/push-subscriptions/unsubscribe', [\App\Http\Controllers\Api\PushSubscriptionController::class, 'unsubscribe']);
+
     // Rating
     Route::post('/restaurant/{restaurant}/rate', [RatingController::class, 'store'])->name('restaurant.rate');
     Route::get('/partner-with-us', [DashboardController::class, 'showPartnerForm'])->name('partner.with.us');

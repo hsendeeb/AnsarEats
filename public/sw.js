@@ -76,6 +76,36 @@ self.addEventListener('message', (event) => {
   }
 });
 
+// Handle Web Push notifications from the server
+self.addEventListener('push', function (event) {
+    if (!(self.Notification && self.Notification.permission === 'granted')) {
+        return;
+    }
+
+    let data = {};
+    if (event.data) {
+        data = event.data.json();
+    }
+
+    const title = data.title || 'AnsarEats Update';
+    const body = data.body || 'You have a new update.';
+    const url = data.url || '/profile/orders';
+    const tag = data.tag || 'general-update';
+
+    event.waitUntil(
+        self.registration.showNotification(title, {
+            body: body,
+            icon: '/images/brand/ansareats-app-icon.svg',
+            badge: '/images/brand/ansareats-app-icon.svg',
+            tag: tag,
+            renotify: true,
+            requireInteraction: false,
+            data: { url: url },
+            vibrate: [200, 100, 200],
+        })
+    );
+});
+
 // Handle notification click — focus or open the relevant page
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();

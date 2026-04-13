@@ -13,6 +13,7 @@
         "laravel/sanctum": "^4.3",
         "laravel/socialite": "^5.26",
         "laravel/tinker": "^2.10.1",
+        "minishlink/web-push": "*",
         "predis/predis": "^3.4",
         "pusher/pusher-php-server": "^7.2"
     },

@@ -569,6 +569,9 @@
             
             <div class="flex-1 pb-1 md:pb-2">
                 <h1 class="text-3xl sm:text-4xl md:text-5xl font-black outfit text-white leading-tight">{{ $restaurant->name }}</h1>
+                 <span class="shrink-0 px-2.5 py-1 md:px-3 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest {{ $restaurant->isOpenNow() ? 'bg-emerald-400/20 text-emerald-400 border border-emerald-400/30' : 'bg-red-400/20 text-red-400 border border-red-400/30' }}">
+                        {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
+                    </span>
                 <div class="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5 md:mt-2">
                     @php
                         $mapsQuery = $restaurant->latitude && $restaurant->longitude 
@@ -580,11 +583,9 @@
                         <div class="w-6 h-6 md:w-8 md:h-8 rounded-lg md:rounded-xl bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
                             <svg class="w-3 h-3 md:w-4 md:h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
-                        <span class="text-xs md:text-sm font-black tracking-tight truncate max-w-[100px] sm:max-w-[160px] md:max-w-[300px]" title="{{ $restaurant->address }}">{{ $restaurant->address ?? 'Location not specified' }}</span>
+                        <span class="text-xs md:text-sm font-black tracking-tight truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px]" title="{{ $restaurant->address }}">{{ $restaurant->address ?? 'Location not specified' }}</span>
                     </a>
-                    <span class="shrink-0 px-2.5 py-1 md:px-3 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest {{ $restaurant->isOpenNow() ? 'bg-emerald-400/20 text-emerald-400 border border-emerald-400/30' : 'bg-red-400/20 text-red-400 border border-red-400/30' }}">
-                        {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
-                    </span>
+                   
                 </div>
                 <p class="text-gray-300 font-medium text-xs sm:text-sm md:text-base max-w-2xl mt-2 line-clamp-1 sm:line-clamp-2 md:line-clamp-none">
                     {{ $restaurant->description }}

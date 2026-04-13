@@ -70,6 +70,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Order::class);
     }
 
+    public function pushSubscriptions()
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
     public function restaurantRegistrationRequests()
     {
         return $this->hasMany(RestaurantRegistrationRequest::class);

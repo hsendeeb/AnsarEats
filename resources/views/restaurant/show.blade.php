@@ -324,7 +324,6 @@
             Alpine.data('restaurantPage', () => ({
                 activeCategory: '{{ $restaurant->menuCategories->first()->id ?? "" }}',
                 cart: { items: {}, count: 0, total: 0, restaurant_id: null },
-                indicatorStyle: '',
                 
                 normalizeCart(cart) {
                     const normalized = cart || {};
@@ -347,45 +346,71 @@
                     window.addEventListener('cart-updated', (e) => {
                         this.cart = this.normalizeCart(e.detail);
                     });
-                    
-                    this.$nextTick(() => {
-                        this.updateIndicator(this.activeCategory);
-                    });
 
                     this.$watch('activeCategory', val => {
-                        this.updateIndicator(val);
+                        this.scrollNavToActive(val);
                     });
 
                     window.addEventListener('resize', () => {
-                        this.updateIndicator(this.activeCategory);
+                        this.scrollNavToActive(this.activeCategory);
+                    });
+
+                    let isScrolling = false;
+                    window.addEventListener('scroll', () => {
+                        if (!isScrolling) {
+                            window.requestAnimationFrame(() => {
+                                this.onScroll();
+                                isScrolling = false;
+                            });
+                            isScrolling = true;
+                        }
                     });
                     
                     console.log('restaurantPage initialized');
                 },
 
-                updateIndicator(id) {
+                onScroll() {
+                    if (this.scrollingToCategory) return;
+                    const sections = Array.from(document.querySelectorAll('[id^="category-"]'));
+                    if (!sections.length) return;
+
+                    let currentActive = this.activeCategory;
+                    // Sticky bar height (approx 60px) + Navbar height (80px) = 140px, adding 40px buffer
+                    const offset = window.innerWidth < 1024 ? 180 : 160;
+                    
+                    // We select the first section that hasn't scrolled completely past the offset mark
+                    const activeSection = sections.find(section => {
+                        const rect = section.getBoundingClientRect();
+                        return rect.bottom > offset;
+                    });
+
+                    if (activeSection) {
+                        currentActive = activeSection.id.replace('category-', '');
+                    }
+
+                    if (this.activeCategory !== currentActive) {
+                        this.activeCategory = currentActive;
+                    }
+                },
+
+                scrollNavToActive(id) {
                     const nav = this.$refs.nav;
                     if (!nav) return;
                     const el = nav.querySelector(`[data-cat-id='${id}']`);
                     if (!el) return;
 
-                    const isHorizontal = window.innerWidth < 1024; // lg breakpoint
-                    if (isHorizontal) {
-                        this.indicatorStyle = `left: ${el.offsetLeft}px; width: ${el.offsetWidth}px; height: 3px; bottom: 0;`;
-                        
-                        // Auto-scroll the nav horizontally to keep the active tab centered
+                    // Only auto-scroll on mobile/tablet horizontal layout
+                    if (window.innerWidth < 1024) {
                         const navWidth = nav.offsetWidth;
                         const elWidth = el.offsetWidth;
                         const elOffset = el.offsetLeft;
-                        const scrollLeft = elOffset - (navWidth / 2) + (elWidth / 2);
-                        
-                        nav.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-                    } else {
-                        this.indicatorStyle = `top: ${el.offsetTop}px; height: ${el.offsetHeight}px; width: 3px; left: 0;`;
+                        const targetScroll = elOffset - (navWidth / 2) + (elWidth / 2);
+                        nav.scrollTo({ left: Math.max(0, targetScroll), behavior: 'smooth' });
                     }
                 },
 
                 scrollToCategory(id) {
+                    this.scrollingToCategory = true;
                     const el = document.getElementById(id);
                     if (!el) return;
                     // Sticky bar height (approx 60px) + Navbar height (80px) = 140px
@@ -397,6 +422,9 @@
                         top: offsetPosition,
                         behavior: 'smooth'
                     });
+                    
+                    // Reset scrolling flag after animation finishes
+                    setTimeout(() => { this.scrollingToCategory = false; }, 800);
                 },
                 
                 async loadCart() {
@@ -520,7 +548,7 @@
 
 <div class="relative bg-white">
     <!-- Cover Layer -->
-    <div class="h-[500px] sm:h-80 lg:h-96 relative w-full">
+    <div class="h-[360px] sm:h-[320px] md:h-[360px] lg:h-96 relative w-full">
         @if($restaurant->cover_image)
             <img src="{{ Storage::url($restaurant->cover_image) }}" alt="Cover" class="w-full h-full object-cover">
         @else
@@ -548,13 +576,13 @@
                             : urlencode($restaurant->address);
                         $mapsUrl = "https://www.google.com/maps/search/?api=1&query={$mapsQuery}";
                     @endphp
-                    <a href="{{ $mapsUrl }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl text-emerald-300 hover:text-white border border-white/10 hover:border-white/20 transition-all duration-300 group shadow-lg shadow-black/20">
-                        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <a href="{{ $mapsUrl }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl text-emerald-300 hover:text-white border border-white/10 hover:border-white/20 transition-all duration-300 group shadow-lg shadow-black/20 max-w-full">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
                             <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
-                        <span class="text-sm font-black tracking-tight">{{ $restaurant->address ?? 'Location not specified' }}</span>
+                        <span class="text-sm font-black tracking-tight truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px]" title="{{ $restaurant->address }}">{{ $restaurant->address ?? 'Location not specified' }}</span>
                     </a>
-                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest {{ $restaurant->isOpenNow() ? 'bg-emerald-400/20 text-emerald-400 border border-emerald-400/30' : 'bg-red-400/20 text-red-400 border border-red-400/30' }}">
+                    <span class="shrink-0 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest {{ $restaurant->isOpenNow() ? 'bg-emerald-400/20 text-emerald-400 border border-emerald-400/30' : 'bg-red-400/20 text-red-400 border border-red-400/30' }}">
                         {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
                     </span>
                 </div>
@@ -576,16 +604,16 @@
                     <h3 class="hidden lg:block font-black text-2xl outfit text-gray-900 mb-6">Menu</h3>
                     
                     <nav x-ref="nav" class="relative flex flex-row lg:flex-col overflow-x-auto no-scrollbar scroll-smooth p-0 lg:p-0">
-                        <!-- Sliding Indicator -->
-                        <div class="absolute bg-emerald-500 transition-all duration-300 ease-out z-20 rounded-full" :style="indicatorStyle"></div>
 
                         @foreach($restaurant->menuCategories as $category)
                             <button 
                                 type="button"
                                 data-cat-id="{{ $category->id }}"
                                 @click="activeCategory = '{{ $category->id }}'; scrollToCategory('category-{{ $category->id }}')"
-                                :class="activeCategory === '{{ $category->id }}' ? 'text-emerald-600 font-bold' : 'text-gray-500 font-medium hover:text-gray-800 lg:hover:bg-gray-50'"
-                                class="relative flex-shrink-0 flex items-center justify-between gap-3 px-6 py-5 lg:py-3 transition-all group lg:w-full text-left lg:rounded-xl z-10"
+                                :class="activeCategory === '{{ $category->id }}' 
+                                    ? 'text-emerald-600 font-bold border-b-[3px] border-emerald-500 lg:border-b-0 lg:border-l-[3px] lg:bg-emerald-50' 
+                                    : 'text-gray-500 font-medium border-b-[3px] border-transparent lg:border-b-0 lg:border-l-[3px] lg:border-transparent hover:text-gray-800 lg:hover:bg-gray-50'"
+                                class="relative flex-shrink-0 flex items-center justify-between gap-3 px-6 py-5 lg:py-3 transition-all group lg:w-full text-left lg:rounded-xl bg-transparent"
                             >
                                 <span class="whitespace-nowrap">{{ $category->name }}</span>
                                 <span 
@@ -630,7 +658,7 @@
             <div class="w-full lg:w-3/4 space-y-10">
                 <!-- Menu Sections -->
                 @forelse($restaurant->menuCategories as $category)
-                    <div id="category-{{ $category->id }}" class="mb-16 scroll-mt-36 lg:scroll-mt-28" x-intersect.margin.-200px.0.0.0="activeCategory = '{{ $category->id }}'">
+                    <div id="category-{{ $category->id }}" class="mb-16 scroll-mt-36 lg:scroll-mt-28">
                         <h2 class="text-3xl font-black outfit text-gray-900 mb-8 pb-4 border-b-2 border-dashed border-gray-200">
                             {{ $category->name }}
                         </h2>
@@ -807,7 +835,7 @@
                             <div class="flex-shrink-0 flex sm:flex-col items-center gap-2 px-6 py-3 bg-white shadow-sm border border-gray-100 rounded-3xl">
                                 <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <div class="text-left sm:text-center">
-                                    <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 leading-none">Trading</p>
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 leading-none">Working</p>
                                     <p class="text-lg font-black outfit text-gray-900 leading-tight">Hours</p>
                                 </div>
                             </div>

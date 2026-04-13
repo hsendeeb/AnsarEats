@@ -73,9 +73,64 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('{{ asset('sw.js') }}').catch(() => {});
+                navigator.serviceWorker.register('{{ asset('sw.js') }}').then((reg) => {
+                    window.__swRegistration = reg;
+
+                    // Request notification permission after a short delay so it's not intrusive
+                    @auth
+                    if ('Notification' in window && Notification.permission === 'default') {
+                        setTimeout(() => {
+                            Notification.requestPermission();
+                        }, 3000);
+                    }
+                    @endauth
+                }).catch(() => {});
             });
         }
+
+        /**
+         * Send an order status notification via Service Worker.
+         * Works even when the tab is in the background.
+         */
+        window.sendOrderNotification = function(orderId, newStatus, message) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') {
+                return;
+            }
+
+            const statusEmoji = {
+                'accepted': '✅',
+                'preparing': '🍳',
+                'out_for_delivery': '🚀',
+                'delivered': '🎉',
+                'cancelled': '❌',
+            };
+
+            const emoji = statusEmoji[newStatus] || '📦';
+            const title = `${emoji} Order #${orderId}`;
+            const body = message || `Your order status changed to ${newStatus.replace(/_/g, ' ')}`;
+
+            // Use service worker for background-capable notifications
+            if (navigator.serviceWorker?.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'SHOW_NOTIFICATION',
+                    title: title,
+                    body: body,
+                    tag: `order-${orderId}`,
+                    url: '{{ url("/profile/orders") }}',
+                });
+            } else if (window.__swRegistration) {
+                // Fallback: use registration directly
+                window.__swRegistration.showNotification(title, {
+                    body: body,
+                    icon: '/images/brand/ansareats-app-icon.svg',
+                    badge: '/images/brand/ansareats-app-icon.svg',
+                    tag: `order-${orderId}`,
+                    renotify: true,
+                    data: { url: '{{ url("/profile/orders") }}' },
+                    vibrate: [200, 100, 200],
+                });
+            }
+        };
     </script>
    
 

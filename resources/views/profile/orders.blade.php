@@ -380,7 +380,13 @@ function ordersTracker() {
                 return;
             }
 
+            const prevStatus = this.statuses[order.id];
             this.statuses[order.id] = order.status;
+
+            // Send browser notification for status change
+            if (prevStatus !== order.status && window.sendOrderNotification) {
+                window.sendOrderNotification(order.id, order.status, payload.message);
+            }
 
             const orderCard = document.querySelector(`[data-order-id="${order.id}"]`);
             if (orderCard) {

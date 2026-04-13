@@ -605,7 +605,7 @@ class DashboardController extends Controller
             'estimated_prep_time' => $request->input('estimated_prep_time')
         ]);
 
-        $this->sendOrderStatusUpdateEmail($order);
+
         $order->broadcastRealtimeUpdate('status_updated', $previousStatus);
 
         if (request()->ajax()) {
@@ -622,7 +622,7 @@ class DashboardController extends Controller
         $previousStatus = $order->status;
         $order->update(['status' => 'preparing']);
 
-        $this->sendOrderStatusUpdateEmail($order);
+
         $order->broadcastRealtimeUpdate('status_updated', $previousStatus);
 
         if (request()->ajax()) {
@@ -639,7 +639,7 @@ class DashboardController extends Controller
         $previousStatus = $order->status;
         $order->update(['status' => 'out_for_delivery']);
 
-        $this->sendOrderStatusUpdateEmail($order);
+
         $order->broadcastRealtimeUpdate('status_updated', $previousStatus);
 
         if (request()->ajax()) {
@@ -661,7 +661,7 @@ class DashboardController extends Controller
             'rejection_reason' => $request->input('rejection_reason', 'Cancelled by restaurant')
         ]);
 
-        $this->sendOrderStatusUpdateEmail($order);
+
         $order->broadcastRealtimeUpdate('status_updated', $previousStatus);
 
         if (request()->ajax()) {
@@ -680,7 +680,7 @@ class DashboardController extends Controller
         $previousStatus = $order->status;
         $order->update(['status' => 'delivered']);
 
-        $this->sendOrderStatusUpdateEmail($order);
+
         $order->broadcastRealtimeUpdate('status_updated', $previousStatus);
 
         if (request()->ajax()) {
@@ -977,12 +977,5 @@ class DashboardController extends Controller
         return back()->with('success', 'Promotion removed!');
     }
 
-    private function sendOrderStatusUpdateEmail(Order $order): void
-    {
-        try {
-            \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderStatusUpdatedMail($order));
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send order status email: ' . $e->getMessage());
-        }
-    }
+
 }

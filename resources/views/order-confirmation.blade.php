@@ -282,8 +282,14 @@ function orderTracker() {
                 return;
             }
 
+            const prevStatus = this.status;
             this.status = order.status;
             this.estimatedPrepTime = order.estimated_prep_time;
+
+            // Send browser notification for status change
+            if (prevStatus !== order.status && window.sendOrderNotification) {
+                window.sendOrderNotification(order.id, order.status, payload.message);
+            }
 
             if (this.terminalStatuses.includes(order.status)) {
                 this.stopPolling();

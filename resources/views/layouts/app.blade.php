@@ -76,12 +76,12 @@
                 navigator.serviceWorker.register('{{ asset('sw.js') }}').then((reg) => {
                     window.__swRegistration = reg;
 
-                    // Request notification permission after a short delay so it's not intrusive
+                    // Request notification permission safely
                     @auth
                     const subscribeToPush = async () => {
                         if (Notification.permission !== 'granted') return;
                         try {
-                            const vapidPublicKey = "{{ env('VAPID_PUBLIC_KEY') }}";
+                            const vapidPublicKey = "{{ config('push.vapid.public_key', env('VAPID_PUBLIC_KEY')) }}";
                             if (!vapidPublicKey) return;
                             
                             const urlB64ToUint8Array = (base64String) => {
@@ -106,18 +106,20 @@
                             const key = subscription.getKey ? subscription.getKey('p256dh') : '';
                             const auth = subscription.getKey ? subscription.getKey('auth') : '';
 
-                            await fetch('/push-subscriptions', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                },
-                                body: JSON.stringify({
-                                    endpoint: subscription.endpoint,
-                                    public_key: key ? btoa(String.fromCharCode.apply(null, new Uint8Array(key))) : null,
-                                    auth_token: auth ? btoa(String.fromCharCode.apply(null, new Uint8Array(auth))) : null
-                                })
-                            });
+                            if (key && auth) {
+                                await fetch('/push-subscriptions', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    body: JSON.stringify({
+                                        endpoint: subscription.endpoint,
+                                        public_key: btoa(String.fromCharCode.apply(null, new Uint8Array(key))),
+                                        auth_token: btoa(String.fromCharCode.apply(null, new Uint8Array(auth)))
+                                    })
+                                });
+                            }
                         } catch (e) {
                             console.error('Push subscription failed:', e);
                         }
@@ -127,13 +129,17 @@
                         if (Notification.permission === 'granted') {
                             subscribeToPush();
                         } else if (Notification.permission === 'default') {
-                            setTimeout(() => {
+                            // Browsers heavily block requestPermission if not tied to a user interaction.
+                            // We attach an event listener to trigger it on their first click anywhere.
+                            const requestPushPerm = () => {
                                 Notification.requestPermission().then(permission => {
                                     if (permission === 'granted') {
                                         subscribeToPush();
                                     }
                                 });
-                            }, 3000);
+                                document.removeEventListener('click', requestPushPerm);
+                            };
+                            document.addEventListener('click', requestPushPerm);
                         }
                     }
                     @endauth

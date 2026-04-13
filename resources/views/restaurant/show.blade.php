@@ -548,45 +548,45 @@
 
 <div class="relative bg-white">
     <!-- Cover Layer -->
-    <div class="h-[460px] sm:h-[420px] md:h-[460px] lg:h-96 relative w-full">
+    <div class="h-[360px] sm:h-[420px] md:h-[400px] lg:h-96 relative w-full">
         @if($restaurant->cover_image)
             <img src="{{ Storage::url($restaurant->cover_image) }}" alt="Cover" class="w-full h-full object-cover">
         @else
             <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80" alt="Cover" class="w-full h-full object-cover">
         @endif
-        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 to-transparent"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/50 to-transparent"></div>
         
-        <div class="absolute bottom-0 left-0 w-full px-4 sm:px-6 lg:px-8 pb-6 md:pb-8 max-w-7xl mx-auto flex flex-col md:flex-row md:items-end gap-4 md:gap-6">
-            <div class="flex-shrink-0 relative w-32 h-32 md:w-40 md:h-40 bg-white rounded-3xl p-2 shadow-2xl transform translate-y-6 md:translate-y-8 z-20 border-4 border-white mb-4">
+        <div class="absolute bottom-0 left-0 w-full px-4 sm:px-6 lg:px-8 pb-6 md:pb-8 max-w-7xl mx-auto flex flex-row items-center gap-4 md:gap-6">
+            <div class="flex-shrink-0 relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-40 lg:h-40 bg-white rounded-2xl md:rounded-3xl p-1.5 md:p-2 shadow-2xl z-20 border-2 md:border-4 border-white">
                 @if($restaurant->logo)
-                    <img src="{{ Storage::url($restaurant->logo) }}" alt="Logo" class="w-full h-full object-cover rounded-2xl">
+                    <img src="{{ Storage::url($restaurant->logo) }}" alt="Logo" class="w-full h-full object-cover rounded-xl md:rounded-2xl">
                 @else
-                    <div class="w-full h-full bg-emerald-100 rounded-2xl flex items-center justify-center text-4xl font-black text-emerald-500 outfit">
+                    <div class="w-full h-full bg-emerald-100 rounded-xl md:rounded-2xl flex items-center justify-center text-3xl md:text-4xl font-black text-emerald-500 outfit">
                         {{ substr($restaurant->name, 0, 1) }}
                     </div>
                 @endif
             </div>
             
-            <div class="flex-1 pb-2">
-                <h1 class="text-4xl md:text-5xl font-black outfit text-white">{{ $restaurant->name }}</h1>
-                <div class="flex items-center gap-3 mt-2">
+            <div class="flex-1 pb-1 md:pb-2">
+                <h1 class="text-3xl sm:text-4xl md:text-5xl font-black outfit text-white leading-tight">{{ $restaurant->name }}</h1>
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5 md:mt-2">
                     @php
                         $mapsQuery = $restaurant->latitude && $restaurant->longitude 
                             ? "{$restaurant->latitude},{$restaurant->longitude}" 
                             : urlencode($restaurant->address);
                         $mapsUrl = "https://www.google.com/maps/search/?api=1&query={$mapsQuery}";
                     @endphp
-                    <a href="{{ $mapsUrl }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl text-emerald-300 hover:text-white border border-white/10 hover:border-white/20 transition-all duration-300 group shadow-lg shadow-black/20 max-w-full">
-                        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
-                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <a href="{{ $mapsUrl }}" target="_blank" class="inline-flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl md:rounded-2xl text-emerald-300 hover:text-white border border-white/10 hover:border-white/20 transition-all duration-300 group shadow-lg shadow-black/20 max-w-full">
+                        <div class="w-6 h-6 md:w-8 md:h-8 rounded-lg md:rounded-xl bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                            <svg class="w-3 h-3 md:w-4 md:h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
-                        <span class="text-sm font-black tracking-tight truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px]" title="{{ $restaurant->address }}">{{ $restaurant->address ?? 'Location not specified' }}</span>
+                        <span class="text-xs md:text-sm font-black tracking-tight truncate max-w-[100px] sm:max-w-[160px] md:max-w-[300px]" title="{{ $restaurant->address }}">{{ $restaurant->address ?? 'Location not specified' }}</span>
                     </a>
-                    <span class="shrink-0 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest {{ $restaurant->isOpenNow() ? 'bg-emerald-400/20 text-emerald-400 border border-emerald-400/30' : 'bg-red-400/20 text-red-400 border border-red-400/30' }}">
+                    <span class="shrink-0 px-2.5 py-1 md:px-3 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest {{ $restaurant->isOpenNow() ? 'bg-emerald-400/20 text-emerald-400 border border-emerald-400/30' : 'bg-red-400/20 text-red-400 border border-red-400/30' }}">
                         {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
                     </span>
                 </div>
-                <p class="text-gray-300 font-medium max-w-2xl mt-3 line-clamp-2 md:line-clamp-none">
+                <p class="text-gray-300 font-medium text-xs sm:text-sm md:text-base max-w-2xl mt-2 line-clamp-1 sm:line-clamp-2 md:line-clamp-none">
                     {{ $restaurant->description }}
                 </p>
             </div>

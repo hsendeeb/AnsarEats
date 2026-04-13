@@ -594,13 +594,13 @@
         </div>
     </div>
     
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-24 pb-24 relative z-0" x-data="restaurantPage" x-cloak>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 lg:mt-24 pb-24 relative z-0" x-data="restaurantPage" x-cloak>
 
 
         <div class="flex flex-col lg:flex-row gap-10" x-data="{ isStuck: false }" @scroll.window="isStuck = window.pageYOffset > 400">
             <!-- Sidebar / Mobile Tabs Navigation -->
             <div class="w-screen lg:w-1/4 sticky top-20 lg:top-28 z-[45] bg-white/95 backdrop-blur-md lg:bg-transparent lg:backdrop-blur-none transition-all duration-300 -mx-4 sm:-mx-6 lg:mx-0 px-4 sm:px-6 lg:px-0 border-b border-gray-100 lg:border-none"
-                 :class="isStuck ? 'shadow-xl shadow-gray-900/5' : 'shadow-none'">
+                 :class="isStuck ? 'shadow-md shadow-gray-900/5' : 'shadow-none'">
                 <div class="bg-white lg:border border-gray-100 lg:rounded-3xl p-0 lg:p-6 shadow-none transition-all duration-300">
                     <h3 class="hidden lg:block font-black text-2xl outfit text-gray-900 mb-6">Menu</h3>
                     

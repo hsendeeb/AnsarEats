@@ -809,22 +809,22 @@
                                 this.syncSelectionWithVisibleOrders();
                             });
 
+                            // Try initial subscription
                             this.usingEcho = this.subscribeToRealtime();
 
+                            // IF it failed because Echo wasn't ready, WAIT for connection and retry
                             window.addEventListener('realtime:connected', () => {
-                                this.usingEcho = true;
-                                this.stopPolling();
+                                if (!this.usingEcho) {
+                                    this.usingEcho = this.subscribeToRealtime();
+                                }
                             });
 
                             if (this.usingEcho) {
                                 window.waitForRealtimeConnection?.(2500).then((connected) => {
-                                    this.usingEcho = connected;
-
-                                    if (!connected) {
+                                    if (!connected && !this.usingEcho) {
                                         this.enablePollingFallback();
                                     }
                                 });
-
                                 return;
                             }
 
@@ -858,12 +858,25 @@
                             }
 
                             try {
-                                window.Echo.private('restaurant.{{ $restaurant->id }}.orders')
-                                    .listen('.order.updated', (payload) => this.handleRealtimeUpdate(payload));
+                                const channel = window.Echo.private('restaurant.{{ $restaurant->id }}.orders');
+                                
+                                channel.listen('.order.updated', (payload) => {
+                                    this.handleRealtimeUpdate(payload)
+                                });
+
+                                channel.subscribed(() => {
+                                    this.usingEcho = true;
+                                    this.stopPolling();
+                                    this.showToast('Real-time updates active');
+                                });
+
+                                channel.error((error) => {
+                                    this.usingEcho = false;
+                                    this.enablePollingFallback();
+                                });
 
                                 return true;
                             } catch (error) {
-                                console.warn('Realtime owner updates unavailable, falling back to polling.', error);
                                 return false;
                             }
                         },
@@ -1205,7 +1218,8 @@
                                 this.showSearchSuggestions = true;
                             } catch (error) {
                                 if (error.name !== 'AbortError') {
-                                    console.error('Owner order suggestions failed:', error);
+                                    // Suggestion failure
+
                                     this.searchSuggestions = [];
                                     this.searchSuggestionsLoaded = true;
                                 }
@@ -1388,7 +1402,8 @@
                                 this.showToast(data.message ?? 'Orders updated successfully.');
                                 await this.applyFilter(currentUrl.toString());
                             } catch (error) {
-                                console.error('Delete action failed:', error);
+                                // Action failure
+
                                 this.submitDeleteFallback();
                             } finally {
                                 this.loadingOrderId = null;
@@ -1561,7 +1576,8 @@
                                     });
                                 }
                             } catch (err) {
-                                console.error('Filter fetch failed, falling back:', err);
+                                // Fetch failure
+
                                 window.location.href = normalizedUrl;
                             }
 
@@ -1700,7 +1716,8 @@
                                     await this.applyFilter(window.location.href, false);
                                 }
                             } catch (err) {
-                                console.error('Status update failed:', err);
+                                // Update failure
+
                                 form.submit();
                             } finally {
                                 this.loadingOrderId = null;

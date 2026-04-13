@@ -61,8 +61,7 @@ class Order extends Model
         $order = $this->fresh(['restaurant', 'user', 'orderItems.menuItem']) ?? $this->loadMissing(['restaurant', 'user', 'orderItems.menuItem']);
 
         try {
-            $pendingBroadcast = broadcast(new OrderUpdated($order, $type, $previousStatus))->toOthers();
-            unset($pendingBroadcast);
+            broadcast(new OrderUpdated($order, $type, $previousStatus));
 
             // Send actual Web Push Background Notification
             if ($type === 'status_updated' && $this->user) {
@@ -74,11 +73,7 @@ class Order extends Model
                 ]);
             }
         } catch (Throwable $e) {
-            Log::warning('Realtime order broadcast failed.', [
-                'order_id' => $this->id,
-                'type' => $type,
-                'message' => $e->getMessage(),
-            ]);
+            // Silently fail if broadcasting isn't available
         }
     }
 }

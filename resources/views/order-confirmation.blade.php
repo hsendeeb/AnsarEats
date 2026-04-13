@@ -234,26 +234,24 @@ function orderTracker() {
 
         init() {
             setTimeout(() => this.show = true, 100);
+
+            // Initial attempt
             this.usingEcho = this.subscribeToRealtime();
 
+            // Wait for connection if it failed initially
             window.addEventListener('realtime:connected', () => {
-                this.usingEcho = true;
-                this.stopPolling();
+                if (!this.usingEcho) {
+                    this.usingEcho = this.subscribeToRealtime();
+                }
             });
 
             if (this.terminalStatuses.includes(this.status)) {
                 return;
             }
 
-            if (!this.usingEcho) {
-                this.startPolling();
-                return;
-            }
-
+            // Fallback monitoring
             window.waitForRealtimeConnection?.(2500).then((connected) => {
-                this.usingEcho = connected;
-
-                if (!connected && !this.terminalStatuses.includes(this.status)) {
+                if (!connected && !this.usingEcho && !this.terminalStatuses.includes(this.status)) {
                     this.startPolling();
                 }
             });
@@ -266,11 +264,18 @@ function orderTracker() {
 
             try {
                 window.Echo.private('order.{{ $order->id }}')
-                    .listen('.order.updated', (payload) => this.handleRealtimeUpdate(payload));
+                    .listen('.order.updated', (payload) => {
+                        this.handleRealtimeUpdate(payload);
+                    })
+                    .subscribed(() => {
+                        // Successfully joined channel
+                    })
+                    .error((error) => {
+                        // Auth failed
+                    });
 
                 return true;
             } catch (error) {
-                console.warn('Realtime order tracking unavailable, falling back to polling.', error);
                 return false;
             }
         },
@@ -308,6 +313,14 @@ function orderTracker() {
         },
 
         async fetchStatus() {
+            // Bail if Echo is now connected during the poll cycle
+            const isEchoConnected = window.Echo?.connector?.pusher?.connection?.state === 'connected';
+            if (isEchoConnected) {
+                this.usingEcho = true;
+                this.stopPolling();
+                return;
+            }
+
             try {
                 const res = await fetch('{{ route("order.status", $order->id) }}', {
                     headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }

@@ -444,12 +444,8 @@ class CartController extends Controller
 
         session()->forget('cart');
 
-        // Send Order Confirmation Email
-        try {
-            \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderPlacedMail($order));
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send order placement email: ' . $e->getMessage());
-        }
+        // Order confirmation email disabled per user request
+        // \Illuminate\Support\Facades\Mail::to($order->user->email)->queue(new \App\Mail\OrderPlacedMail($order));
 
         $order->broadcastRealtimeUpdate('created');
 

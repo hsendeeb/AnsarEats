@@ -66,24 +66,45 @@ window.Echo = new Echo({
     },
 });
 
-const connection = window.Echo.connector?.pusher?.connection;
+const bindConnectionEvents = () => {
+    const connection = window.Echo.connector?.pusher?.connection;
 
-if (connection) {
-    connection.bind('connected', () => {
-        window.__realtimeConnected = true;
-        window.dispatchEvent(new CustomEvent('realtime:connected'));
-    });
-
-    ['disconnected', 'unavailable', 'failed'].forEach((eventName) => {
-        connection.bind(eventName, () => {
-            window.__realtimeConnected = false;
-            window.dispatchEvent(new CustomEvent('realtime:failed', {
-                detail: { state: eventName },
-            }));
+    if (connection) {
+        connection.bind('connected', () => {
+            window.__realtimeConnected = true;
+            window.dispatchEvent(new CustomEvent('realtime:connected'));
         });
-    });
 
-    connection.bind('error', () => {
-        window.__realtimeConnected = false;
-    });
+        ['disconnected', 'unavailable', 'failed'].forEach((eventName) => {
+            connection.bind(eventName, () => {
+                window.__realtimeConnected = false;
+                window.dispatchEvent(new CustomEvent('realtime:failed', {
+                    detail: { state: eventName },
+                }));
+            });
+        });
+
+        connection.bind('error', (err) => {
+            window.__realtimeConnected = false;
+        });
+
+        connection.bind('state_change', (states) => {
+            // State change tracking (silent)
+        });
+        
+        return true;
+    }
+    return false;
+};
+
+// Try to bind immediately, otherwise retry until ready
+if (!bindConnectionEvents()) {
+    const retryInterval = setInterval(() => {
+        if (bindConnectionEvents()) {
+            clearInterval(retryInterval);
+        }
+    }, 100);
+    
+    // Stop retrying after 10 seconds to avoid infinite loop
+    setTimeout(() => clearInterval(retryInterval), 10000);
 }

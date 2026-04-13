@@ -359,7 +359,6 @@ function ordersTracker() {
                 Object.keys(this.statuses).forEach((orderId) => this.subscribeToOrder(orderId));
                 return true;
             } catch (error) {
-                console.warn('Realtime order subscriptions unavailable, falling back to polling.', error);
                 return false;
             }
         },
@@ -369,8 +368,18 @@ function ordersTracker() {
                 return;
             }
 
-            this.channels[orderId] = window.Echo.private(`order.${orderId}`)
-                .listen('.order.updated', (payload) => this.handleRealtimeUpdate(payload));
+            this.channels[orderId] = window.Echo.private(`order.${orderId}`);
+            
+            this.channels[orderId]
+                .listen('.order.updated', (payload) => {
+                    this.handleRealtimeUpdate(payload);
+                })
+                .subscribed(() => {
+                    // Subscribed
+                })
+                .error((error) => {
+                    // Auth error
+                });
         },
 
         handleRealtimeUpdate(payload) {
@@ -433,7 +442,14 @@ function ordersTracker() {
         schedulePoll(delay = null) {
             this.stopPolling();
 
-            if (document.hidden || !navigator.onLine || this.getActiveIds().length === 0) {
+            // Check if Echo is actually connected to avoid unnecessary polling
+            const isEchoConnected = window.Echo?.connector?.pusher?.connection?.state === 'connected';
+            if (isEchoConnected) {
+                this.usingEcho = true;
+            }
+
+            // Bail if Echo is active, tab is hidden, offline, or no orders to track
+            if (this.usingEcho || isEchoConnected || document.hidden || !navigator.onLine || this.getActiveIds().length === 0) {
                 return;
             }
 

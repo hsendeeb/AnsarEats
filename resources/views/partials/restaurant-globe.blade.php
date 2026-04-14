@@ -90,75 +90,120 @@
                 scene.add(rootGroup);
 
                 const earthRadius = 5.2;
-                const markerSprites = [];
-                const animatedMarkers = [];
-                const surfaceAccents = [];
-                const raycaster = new THREE.Raycaster();
-                raycaster.params.Sprite.threshold = 0.65;
-                const pointer = new THREE.Vector2(2, 2);
                 const clock = new THREE.Clock();
-                let hoveredMarker = null;
-                let pointerDownPosition = null;
-                let hasDragged = false;
-                let isControlDragging = false;
+                const textureLoader = new THREE.TextureLoader();
 
-                const ambientLight = new THREE.AmbientLight(0x9fd4ff, 1.15);
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.9);
-                directionalLight.position.set(10, 8, 14);
-                const rimLight = new THREE.DirectionalLight(0x4cc9f0, 1.4);
-                rimLight.position.set(-12, -3, -10);
-                scene.add(ambientLight, directionalLight, rimLight);
-
+                // Advanced Grouping
                 const globeGroup = new THREE.Group();
                 rootGroup.add(globeGroup);
 
+                const earthGroup = new THREE.Group();
+                globeGroup.add(earthGroup);
+
+                // High-End Earth Textures (Matching globe.gl Clouds Style)
+                const earthMaterial = new THREE.MeshStandardMaterial({
+                    map: textureLoader.load('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg'),
+                    bumpMap: textureLoader.load('//unpkg.com/three-globe/example/img/earth-topology.png'),
+                    bumpScale: 0.15,
+                    roughness: 0.8,
+                    metalness: 0.1,
+                    emissiveMap: textureLoader.load('//unpkg.com/three-globe/example/img/earth-night.jpg'),
+                    emissive: new THREE.Color(0xffff88),
+                    emissiveIntensity: 0.35,
+                });
+
                 const earth = new THREE.Mesh(
-                    new THREE.SphereGeometry(earthRadius, 96, 96),
-                    new THREE.MeshStandardMaterial({
-                        map: createEarthTexture(),
-                        roughness: 0.96,
-                        metalness: 0.02,
-                        emissive: new THREE.Color('#082032'),
-                        emissiveIntensity: 0.5,
-                    })
+                    new THREE.SphereGeometry(earthRadius, 128, 128),
+                    earthMaterial
                 );
-                globeGroup.add(earth);
+                earthGroup.add(earth);
+
+                // Animated Clouds Layer
+                const cloudMaterial = new THREE.MeshStandardMaterial({
+                    map: textureLoader.load('//unpkg.com/three-globe/example/img/earth-clouds.png'),
+                    transparent: true,
+                    opacity: 0.4,
+                    depthWrite: false,
+                    blending: THREE.AdditiveBlending
+                });
 
                 const clouds = new THREE.Mesh(
-                    new THREE.SphereGeometry(earthRadius + 0.08, 64, 64),
-                    new THREE.MeshStandardMaterial({
-                        map: createCloudTexture(),
-                        transparent: true,
-                        opacity: 0.3,
-                        depthWrite: false,
-                    })
+                    new THREE.SphereGeometry(earthRadius + 0.14, 96, 96),
+                    cloudMaterial
                 );
-                globeGroup.add(clouds);
+                earthGroup.add(clouds);
 
+                // Realistic Atmosphere
                 const atmosphere = new THREE.Mesh(
-                    new THREE.SphereGeometry(earthRadius + 0.55, 64, 64),
+                    new THREE.SphereGeometry(earthRadius * 1.015, 64, 64),
                     new THREE.MeshBasicMaterial({
                         color: 0x4cc9f0,
                         transparent: true,
-                        opacity: 0.14,
+                        opacity: 0.15,
                         side: THREE.BackSide,
                         blending: THREE.AdditiveBlending,
                     })
                 );
                 globeGroup.add(atmosphere);
 
-                const starField = new THREE.Points(createStarsGeometry(), new THREE.PointsMaterial({
-                    color: 0xc6edff,
-                    size: 0.18,
-                    transparent: true,
-                    opacity: 0.9,
-                    sizeAttenuation: true,
-                }));
+                const outerGlow = new THREE.Mesh(
+                    new THREE.SphereGeometry(earthRadius * 1.15, 64, 64),
+                    new THREE.MeshBasicMaterial({
+                        color: 0x22d3ee,
+                        transparent: true,
+                        opacity: 0.08,
+                        side: THREE.BackSide,
+                        blending: THREE.AdditiveBlending,
+                    })
+                );
+                globeGroup.add(outerGlow);
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5);
+                directionalLight.position.set(20, 15, 30);
+                scene.add(ambientLight, directionalLight);
+
+                const markerSprites = [];
+                const animatedMarkers = [];
+                const surfaceAccents = [];
+                const raycaster = new THREE.Raycaster();
+                raycaster.params.Sprite.threshold = 0.65;
+                const pointer = new THREE.Vector2(2, 2);
+                let hoveredMarker = null;
+                let pointerDownPosition = null;
+                let hasDragged = false;
+                let isControlDragging = false;
+
+                // Starfield Background
+                const createStars = () => {
+                    const geometry = new THREE.BufferGeometry();
+                    const count = 3000;
+                    const positions = new Float32Array(count * 3);
+                    for (let i = 0; i < count; i++) {
+                        const r = 50 + Math.random() * 80;
+                        const theta = Math.random() * Math.PI * 2;
+                        const phi = Math.acos(2 * Math.random() - 1);
+                        positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+                        positions[i * 3 + 1] = r * Math.cos(phi);
+                        positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+                    }
+                    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                    return new THREE.Points(geometry, new THREE.PointsMaterial({
+                        color: 0xffffff,
+                        size: 0.1,
+                        transparent: true,
+                        opacity: 0.8,
+                        sizeAttenuation: true
+                    }));
+                };
+                const starField = createStars();
                 scene.add(starField);
 
-                Promise.all(restaurants.map((restaurant, index) => createMarker(restaurant, index, restaurants.length)))
-                    .catch(() => {});
+                // Populate Restaurants
+                Promise.all(restaurants.map((restaurant, index) => createMarker(restaurant, index, restaurants.length)));
 
+                // Interaction Logic
                 controls.addEventListener('start', () => {
                     isControlDragging = true;
                     controls.autoRotate = false;
@@ -177,10 +222,9 @@
 
                 renderer.domElement.addEventListener('pointermove', (event) => {
                     if (pointerDownPosition) {
-                        const distance = Math.hypot(event.clientX - pointerDownPosition.x, event.clientY - pointerDownPosition.y);
-                        hasDragged = hasDragged || distance > 6;
+                        const d = Math.hypot(event.clientX - pointerDownPosition.x, event.clientY - pointerDownPosition.y);
+                        hasDragged = hasDragged || d > 6;
                     }
-
                     updatePointer(event);
                     updateHoverState();
                 });
@@ -188,14 +232,12 @@
                 renderer.domElement.addEventListener('pointerup', (event) => {
                     updatePointer(event);
                     updateHoverState();
-
                     if (!hasDragged) {
-                        const clickedMarker = getIntersectedMarker();
-                        if (clickedMarker?.object?.userData?.restaurant?.url) {
-                            window.location.href = clickedMarker.object.userData.restaurant.url;
+                        const intersected = getIntersectedMarker();
+                        if (intersected?.object?.userData?.restaurant?.url) {
+                            window.location.href = intersected.object.userData.restaurant.url;
                         }
                     }
-
                     pointerDownPosition = null;
                     hasDragged = false;
                     updateCursor();
@@ -215,12 +257,10 @@
 
                 animate();
 
+                // Core Functions
                 function resizeRenderer() {
                     const { clientWidth, clientHeight } = globeElement;
-                    if (!clientWidth || !clientHeight) {
-                        return;
-                    }
-
+                    if (!clientWidth || !clientHeight) return;
                     renderer.setSize(clientWidth, clientHeight, false);
                     camera.aspect = clientWidth / clientHeight;
                     camera.position.set(0, clientWidth < 640 ? 1.2 : 1.1, clientWidth < 640 ? 22 : clientWidth < 1024 ? 20 : 19);
@@ -228,34 +268,29 @@
                     controls.update();
                 }
 
-                function updatePointer(event) {
+                function updatePointer(e) {
                     const rect = renderer.domElement.getBoundingClientRect();
-                    pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                    pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                    pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                    pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
                 }
 
                 function updateHoverState() {
-                    const intersection = getIntersectedMarker();
-
-                    if (!intersection) {
+                    const intersected = getIntersectedMarker();
+                    if (!intersected) {
                         hoveredMarker = null;
                         hideTooltip();
                         updateCursor();
                         return;
                     }
-
-                    hoveredMarker = intersection.object;
-                    const restaurant = hoveredMarker.userData.restaurant;
-
-                    showTooltip(restaurant, hoveredMarker);
+                    hoveredMarker = intersected.object;
+                    showTooltip(hoveredMarker.userData.restaurant, hoveredMarker);
                     updateCursor();
                 }
 
                 function getIntersectedMarker() {
                     raycaster.setFromCamera(pointer, camera);
                     const intersections = raycaster.intersectObjects(markerSprites, false);
-
-                    return intersections.find((intersection) => isMarkerFacingCamera(intersection.object)) ?? null;
+                    return intersections.find(i => isMarkerFacingCamera(i.object)) || null;
                 }
 
                 function updateCursor() {
@@ -263,47 +298,36 @@
                         renderer.domElement.style.cursor = 'grabbing';
                         return;
                     }
-
                     renderer.domElement.style.cursor = hoveredMarker ? 'pointer' : 'grab';
                 }
 
                 function showTooltip(restaurant, marker) {
-                    if (!tooltipElement) {
-                        return;
-                    }
-
-                    const worldPosition = new THREE.Vector3();
-                    marker.getWorldPosition(worldPosition);
-
-                    const visibility = worldPosition.clone().normalize().dot(camera.position.clone().normalize());
+                    if (!tooltipElement) return;
+                    const pos = new THREE.Vector3();
+                    marker.getWorldPosition(pos);
+                    const visibility = pos.clone().normalize().dot(camera.position.clone().normalize());
                     if (visibility < 0.12) {
                         hideTooltip();
                         return;
                     }
-
-                    const projected = worldPosition.project(camera);
+                    const projected = pos.project(camera);
                     const x = globeElement.offsetLeft + (projected.x * 0.5 + 0.5) * globeElement.clientWidth;
                     const y = globeElement.offsetTop + (-projected.y * 0.5 + 0.5) * globeElement.clientHeight;
-
                     tooltipElement.innerHTML = `
                         <div class="text-[10px] font-black uppercase tracking-[0.24em] ${restaurant.isOpen ? 'text-emerald-500' : 'text-rose-500'}">${restaurant.isOpen ? 'Open Now' : 'Closed'}</div>
                         <div class="mt-1 text-sm font-black text-gray-900">${restaurant.name}</div>
-                        <div class="mt-1 text-xs font-medium text-gray-500">${restaurant.address || 'Restaurant page'}</div>
-                        <div class="mt-2 text-[11px] font-semibold text-emerald-600">Click to view restaurant</div>
+                        <div class="mt-1 text-xs font-medium text-gray-500">${restaurant.address || 'Restaurant view'}</div>
                     `;
                     tooltipElement.classList.remove('hidden');
                     tooltipElement.style.transform = `translate(${x}px, ${y}px) translate(-50%, calc(-100% - 18px))`;
                 }
 
-                function hideTooltip() {
-                    tooltipElement?.classList.add('hidden');
-                }
+                function hideTooltip() { tooltipElement?.classList.add('hidden'); }
 
                 function isMarkerFacingCamera(marker) {
-                    const worldPosition = new THREE.Vector3();
-                    marker.getWorldPosition(worldPosition);
-
-                    return worldPosition.clone().normalize().dot(camera.position.clone().normalize()) > 0.12;
+                    const pos = new THREE.Vector3();
+                    marker.getWorldPosition(pos);
+                    return pos.clone().normalize().dot(camera.position.clone().normalize()) > 0.12;
                 }
 
                 async function createMarker(restaurant, index, total) {
@@ -311,45 +335,26 @@
                     const markerTexture = await createMarkerTexture(restaurant);
                     markerTexture.colorSpace = THREE.SRGBColorSpace;
 
-                    const spriteMaterial = new THREE.SpriteMaterial({
-                        map: markerTexture,
-                        transparent: true,
-                        depthTest: true,
-                        depthWrite: false,
-                    });
+                    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: markerTexture, depthWrite: false }));
+                    const surfPos = latLngToVector(latitude, longitude, earthRadius + 0.05);
+                    const badgePos = latLngToVector(latitude, longitude, earthRadius + 0.9);
 
-                    const sprite = new THREE.Sprite(spriteMaterial);
-                    const surfacePosition = latLngToVector(latitude, longitude, earthRadius + 0.1);
-                    const badgePosition = latLngToVector(latitude, longitude, earthRadius + 0.95);
-
-                    sprite.position.copy(badgePosition);
-                    sprite.scale.setScalar(usedFallback ? 1.28 : 1.4);
-                    sprite.userData = {
-                        restaurant,
-                        baseScale: usedFallback ? 1.28 : 1.4,
-                    };
+                    sprite.position.copy(badgePos);
+                    sprite.scale.setScalar(usedFallback ? 1.25 : 1.4);
+                    sprite.userData = { restaurant, baseScale: usedFallback ? 1.25 : 1.4 };
 
                     const stem = new THREE.Line(
-                        new THREE.BufferGeometry().setFromPoints([surfacePosition, badgePosition.clone().multiplyScalar(0.985)]),
-                        new THREE.LineBasicMaterial({
-                            color: usedFallback ? 0xfbbf24 : 0x7dd3fc,
-                            transparent: true,
-                            opacity: 0.7,
-                        })
+                        new THREE.BufferGeometry().setFromPoints([surfPos, badgePos.clone().multiplyScalar(0.98)]),
+                        new THREE.LineBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.6 })
                     );
 
                     const accent = new THREE.Mesh(
-                        new THREE.SphereGeometry(0.08, 16, 16),
-                        new THREE.MeshBasicMaterial({
-                            color: usedFallback ? 0xf59e0b : 0x34d399,
-                        })
+                        new THREE.SphereGeometry(0.08, 12, 12),
+                        new THREE.MeshBasicMaterial({ color: restaurant.isOpen ? 0x34d399 : 0xf43f5e })
                     );
-                    accent.position.copy(surfacePosition);
+                    accent.position.copy(surfPos);
 
-                    globeGroup.add(stem);
-                    globeGroup.add(accent);
-                    globeGroup.add(sprite);
-
+                    globeGroup.add(stem, accent, sprite);
                     markerSprites.push(sprite);
                     animatedMarkers.push(sprite);
                     surfaceAccents.push(accent);
@@ -357,253 +362,66 @@
 
                 function resolveCoordinates(restaurant, index, total) {
                     if (Number.isFinite(restaurant.latitude) && Number.isFinite(restaurant.longitude)) {
-                        return {
-                            latitude: restaurant.latitude,
-                            longitude: restaurant.longitude,
-                            usedFallback: false,
-                        };
+                        return { latitude: restaurant.latitude, longitude: restaurant.longitude, usedFallback: false };
                     }
-
-                    const safeTotal = Math.max(total, 1);
                     const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-                    const offsetIndex = index + 1;
-                    const y = 1 - (offsetIndex / (safeTotal + 1)) * 2;
-                    const radius = Math.sqrt(1 - y * y);
-                    const theta = goldenAngle * offsetIndex;
-                    const x = Math.cos(theta) * radius;
-                    const z = Math.sin(theta) * radius;
-
+                    const y = 1 - ((index + 1) / (total + 1)) * 2;
+                    const r = Math.sqrt(1 - y * y);
+                    const theta = goldenAngle * (index + 1);
                     return {
                         latitude: THREE.MathUtils.radToDeg(Math.asin(y)),
-                        longitude: THREE.MathUtils.radToDeg(Math.atan2(z, x)),
-                        usedFallback: true,
+                        longitude: THREE.MathUtils.radToDeg(Math.atan2(Math.sin(theta) * r, Math.cos(theta) * r)),
+                        usedFallback: true
                     };
                 }
 
-                function latLngToVector(latitude, longitude, radius) {
-                    const phi = THREE.MathUtils.degToRad(90 - latitude);
-                    const theta = THREE.MathUtils.degToRad(longitude + 180);
-                    const x = -radius * Math.sin(phi) * Math.cos(theta);
-                    const y = radius * Math.cos(phi);
-                    const z = radius * Math.sin(phi) * Math.sin(theta);
-
-                    return new THREE.Vector3(x, y, z);
-                }
-
-                function createEarthTexture() {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 2048;
-                    canvas.height = 1024;
-                    const ctx = canvas.getContext('2d');
-
-                    const oceanGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                    oceanGradient.addColorStop(0, '#103b5e');
-                    oceanGradient.addColorStop(0.45, '#0e5378');
-                    oceanGradient.addColorStop(1, '#09253f');
-                    ctx.fillStyle = oceanGradient;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    ctx.globalAlpha = 0.1;
-                    for (let i = 0; i < 26; i++) {
-                        ctx.fillStyle = i % 2 === 0 ? '#7dd3fc' : '#38bdf8';
-                        ctx.fillRect(0, (canvas.height / 26) * i, canvas.width, 2);
-                    }
-
-                    ctx.globalAlpha = 0.85;
-                    const landColors = ['#14532d', '#1f7a47', '#2ea36a', '#3cb179'];
-                    const landMasses = [
-                        [360, 300, 210, 135, -0.25],
-                        [440, 420, 145, 170, 0.1],
-                        [980, 300, 255, 165, 0.2],
-                        [1135, 430, 115, 175, -0.1],
-                        [1420, 420, 270, 170, 0.18],
-                        [1670, 620, 130, 95, 0.22],
-                        [1450, 210, 100, 68, -0.4],
-                    ];
-
-                    landMasses.forEach(([x, y, w, h, rotation], index) => {
-                        ctx.save();
-                        ctx.translate(x, y);
-                        ctx.rotate(rotation);
-                        ctx.fillStyle = landColors[index % landColors.length];
-                        ctx.beginPath();
-                        ctx.ellipse(0, 0, w, h, 0, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.fillStyle = 'rgba(187, 247, 208, 0.16)';
-                        ctx.beginPath();
-                        ctx.ellipse(-w * 0.18, -h * 0.16, w * 0.45, h * 0.32, 0, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.restore();
-                    });
-
-                    ctx.globalAlpha = 0.14;
-                    for (let i = 0; i < 4500; i++) {
-                        ctx.fillStyle = i % 3 === 0 ? '#d9f99d' : '#bbf7d0';
-                        const x = Math.random() * canvas.width;
-                        const y = Math.random() * canvas.height;
-                        const size = Math.random() * 4.5;
-                        ctx.beginPath();
-                        ctx.arc(x, y, size, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-
-                    ctx.globalAlpha = 0.18;
-                    const glareGradient = ctx.createRadialGradient(470, 250, 30, 470, 250, 350);
-                    glareGradient.addColorStop(0, 'rgba(255,255,255,0.55)');
-                    glareGradient.addColorStop(1, 'rgba(255,255,255,0)');
-                    ctx.fillStyle = glareGradient;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    return new THREE.CanvasTexture(canvas);
-                }
-
-                function createCloudTexture() {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 1024;
-                    canvas.height = 512;
-                    const ctx = canvas.getContext('2d');
-
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.globalAlpha = 0.24;
-
-                    for (let i = 0; i < 220; i++) {
-                        const x = Math.random() * canvas.width;
-                        const y = Math.random() * canvas.height;
-                        const width = 30 + Math.random() * 90;
-                        const height = 12 + Math.random() * 26;
-                        const gradient = ctx.createRadialGradient(x, y, 0, x, y, width);
-                        gradient.addColorStop(0, 'rgba(255,255,255,0.95)');
-                        gradient.addColorStop(1, 'rgba(255,255,255,0)');
-                        ctx.fillStyle = gradient;
-                        ctx.beginPath();
-                        ctx.ellipse(x, y, width, height, Math.random(), 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-
-                    return new THREE.CanvasTexture(canvas);
-                }
-
-                function createStarsGeometry() {
-                    const geometry = new THREE.BufferGeometry();
-                    const starCount = 2200;
-                    const positions = new Float32Array(starCount * 3);
-
-                    for (let i = 0; i < starCount; i++) {
-                        const radius = 45 + Math.random() * 70;
-                        const theta = Math.random() * Math.PI * 2;
-                        const phi = Math.acos(2 * Math.random() - 1);
-                        positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-                        positions[i * 3 + 1] = radius * Math.cos(phi);
-                        positions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
-                    }
-
-                    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                    return geometry;
+                function latLngToVector(lat, lng, r) {
+                    const phi = THREE.MathUtils.degToRad(90 - lat);
+                    const theta = THREE.MathUtils.degToRad(lng + 180);
+                    return new THREE.Vector3(-r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
                 }
 
                 async function createMarkerTexture(restaurant) {
                     const canvas = document.createElement('canvas');
-                    canvas.width = 256;
-                    canvas.height = 256;
+                    canvas.width = 256; canvas.height = 256;
                     const ctx = canvas.getContext('2d');
-
-                    const badgeGradient = ctx.createLinearGradient(0, 0, 256, 256);
-                    badgeGradient.addColorStop(0, 'rgba(12, 24, 37, 0.96)');
-                    badgeGradient.addColorStop(1, 'rgba(17, 94, 89, 0.92)');
-                    ctx.fillStyle = badgeGradient;
-                    ctx.beginPath();
-                    ctx.arc(128, 128, 112, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    ctx.strokeStyle = restaurant.isOpen ? '#34d399' : '#fda4af';
-                    ctx.lineWidth = 10;
-                    ctx.beginPath();
-                    ctx.arc(128, 128, 108, 0, Math.PI * 2);
-                    ctx.stroke();
-
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(128, 118, 78, 0, Math.PI * 2);
-                    ctx.closePath();
-                    ctx.clip();
-
-                    let imageDrawn = false;
+                    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+                    ctx.beginPath(); ctx.arc(128, 128, 110, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = restaurant.isOpen ? '#10b981' : '#f43f5e';
+                    ctx.lineWidth = 12; ctx.stroke();
+                    ctx.save(); ctx.beginPath(); ctx.arc(128, 110, 75, 0, Math.PI * 2); ctx.clip();
                     if (restaurant.logo) {
                         try {
-                            const image = await loadImage(restaurant.logo);
-                            ctx.drawImage(image, 50, 40, 156, 156);
-                            imageDrawn = true;
-                        } catch (error) {
-                            imageDrawn = false;
-                        }
+                            const img = await new Promise((res, rej) => {
+                                const i = new Image(); i.crossOrigin = 'anonymous';
+                                i.onload = () => res(i); i.onerror = rej; i.src = restaurant.logo;
+                            });
+                            ctx.drawImage(img, 53, 35, 150, 150);
+                        } catch(e) { /* fallback below */ }
                     }
-
-                    if (!imageDrawn) {
-                        const fallbackGradient = ctx.createLinearGradient(50, 40, 206, 196);
-                        fallbackGradient.addColorStop(0, '#38bdf8');
-                        fallbackGradient.addColorStop(1, '#10b981');
-                        ctx.fillStyle = fallbackGradient;
-                        ctx.fillRect(50, 40, 156, 156);
-                        ctx.fillStyle = 'rgba(255,255,255,0.92)';
-                        ctx.font = '900 84px Outfit, sans-serif';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText((restaurant.name || '?').trim().charAt(0).toUpperCase(), 128, 120);
-                    }
-
+                    ctx.fillStyle = 'white'; ctx.font = '900 80px Outfit, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    if (!restaurant.logo) ctx.fillText(restaurant.name.charAt(0).toUpperCase(), 128, 110);
                     ctx.restore();
-
-                    ctx.fillStyle = 'rgba(255,255,255,0.96)';
-                    ctx.font = '900 20px Outfit, sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(truncateText(restaurant.name, 16), 128, 214);
-
+                    ctx.fillStyle = 'white'; ctx.font = '900 24px Outfit, sans-serif'; ctx.textAlign = 'center';
+                    ctx.fillText(restaurant.name.length > 15 ? restaurant.name.slice(0, 12) + '...' : restaurant.name, 128, 220);
                     return new THREE.CanvasTexture(canvas);
-                }
-
-                function loadImage(source) {
-                    return new Promise((resolve, reject) => {
-                        const image = new Image();
-                        image.crossOrigin = 'anonymous';
-                        image.onload = () => resolve(image);
-                        image.onerror = reject;
-                        image.src = source;
-                    });
-                }
-
-                function truncateText(text, maxLength) {
-                    if (text.length <= maxLength) {
-                        return text;
-                    }
-
-                    return `${text.slice(0, maxLength - 3)}...`;
                 }
 
                 function animate() {
                     requestAnimationFrame(animate);
-
-                    const elapsed = clock.getElapsedTime();
-                    clouds.rotation.y += 0.00055;
-                    starField.rotation.y -= 0.00015;
-
-                    animatedMarkers.forEach((marker, index) => {
-                        const hoverBoost = hoveredMarker === marker ? 1.17 : 1;
-                        const pulse = 1 + Math.sin(elapsed * 2.2 + index * 0.6) * 0.06;
-                        const scale = marker.userData.baseScale * pulse * hoverBoost;
-                        marker.scale.set(scale, scale, scale);
+                    const t = clock.getElapsedTime();
+                    clouds.rotation.y += 0.0006;
+                    starField.rotation.y -= 0.0001;
+                    animatedMarkers.forEach((m, i) => {
+                        const pulse = 1 + Math.sin(t * 2 + i) * 0.05;
+                        const s = hoveredMarker === m ? m.userData.baseScale * 1.15 : m.userData.baseScale * pulse;
+                        m.scale.set(s, s, s);
                     });
-
-                    surfaceAccents.forEach((accent, index) => {
-                        const pulse = 0.75 + Math.sin(elapsed * 3 + index * 0.75) * 0.15;
-                        accent.scale.setScalar(pulse);
+                    surfaceAccents.forEach((a, i) => {
+                        a.scale.setScalar(0.8 + Math.sin(t * 3 + i) * 0.2);
                     });
-
                     controls.update();
-                    if (hoveredMarker) {
-                        showTooltip(hoveredMarker.userData.restaurant, hoveredMarker);
-                    }
-
+                    if (hoveredMarker) showTooltip(hoveredMarker.userData.restaurant, hoveredMarker);
                     renderer.render(scene, camera);
                 }
             }

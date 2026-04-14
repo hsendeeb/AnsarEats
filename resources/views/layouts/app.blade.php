@@ -41,10 +41,9 @@
             gsap.registerPlugin(MotionPathPlugin);
         }
 
-        // Dark Mode Logic (Flash Prevention) - DEFAULT TO LIGHT
-        const isSelectedDark = localStorage.getItem('dark-mode') === 'true';
-        
-        if (isSelectedDark) {
+        // Dark Mode Logic - IGNORE browser/device theme. Only respect user's manual choice.
+        // Default: light mode. Only dark if user explicitly toggled it on.
+        if (localStorage.getItem('dark-mode') === 'true') {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');

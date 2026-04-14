@@ -47,7 +47,7 @@
                             </button>
                             <form action="{{ route('profile.clear') }}" method="POST" class="flex-1">
                                 @csrf
-                                <button type="submit" class="w-full px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-500 transition-all  text-sm">
+                                <button type="submit" class="w-full px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-500 transition-all text-sm">
                                  Delete
                                 </button>
                             </form>
@@ -347,30 +347,35 @@ function ordersTracker() {
         },
 
         init() {
+            // Initialize statuses with Alpine reactivity in mind
             document.querySelectorAll('[data-order-id]').forEach(el => {
                 this.statuses[el.dataset.orderId] = el.dataset.orderStatus;
             });
 
+            console.log('Order Tracker initialized with IDs:', Object.keys(this.statuses));
+
             this.usingEcho = this.subscribeToRealtime();
 
             window.addEventListener('realtime:connected', () => {
+                console.log('Realtime connected signal received');
                 this.usingEcho = true;
                 this.stopPolling();
+                // Re-subscribe if needed
+                Object.keys(this.statuses).forEach((orderId) => this.subscribeToOrder(orderId));
             });
 
             if (this.usingEcho) {
-                window.waitForRealtimeConnection?.(2500).then((connected) => {
+                window.waitForRealtimeConnection?.(3000).then((connected) => {
                     this.usingEcho = connected;
+                    console.log(connected ? 'Realtime connection verified' : 'Realtime connection timed out, using fallback');
 
                     if (!connected && this.getActiveIds().length > 0) {
                         this.enablePollingFallback();
                     }
                 });
-
-                return;
+            } else {
+                this.enablePollingFallback();
             }
-
-            this.enablePollingFallback();
         },
 
         getStatus(id, fallback) {
@@ -389,6 +394,7 @@ function ordersTracker() {
 
         subscribeToRealtime() {
             if (!window.Echo) {
+                console.warn('Laravel Echo not found on window');
                 return false;
             }
 
@@ -396,6 +402,7 @@ function ordersTracker() {
                 Object.keys(this.statuses).forEach((orderId) => this.subscribeToOrder(orderId));
                 return true;
             } catch (error) {
+                console.error('Failed to subscribe via Echo:', error);
                 return false;
             }
         },
@@ -405,29 +412,33 @@ function ordersTracker() {
                 return;
             }
 
+            console.log(`Subscribing to private channel: order.${orderId}`);
             this.channels[orderId] = window.Echo.private(`order.${orderId}`);
             
             this.channels[orderId]
                 .listen('.order.updated', (payload) => {
+                    console.log(`Received order.updated for #${orderId}:`, payload);
                     this.handleRealtimeUpdate(payload);
                 })
                 .subscribed(() => {
-                    // Subscribed
+                    console.log(`Successfully subscribed to order.${orderId}`);
                 })
                 .error((error) => {
-                    // Auth error
+                    console.error(`Subscription error for order.${orderId}:`, error);
                 });
         },
 
         handleRealtimeUpdate(payload) {
             const order = payload?.order;
 
-            if (!order?.id) {
-                return;
-            }
+            if (!order?.id) return;
 
             const prevStatus = this.statuses[order.id];
-            this.statuses[order.id] = order.status;
+            
+            // Force Alpine reactivity by creating a new object reference
+            this.statuses = { ...this.statuses, [order.id]: order.status };
+
+            console.log(`Status updated for #${order.id}: ${prevStatus} -> ${order.status}`);
 
             // Send browser notification for status change
             if (prevStatus !== order.status && window.sendOrderNotification) {
@@ -452,6 +463,7 @@ function ordersTracker() {
                 return;
             }
 
+            console.log('Enabling polling fallback...');
             this.pollingFallbackBound = true;
 
             document.addEventListener('visibilitychange', () => {
@@ -479,7 +491,6 @@ function ordersTracker() {
         schedulePoll(delay = null) {
             this.stopPolling();
 
-            // Check if we have any successfully subscribed channels
             const activeIds = this.getActiveIds();
             const hasSubscribedChannel = activeIds.some(id => {
                 const channel = window.Echo?.connector?.channels[`private-order.${id}`];
@@ -490,7 +501,6 @@ function ordersTracker() {
                 this.usingEcho = true;
             }
 
-            // Bail if Echo is active, tab is hidden, offline, or no orders to track
             if (this.usingEcho || document.hidden || !navigator.onLine || activeIds.length === 0) {
                 return;
             }
@@ -512,9 +522,20 @@ function ordersTracker() {
                     return;
                 }
                 const data = await res.json();
+                
+                // Update statuses reactively
+                let updated = false;
                 Object.entries(data).forEach(([id, info]) => {
-                    this.statuses[id] = info.status;
+                    if (this.statuses[id] !== info.status) {
+                        this.statuses[id] = info.status;
+                        updated = true;
+                    }
                 });
+                
+                if (updated) {
+                    this.statuses = { ...this.statuses }; // Force reactivity
+                }
+
                 this.schedulePoll(this.currentPollDelay());
             } catch(e) {
                 this.schedulePoll(this.pollConfig.retry);

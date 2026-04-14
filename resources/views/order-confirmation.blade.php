@@ -66,7 +66,7 @@
                         x-text="status === 'delivered' ? 'Enjoy your meal!' : 
                               (status === 'out_for_delivery' ? 'Your rider is nearby and will arrive shortly!' : 
                               (status === 'preparing' ? 'The kitchen is putting the final touches on your food!' : 
-                              (status === 'accepted' ? 'The restaurant has started preparing your order.' :
+                              (status === 'accepted' ? 'The restaurant has accepted your order.' :
                               (['rejected', 'cancelled'].includes(status) ? 'We are sorry for the inconvenience.' : 
                               (status === 'pending' || status === 'placed' ? 'Waiting for the restaurant to accpet your order...' : 'Sit back and relax while we handle the rest!')))))">
                         Sit back and relax while we handle the rest!

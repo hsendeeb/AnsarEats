@@ -546,7 +546,7 @@
         }
     </script>
 
-    <div class="relative bg-white">
+    <div class="relative bg-white dark:bg-gray-900 transition-colors duration-300">
         <!-- Cover Layer -->
         <div class="h-[360px] sm:h-[420px] md:h-[400px] lg:h-96 relative w-full">
             @if($restaurant->cover_image)
@@ -557,7 +557,7 @@
             <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/50 to-transparent"></div>
 
             <div class="absolute bottom-0 left-0 w-full px-4 sm:px-6 lg:px-8 pb-6 md:pb-8 max-w-7xl mx-auto flex flex-row items-center gap-4 md:gap-6">
-                <div class="flex-shrink-0 relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-40 lg:h-40 bg-white rounded-2xl md:rounded-3xl p-1.5 md:p-2 shadow-2xl z-20 border-2 md:border-4 border-white">
+                <div class="flex-shrink-0 relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-40 lg:h-40 bg-white dark:bg-gray-800 rounded-2xl md:rounded-3xl p-1.5 md:p-2 shadow-2xl z-20 border-2 md:border-4 border-white dark:border-gray-800">
                     @if($restaurant->logo)
                         <img src="{{ Storage::url($restaurant->logo) }}" alt="Logo" class="w-full h-full object-cover rounded-xl md:rounded-2xl">
                     @else
@@ -599,10 +599,10 @@
 
             <div class="flex flex-col lg:flex-row gap-10" x-data="{ isStuck: false }" @scroll.window="isStuck = window.pageYOffset > 400">
                 <!-- Sidebar / Mobile Tabs Navigation -->
-                <div class="w-screen lg:w-1/4 sticky top-20 lg:top-28 z-[45] bg-white/95 backdrop-blur-md lg:bg-transparent lg:backdrop-blur-none transition-all duration-300 -mx-4 sm:-mx-6 lg:mx-0 px-4 sm:px-6 lg:px-0 border-b border-gray-100 lg:border-none"
-                     :class="isStuck ? 'shadow-md shadow-gray-900/5' : 'shadow-none'">
-                    <div class="bg-white lg:border border-gray-100 lg:rounded-3xl p-0 lg:p-6 shadow-none transition-all duration-300">
-                        <h3 class="hidden lg:block font-black text-2xl outfit text-gray-900 mb-6">Menu</h3>
+                <div class="w-screen lg:w-1/4 sticky top-20 lg:top-28 z-[45] bg-white/95 dark:bg-gray-900/95 backdrop-blur-md lg:bg-transparent lg:backdrop-blur-none transition-all duration-300 -mx-4 sm:-mx-6 lg:mx-0 px-4 sm:px-6 lg:px-0 border-b border-gray-100 dark:border-gray-800 lg:border-none"
+                     :class="isStuck ? 'shadow-md shadow-gray-900/5 dark:shadow-black/20' : 'shadow-none'">
+                    <div class="bg-white dark:bg-gray-900 lg:dark:bg-gray-800/50 lg:border border-gray-100 dark:border-gray-800 lg:rounded-3xl p-0 lg:p-6 shadow-none transition-all duration-300">
+                        <h3 class="hidden lg:block font-black text-2xl outfit text-gray-900 dark:text-white mb-6">Menu</h3>
 
                         <nav x-ref="nav" class="relative flex flex-row lg:flex-col overflow-x-auto no-scrollbar scroll-smooth p-0 lg:p-0">
 
@@ -612,13 +612,13 @@
                                     data-cat-id="{{ $category->id }}"
                                     @click="activeCategory = '{{ $category->id }}'; scrollToCategory('category-{{ $category->id }}')"
                                     :class="activeCategory === '{{ $category->id }}' 
-                                        ? 'text-emerald-600 font-bold border-b-[3px] border-emerald-500 lg:border-b-0 lg:border-l-[3px] lg:bg-emerald-50' 
-                                        : 'text-gray-500 font-medium border-b-[3px] border-transparent lg:border-b-0 lg:border-l-[3px] lg:border-transparent hover:text-gray-800 lg:hover:bg-gray-50'"
+                                        ? 'text-emerald-600 dark:text-emerald-400 font-bold border-b-[3px] border-emerald-500 lg:border-b-0 lg:border-l-[3px] lg:bg-emerald-50 lg:dark:bg-emerald-500/10' 
+                                        : 'text-gray-500 dark:text-gray-400 font-medium border-b-[3px] border-transparent lg:border-b-0 lg:border-l-[3px] lg:border-transparent hover:text-gray-800 dark:hover:text-gray-200 lg:hover:bg-gray-50 lg:dark:hover:bg-gray-800/50'"
                                     class="relative flex-shrink-0 flex items-center justify-between gap-3 px-6 py-5 lg:py-3 transition-all group lg:w-full text-left lg:rounded-xl bg-transparent"
                                 >
                                     <span class="whitespace-nowrap">{{ $category->name }}</span>
                                     <span 
-                                        :class="activeCategory === '{{ $category->id }}' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-500'"
+                                        :class="activeCategory === '{{ $category->id }}' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'"
                                         class="hidden lg:block text-[10px] font-black px-2 py-1 rounded-full transition-colors">
                                         {{ $category->menuItems->count() }}
                                     </span>
@@ -638,9 +638,9 @@
                                             $dayHours = $restaurant->operating_hours[$day] ?? null;
                                             $isToday = $today === $day;
                                         @endphp
-                                        <div class="flex items-center justify-between px-2 {{ $isToday ? 'bg-emerald-50 py-2 rounded-xl border border-emerald-100' : 'text-gray-600' }}">
-                                            <span class="text-xs font-bold uppercase {{ $isToday ? 'text-emerald-700' : 'text-gray-500' }}">{{ substr($day, 0, 3) }}</span>
-                                            <span class="text-[11px] font-black {{ $isToday ? 'text-emerald-600' : 'text-gray-900' }}">
+                                        <div class="flex items-center justify-between px-2 {{ $isToday ? 'bg-emerald-50 dark:bg-emerald-500/10 py-2 rounded-xl border border-emerald-100 dark:border-emerald-500/20' : 'text-gray-600 dark:text-gray-400' }}">
+                                            <span class="text-xs font-bold uppercase {{ $isToday ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-500' }}">{{ substr($day, 0, 3) }}</span>
+                                            <span class="text-[11px] font-black {{ $isToday ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-900 dark:text-white' }}">
                                                 @if($dayHours && !($dayHours['closed'] ?? false))
                                                     {{ \Carbon\Carbon::parse($dayHours['open'])->format('g:i A') }} - {{ \Carbon\Carbon::parse($dayHours['close'])->format('g:i A') }}
                                                 @else
@@ -660,13 +660,13 @@
                     <!-- Menu Sections -->
                     @forelse($restaurant->menuCategories as $category)
                         <div id="category-{{ $category->id }}" class="mb-16 scroll-mt-36 lg:scroll-mt-28">
-                            <h2 class="text-3xl font-black outfit text-gray-900 mb-8 pb-4 border-b-2 border-dashed border-gray-200">
+                            <h2 class="text-3xl font-black outfit text-gray-900 dark:text-white mb-8 pb-4 border-b-2 border-dashed border-gray-200 dark:border-gray-800">
                                 {{ $category->name }}
                             </h2>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 @foreach($category->menuItems as $item)
-                                    <div id="item-card-{{ $item->id }}" class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow group {{ !$item->is_available ? 'opacity-60 grayscale' : '' }}"
+                                    <div id="item-card-{{ $item->id }}" class="bg-white dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow group {{ !$item->is_available ? 'opacity-60 grayscale' : '' }}"
                                          x-data="menuItemPricing({{ $item->price }}, @js($item->variants), {{ $item->is_on_sale ? 'true' : 'false' }}, {{ Js::from($item->sale_price) }}, {{ Js::from($item->saleDiscountPercentage()) }})">
                                         <!-- Item Image -->
                                         <div id="item-img-{{ $item->id }}" class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative">
@@ -692,13 +692,13 @@
                                         <div class="flex-1 min-w-0 flex flex-col justify-between">
                                             <div>
                                                 <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
-                                                    <h4 class="min-w-0 flex-1 font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight break-words flex items-center gap-2">
+                                                    <h4 class="min-w-0 flex-1 font-bold text-lg text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-tight break-words flex items-center gap-2">
                                                         {{ $item->name }}
                                                     </h4>
                                                     <div class="shrink-0 text-right whitespace-nowrap">
                                                         <div class="flex items-center justify-end gap-2">
-                                                            <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>
-                                                            <span class="font-black text-emerald-500" x-text="formattedPrice">
+                                                            <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 dark:text-gray-500 line-through" x-text="formattedOriginalPrice"></span>
+                                                            <span class="font-black text-emerald-500 dark:text-emerald-400" x-text="formattedPrice">
                                                                 ${{ number_format($item->price, 2) }}
                                                             </span>
                                                         </div>
@@ -733,7 +733,7 @@
                                                 }"
                                                 x-init="check(); window.addEventListener('resize', () => check())">
                                                     <p x-ref="desc"
-                                                       class="text-sm text-gray-500 font-medium whitespace-normal break-words"
+                                                       class="text-sm text-gray-500 dark:text-gray-400 font-medium whitespace-normal break-words"
                                                        :style="(!expanded && isSmall()) ? (clampStyle(2) + 'word-break:break-word;overflow-wrap:anywhere;') : 'word-break:break-word;overflow-wrap:anywhere;'">{{ $item->description }}</p>
                                                     <button type="button"
                                                             x-show="canExpand"

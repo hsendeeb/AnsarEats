@@ -81,7 +81,7 @@
                                    @focus="if(query.length >= 2) show = true"
                                    @keydown.enter.prevent="search()"
                                    placeholder="What are you eating today?" 
-                                   class="w-full pl-12 pr-12 py-5 bg-gray-100 border-none focus:ring-4 focus:ring-emerald-500/20 rounded-3xl font-bold text-gray-900 placeholder-gray-400 shadow-inner transition-all">
+                                   class="w-full pl-12 pr-12 py-5 bg-gray-100 dark:bg-gray-800 border-none focus:ring-4 focus:ring-emerald-500/20 rounded-3xl font-bold text-gray-900 dark:text-white placeholder-gray-400 shadow-inner transition-all">
                             
                             <button type="button"
                                     @click="search()"
@@ -108,14 +108,14 @@
                              x-transition:leave="transition ease-in duration-150"
                              x-transition:leave-start="opacity-100 translate-y-0"
                              x-transition:leave-end="opacity-0 translate-y-2"
-                             class="absolute left-0 right-0 mt-3 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-[100]"
+                              class="absolute left-0 right-0 mt-3 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-[100]"
                              x-cloak>
                             
                             <div class="h-80 md:h-96 overflow-y-scroll overscroll-contain no-scrollbar pb-4" style="-webkit-overflow-scrolling: touch; touch-action: pan-y;">
                                 <!-- Restaurants Section -->
                             <template x-if="results.restaurants.length > 0">
                                 <div>
-                                    <div class="px-5 py-3 bg-gray-50/50 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-50">Restaurants</div>
+                                    <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-900/50 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-50 dark:border-gray-700">Restaurants</div>
                                     <div class="py-2">
                                         <template x-for="r in results.restaurants" :key="r.id">
                                             <a :href="r.url" class="flex items-center gap-4 px-5 py-3 hover:bg-emerald-50 transition-colors group">
@@ -140,7 +140,7 @@
                             <!-- Meals Section -->
                             <template x-if="results.meals.length > 0">
                                 <div class="border-t border-gray-50">
-                                    <div class="px-5 py-3 bg-gray-50/50 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-50">Popular Meals</div>
+                                    <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-900/50 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-50 dark:border-gray-700">Popular Meals</div>
                                     <div class="py-2">
                                         <template x-for="m in results.meals" :key="m.id">
                                             <a :href="m.url" class="flex items-center gap-4 px-5 py-3 hover:bg-emerald-50 transition-colors group">
@@ -175,7 +175,7 @@
     
 </div>
 
-<section class="mt-4 md:mt-8 pt-4 md:pt-8 pb-4 bg-white relative z-20">
+<section class="mt-4 md:mt-8 pt-4 md:pt-8 pb-4 bg-white dark:bg-gray-900 relative z-20 transition-colors duration-300">
     <div class="container mx-auto px-4">
         <!-- Browse By Category Section -->
         <div class="mb-4 md:mb-6 scroll-reveal"
@@ -221,7 +221,7 @@
                                 <a href="{{ route('browse.index', ['category' => $cat['slug']]) }}"
                                    class="group flex flex-col items-center justify-center gap-1.5 w-full aspect-square rounded-full transition-all duration-300 cursor-pointer text-center">
                                     <span class="text-2xl sm:text-[1.7rem] leading-none transition-transform duration-300 group-hover:scale-110">{{ $cat['emoji'] }}</span>
-                                    <span class="block font-black text-gray-900 group-hover:text-emerald-600 text-[11px] sm:text-xs leading-tight transition-colors">{{ $cat['label'] }}</span>
+                                    <span class="block font-black text-gray-900 dark:text-gray-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 text-[11px] sm:text-xs leading-tight transition-colors">{{ $cat['label'] }}</span>
                                 </a>
                             </div>
                         @endforeach
@@ -238,7 +238,7 @@
              x-intersect.once.margin.-80px.0.0.0="reveal()"
              :class="{ 'is-visible': shown }">
             <div>
-                <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 tracking-tight">Trending Spots</h2>
+                <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">Trending Spots</h2>
             </div>
             <a href="{{ route('restaurants.index') }}" class="hidden sm:inline-block font-bold text-emerald-600 hover:text-emerald-500 flex items-center gap-2 group transition-all">
                 <span>See all</span>
@@ -326,8 +326,8 @@
                             @foreach($restaurants ?? [] as $restaurant)
                                 <div class="shrink-0 pb-2" style="width: min(84vw, 24rem);">
                                     <a href="{{ route('restaurant.show', $restaurant) }}" class="block h-full relative">
-                                        <div class="relative flex h-full flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-md transition-all duration-300">
-                                            <div class="relative flex h-48 items-center justify-center overflow-hidden bg-gray-100">
+                                        <div class="relative flex h-full flex-col overflow-hidden rounded-3xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 shadow-md transition-all duration-300">
+                                            <div class="relative flex h-48 items-center justify-center overflow-hidden bg-gray-100 dark:bg-gray-700">
                                                 @if($restaurant->logo)
                                                     <img alt="{{ $restaurant->name }}" src="{{ Storage::url($restaurant->logo) }}" class="h-full w-full object-cover transition-transform duration-700 ease-in-out"/>
                                                 @else
@@ -360,8 +360,8 @@
                                             </div>
 
                                             <div class="flex-auto p-6">
-                                                <h6 class="mt-2 text-xl md:text-2xl font-black text-gray-900 outfit transition-colors">{{ $restaurant->name }}</h6>
-                                                <p class="mt-2 mb-4 line-clamp-2 font-medium text-gray-500">
+                                                <h6 class="mt-2 text-xl md:text-2xl font-black text-gray-900 dark:text-white outfit transition-colors">{{ $restaurant->name }}</h6>
+                                                <p class="mt-2 mb-4 line-clamp-2 font-medium text-gray-500 dark:text-gray-400">
                                                     {{ $restaurant->description ?? 'Amazing food, cooked with perfection and delivered straight to you.' }}
                                                 </p>
                                             </div>
@@ -381,8 +381,8 @@
                          x-intersect.once.margin.-60px.0.0.0="reveal()"
                          :class="{ 'is-visible': shown }">
                         <a href="{{ route('restaurant.show', $restaurant) }}" class="block h-full relative">
-                            <div class="relative flex flex-col min-w-0 break-words bg-white w-full h-full shadow-md hover:shadow-2xl rounded-3xl transition-all duration-300 transform group-hover:-translate-y-2 border border-gray-100 overflow-hidden">
-                                <div class="h-48 relative overflow-hidden bg-gray-100 flex items-center justify-center">
+                            <div class="relative flex flex-col min-w-0 break-words bg-white dark:bg-gray-800 w-full h-full shadow-md hover:shadow-2xl rounded-3xl transition-all duration-300 transform group-hover:-translate-y-2 border border-gray-100 dark:border-gray-700 overflow-hidden">
+                                <div class="h-48 relative overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                                     @if($restaurant->logo)
                                         <img alt="{{ $restaurant->name }}" src="{{ Storage::url($restaurant->logo) }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out"/>
                                     @else
@@ -415,8 +415,8 @@
                                 </div>
 
                                 <div class="flex-auto p-6 relative">
-                                    <h6 class="text-xl md:text-2xl font-black outfit text-gray-900 mt-2 group-hover:text-emerald-500 transition-colors">{{ $restaurant->name }}</h6>
-                                    <p class="mt-2 mb-4 text-gray-500 font-medium line-clamp-2">
+                                    <h6 class="text-xl md:text-2xl font-black outfit text-gray-900 dark:text-white mt-2 group-hover:text-emerald-500 transition-colors">{{ $restaurant->name }}</h6>
+                                    <p class="mt-2 mb-4 text-gray-500 dark:text-gray-400 font-medium line-clamp-2">
                                         {{ $restaurant->description ?? 'Amazing food, cooked with perfection and delivered straight to you.' }}
                                     </p>
                                 </div>
@@ -444,7 +444,7 @@
              x-data="scrollReveal(120, 22)"
              x-intersect.once.margin.-60px.0.0.0="reveal()"
              :class="{ 'is-visible': shown }">
-            <a href="{{ route('restaurants.index') }}" class="inline-flex items-center gap-2 px-8 py-4 bg-white border border-gray-200 text-gray-900 font-black rounded-2xl shadow-sm hover:bg-gray-50 transition-all active:scale-95 group">
+            <a href="{{ route('restaurants.index') }}" class="inline-flex items-center gap-2 px-8 py-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white font-black rounded-2xl shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all active:scale-95 group">
                 <span>View All Spots</span>
                 <svg class="w-5 h-5 text-emerald-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
             </a>
@@ -460,7 +460,7 @@
                  x-intersect.once.margin.-80px.0.0.0="reveal()"
                  :class="{ 'is-visible': shown }">
                 <div>
-                    <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 tracking-tight">Most Loved Meals</h2>
+                <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">Most Loved Meals</h2>
                 </div>
             </div>
 
@@ -471,7 +471,7 @@
                          x-data="scrollReveal({{ ($loop->index % 3) * 100 }}, 30)"
                          x-intersect.once.margin.-60px.0.0.0="reveal()"
                          :class="{ 'is-visible': shown }">
-                        <div class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow relative overflow-hidden h-full"
+                        <div class="bg-white dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow relative overflow-hidden h-full"
                              x-data="{
                                 adding: false,
                                 basePrice: parseFloat('{{ $meal->price }}'),
@@ -610,7 +610,7 @@
                                 <div>
                                     <div class="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
                                         <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="min-w-0 flex-1">
-                                            <h4 class="font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight break-words flex items-center gap-2">
+                                            <h4 class="font-bold text-lg text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors leading-tight break-words flex items-center gap-2">
                                                 {{ $meal->name }}
                                                 @if($meal->is_featured)
                                                     <span class="inline-flex items-center text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-widest border border-amber-100 whitespace-nowrap">Featured</span>
@@ -699,14 +699,14 @@
                  x-intersect.once.margin.-80px.0.0.0="reveal()"
                  :class="{ 'is-visible': shown }">
                 <div>
-                    <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 tracking-tight">All Stores</h2>
+                    <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">All Stores</h2>
 
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
                 <template x-for="(store, index) in stores" :key="store.id">
-                    <article class="group bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300"
+                    <article class="group bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300"
                              x-intersect.margin.250px="handleLastVisible(index)">
                         <a :href="store.url" class="block h-full">
                             <div class="relative h-52 bg-gray-100 overflow-hidden">
@@ -741,7 +741,7 @@
                             </div>
 
                             <div class="p-6">
-                                <h3 class="text-2xl font-black outfit text-gray-900 group-hover:text-emerald-500 transition-colors" x-text="store.name"></h3>
+                                <h3 class="text-2xl font-black outfit text-gray-900 dark:text-white group-hover:text-emerald-500 transition-colors" x-text="store.name"></h3>
                                 <p class="mt-3 text-sm text-gray-500 font-medium line-clamp-2 min-h-[2.75rem]"
                                    x-text="store.description || 'Fresh food, signature flavors, and a storefront ready to explore.'"></p>
                             </div>

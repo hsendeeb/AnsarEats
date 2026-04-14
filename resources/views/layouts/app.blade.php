@@ -41,12 +41,10 @@
             gsap.registerPlugin(MotionPathPlugin);
         }
 
-        // Dark Mode Logic (Flash Prevention)
+        // Dark Mode Logic (Flash Prevention) - DEFAULT TO LIGHT
         const isSelectedDark = localStorage.getItem('dark-mode') === 'true';
-        const hasNoSelection = !('dark-mode' in localStorage);
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         
-        if (isSelectedDark || (hasNoSelection && prefersDark)) {
+        if (isSelectedDark) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
@@ -56,7 +54,7 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.store('darkMode', {
-                on: localStorage.getItem('dark-mode') === 'true' || (!('dark-mode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
+                on: localStorage.getItem('dark-mode') === 'true',
                 toggle() {
                     this.on = !this.on;
                     localStorage.setItem('dark-mode', this.on);
@@ -211,7 +209,7 @@
     </div>
     
     <!-- Navigation -->
-    <nav x-data="{ mobileMenuOpen: false }" x-effect="document.documentElement.classList.toggle('overflow-hidden', mobileMenuOpen); document.body.classList.toggle('overflow-hidden', mobileMenuOpen);" class="bg-white/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm border-b border-gray-100">
+    <nav x-data="{ mobileMenuOpen: false }" x-effect="document.documentElement.classList.toggle('overflow-hidden', mobileMenuOpen); document.body.classList.toggle('overflow-hidden', mobileMenuOpen);" class="bg-white/80 dark:bg-gray-900/95 backdrop-blur-xl sticky top-0 z-50 shadow-sm border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20">
                 <div class="flex items-center">
@@ -219,13 +217,13 @@
                         <div class="w-14 h-14 flex items-center justify-center transform group-hover:scale-105 transition-all duration-300">
                             <img src="{{ asset('images/brand/ansareats-logo-v2.svg') }}" alt="AnsarEats logo" class="w-full h-full" width="56" height="56">
                         </div>
-                        <span class="font-extrabold text-2xl outfit text-gray-900 group-hover:text-emerald-500 tracking-tight transition-colors">AnsarEats</span>
+                        <span class="font-extrabold text-2xl outfit text-gray-900 dark:text-white group-hover:text-emerald-500 tracking-tight transition-colors">AnsarEats</span>
                     </a>
 
                     <div class="hidden lg:flex items-center ml-10 space-x-8">
-                        <a href="{{ route('restaurants.index') }}" class="text-sm font-bold text-gray-600 hover:text-emerald-500 transition-colors uppercase tracking-widest">Explore</a>
+                        <a href="{{ route('restaurants.index') }}" class="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-emerald-500 transition-colors uppercase tracking-widest">Explore</a>
                         @if(! $hasRestaurant)
-                            <a href="{{ route('partner.with.us') }}" class="text-sm font-bold text-gray-600 hover:text-emerald-500 transition-colors uppercase tracking-widest">Partner with us</a>
+                            <a href="{{ route('partner.with.us') }}" class="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-emerald-500 transition-colors uppercase tracking-widest">Partner with us</a>
                         @endif
                     </div>
                 </div>
@@ -259,8 +257,8 @@
                          @click.away="expanded = false; show = false"
                          class="relative hidden md:flex items-center">
                         
-                        <div class="flex items-center bg-gray-100 rounded-2xl transition-all duration-500 ease-in-out overflow-hidden h-11"
-                             :class="expanded ? 'w-40 sm:w-64 px-4' : 'w-11 justify-center cursor-pointer hover:bg-emerald-50 hover:text-emerald-500'"
+                        <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-2xl transition-all duration-500 ease-in-out overflow-hidden h-11"
+                             :class="expanded ? 'w-40 sm:w-64 px-4' : 'w-11 justify-center cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-500'"
                              @click="if(!expanded) { expanded = true; $nextTick(() => $refs.navSearchInput.focus()); }">
                             
                             <svg class="w-5 h-5 flex-shrink-0 transition-colors" :class="expanded ? 'text-emerald-500' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -275,7 +273,7 @@
                                    @focus="if(query.length >= 2) show = true"
                                    type="text"
                                    placeholder="Search..."
-                                   class="bg-transparent border-none shadow-none focus:outline-none focus:ring-0 focus:border-transparent focus:shadow-none text-sm font-bold text-gray-900 w-full placeholder-gray-400 ml-2 py-0"
+                                   class="bg-transparent border-none shadow-none focus:outline-none focus:ring-0 focus:border-transparent focus:shadow-none text-sm font-bold text-gray-900 dark:text-white placeholder-gray-400 ml-2 py-0"
                                    style="outline: none !important; box-shadow: none !important; -webkit-box-shadow: none !important;">
 
                             <div x-show="loading && expanded" class="ml-2">
@@ -294,7 +292,7 @@
                              x-transition:leave="transition ease-in duration-150"
                              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                              x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-                             class="absolute top-full right-0 mt-3 w-72 sm:w-80 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-[110]"
+                             class="absolute top-full right-0 mt-3 w-72 sm:w-80 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-[110]"
                              x-cloak>
                             
                             <div class="h-80 md:h-96 overflow-y-auto overscroll-contain no-scrollbar pb-4" style="-webkit-overflow-scrolling: touch;">
@@ -302,8 +300,8 @@
                                 <div class="p-2">
                                     <div class="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Restaurants</div>
                                     <template x-for="r in results.restaurants" :key="r.id">
-                                        <a :href="r.url" class="flex items-center gap-3 p-2 rounded-2xl hover:bg-emerald-50 transition-colors group">
-                                            <div class="w-10 h-10 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                        <a :href="r.url" class="flex items-center gap-3 p-2 rounded-2xl hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors group">
+                                            <div class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 flex-shrink-0 overflow-hidden flex items-center justify-center">
                                                 <template x-if="r.logo">
                                                     <img :src="r.logo" class="w-full h-full object-cover">
                                                 </template>
@@ -312,8 +310,8 @@
                                                 </template>
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <div class="font-bold text-sm text-gray-900 truncate group-hover:text-emerald-600 transition-colors" x-text="r.name"></div>
-                                                <div class="text-[10px] text-gray-500 font-bold uppercase">Restaurant</div>
+                                                <div class="font-bold text-sm text-gray-900 dark:text-white truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" x-text="r.name"></div>
+                                                <div class="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase">Restaurant</div>
                                             </div>
                                         </a>
                                     </template>
@@ -350,7 +348,7 @@
 
                     <!-- Cart Button -->
                     <div x-data="navCart" @cart-updated.window="updateFromEvent($event)">
-                        <button @click="$dispatch('toggle-cart')" class="relative font-semibold text-gray-600 hover:text-emerald-500 transition-colors p-2 rounded-xl hover:bg-emerald-50 h-11 w-11 flex items-center justify-center">
+                        <button @click="$dispatch('toggle-cart')" class="relative font-semibold text-gray-600 dark:text-gray-400 hover:text-emerald-500 transition-colors p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-500/10 h-11 w-11 flex items-center justify-center">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                             <span x-show="count > 0" x-transition
                                 class="absolute -top-1 -right-1 bg-emerald-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
@@ -367,11 +365,11 @@
                         @else
                             <div class="relative" x-data="{ open: false }" @click.away="open = false">
                                 <button @click="open = !open" 
-                                        class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-100 transition-all group">
+                                        class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-emerald-100 dark:hover:border-emerald-500/30 transition-all group">
                                     <div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-black">
                                         {{ substr(auth()->user()->name, 0, 1) }}
                                     </div>
-                                    <span class="font-bold text-gray-700 group-hover:text-emerald-600 transition-colors">{{ auth()->user()->name }}</span>
+                                    <span class="font-bold text-gray-700 dark:text-gray-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{{ auth()->user()->name }}</span>
                                     <svg class="w-4 h-4 text-gray-400 group-hover:text-emerald-500 transition-all" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
                                 </button>
 
@@ -383,11 +381,11 @@
                                      x-transition:leave="transition ease-in duration-150"
                                      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                                      x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-                                     class="absolute right-0 mt-3 w-56 bg-white rounded-[2rem] shadow-2xl border border-gray-100 p-2 z-[100]"
+                                     class="absolute right-0 mt-3 w-56 bg-white dark:bg-gray-800 rounded-[2rem] shadow-2xl border border-gray-100 dark:border-gray-700 p-2 z-[100]"
                                      x-cloak>
                                     
-                                    <a href="{{ route('profile.show') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 transition-all group">
-                                        <div class="w-8 h-8 rounded-xl bg-gray-50 group-hover:bg-emerald-100 flex items-center justify-center text-gray-400 group-hover:text-emerald-600 transition-colors">
+                                    <a href="{{ route('profile.show') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all group">
+                                        <div class="w-8 h-8 rounded-xl bg-gray-50 dark:bg-gray-700 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/20 flex items-center justify-center text-gray-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                         </div>
                                         My Profile
@@ -462,10 +460,10 @@
     </nav>
 
     <!-- Bottom Navigation (Mobile) -->
-    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-[100] pb-3 pt-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 z-[100] pb-3 pt-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-black/20">
         <div class="flex w-full px-2">
             <!-- Home -->
-            <a href="{{ url('/') }}" class="flex-1 flex flex-col items-center justify-center p-2 {{ request()->is('/') ? 'text-emerald-500' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-colors' }}">
+            <a href="{{ url('/') }}" class="flex-1 flex flex-col items-center justify-center p-2 {{ request()->is('/') ? 'text-emerald-500' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-colors' }}">
                 <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                 <span class="text-[10px] font-bold">Home</span>
             </a>

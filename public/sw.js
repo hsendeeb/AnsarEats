@@ -89,7 +89,7 @@ self.addEventListener('push', function (event) {
 
     const title = data.title || 'AnsarEats Update';
     const body = data.body || 'You have a new update.';
-    const url = data.url || '/profile/orders';
+    const url = data.url || '/orders';
     const tag = data.tag || 'general-update';
 
     event.waitUntil(

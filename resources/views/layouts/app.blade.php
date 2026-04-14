@@ -172,7 +172,7 @@
                     title: title,
                     body: body,
                     tag: `order-${orderId}`,
-                    url: '{{ url("/profile/orders") }}',
+                    url: '{{ route("profile.orders") }}',
                 });
             } else if (window.__swRegistration) {
                 // Fallback: use registration directly
@@ -182,7 +182,7 @@
                     badge: '/images/brand/ansareats-app-icon.svg',
                     tag: `order-${orderId}`,
                     renotify: true,
-                    data: { url: '{{ url("/profile/orders") }}' },
+                    data: { url: '{{ route("profile.orders") }}' },
                     vibrate: [200, 100, 200],
                 });
             }

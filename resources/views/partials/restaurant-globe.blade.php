@@ -92,6 +92,16 @@
                 const earthRadius = 5.2;
                 const clock = new THREE.Clock();
                 const textureLoader = new THREE.TextureLoader();
+                textureLoader.setCrossOrigin('anonymous');
+                
+                // Use local assets for performance and CORS stability
+                const assetBase = '/assets/globe/';
+                const textures = {
+                    day: assetBase + 'earth-blue-marble.jpg',
+                    bump: assetBase + 'earth-topology.png',
+                    clouds: assetBase + 'earth-clouds.png',
+                    night: assetBase + 'earth-night.jpg'
+                };
 
                 // Advanced Grouping
                 const globeGroup = new THREE.Group();
@@ -100,14 +110,14 @@
                 const earthGroup = new THREE.Group();
                 globeGroup.add(earthGroup);
 
-                // High-End Earth Textures (Matching globe.gl Clouds Style)
+                // Initialize Earth with realistic textures
                 const earthMaterial = new THREE.MeshStandardMaterial({
-                    map: textureLoader.load('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg'),
-                    bumpMap: textureLoader.load('//unpkg.com/three-globe/example/img/earth-topology.png'),
+                    map: textureLoader.load(textures.day),
+                    bumpMap: textureLoader.load(textures.bump),
                     bumpScale: 0.15,
                     roughness: 0.8,
                     metalness: 0.1,
-                    emissiveMap: textureLoader.load('//unpkg.com/three-globe/example/img/earth-night.jpg'),
+                    emissiveMap: textureLoader.load(textures.night),
                     emissive: new THREE.Color(0xffff88),
                     emissiveIntensity: 0.35,
                 });
@@ -120,7 +130,7 @@
 
                 // Animated Clouds Layer
                 const cloudMaterial = new THREE.MeshStandardMaterial({
-                    map: textureLoader.load('//unpkg.com/three-globe/example/img/earth-clouds.png'),
+                    map: textureLoader.load(textures.clouds),
                     transparent: true,
                     opacity: 0.4,
                     depthWrite: false,

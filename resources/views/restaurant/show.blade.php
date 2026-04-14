@@ -568,18 +568,32 @@
                 </div>
 
                 <div class="flex-1 pb-1 md:pb-2">
-                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-black outfit text-white leading-tight">{{ $restaurant->name }}</h1>
-                     <span class="shrink-0 px-2.5 py-1 md:px-3 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest {{ $restaurant->isOpenNow() ? 'bg-emerald-400/20 text-emerald-400 border border-emerald-400/30' : 'bg-red-400/20 text-red-400 border border-red-400/30' }}">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-black outfit text-white leading-tight mb-2">{{ $restaurant->name }}</h1>
+                    
+                    <div class="flex flex-wrap items-center gap-2 mb-3">
+                        <span class="shrink-0 px-2.5 py-1 md:px-3 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest {{ $restaurant->isOpenNow() ? 'bg-emerald-400/20 text-emerald-400 border border-emerald-400/30' : 'bg-red-400/20 text-red-400 border border-red-400/30' }}">
                             {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
                         </span>
-                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5 md:mt-2">
+                        
+                        <div class="flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 px-2.5 py-0.5 md:py-1 text-[10px] md:text-xs font-bold text-white shadow-lg">
+                            <svg class="h-3 md:h-3.5 w-3 md:w-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                            @if(($restaurant->ratings_count ?? 0) > 0)
+                                <span>{{ number_format($restaurant->ratings_avg_rating ?? 0, 1) }}</span>
+                                <span class="text-white/50 font-medium">({{ $restaurant->ratings_count }})</span>
+                            @else
+                                <span>New</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                         @php
                             $mapsQuery = $restaurant->latitude && $restaurant->longitude
                                 ? "{$restaurant->latitude},{$restaurant->longitude}"
                                 : urlencode($restaurant->address);
                             $mapsUrl = "https://www.google.com/maps/search/?api=1&query={$mapsQuery}";
                         @endphp
-                        <a href="{{ $mapsUrl }}" target="_blank" class="inline-flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl md:rounded-2xl text-emerald-300 hover:text-white border border-white/10 hover:border-white/20 transition-all duration-300 group shadow-lg shadow-black/20 max-w-full">
+                        <a href="{{ $mapsUrl }}" target="_blank" class="inline-flex items-center text-xs gap-1.5 md:gap-2 px-2 md:px-4 md:py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl md:rounded-2xl text-emerald-300 hover:text-white border border-white/10 hover:border-white/20 transition-all duration-300 group shadow-lg shadow-black/20 max-w-full">
                             <div class="w-6 h-6 md:w-8 md:h-8 rounded-lg md:rounded-xl bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
                                 <svg class="w-3 h-3 md:w-4 md:h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                             </div>
@@ -627,9 +641,17 @@
                         </nav>
 
                         @if($restaurant->operating_hours)
-                            <div class="hidden lg:block mt-8 pt-6 border-t border-gray-100">
-                                <h4 class="font-black text-xs uppercase tracking-widest text-gray-400 mb-4 px-2">Operating Hours</h4>
-                                <div class="space-y-3">
+                            <div class="hidden lg:block mt-8 pt-6 border-t border-gray-100" x-data="{ open: false }">
+                                <button type="button" @click="open = !open" class="w-full flex items-center justify-between group cursor-pointer focus:outline-none mb-2">
+                                    <h4 class="font-black text-xs uppercase tracking-widest text-gray-400 group-hover:text-emerald-500 transition-colors px-2">Operating Hours</h4>
+                                    <svg class="w-4 h-4 text-gray-400 group-hover:text-emerald-500 transition-transform duration-300" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                                <div x-show="open" 
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 -translate-y-2"
+                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                     x-cloak
+                                     class="space-y-3 pt-2">
                                     @php
                                         $today = strtolower(now()->format('l'));
                                     @endphp
@@ -831,41 +853,52 @@
                     @endforelse
 
                     @if($restaurant->operating_hours)
-                        <div class="lg:hidden bg-gray-50 shadow-sm border border-gray-100 rounded-[2.5rem] p-5 mb-10 group overflow-hidden">
-                            <div class="flex flex-col sm:flex-row items-center gap-6">
-                                <div class="flex-shrink-0 flex sm:flex-col items-center gap-2 px-6 py-3 bg-white shadow-sm border border-gray-100 rounded-3xl">
-                                    <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    <div class="text-left sm:text-center">
-                                        <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 leading-none">Working</p>
-                                        <p class="text-lg font-black outfit text-gray-900 leading-tight">Hours</p>
+                        <div class="lg:hidden bg-white dark:bg-gray-800/50 shadow-sm border border-gray-100 dark:border-gray-800 rounded-3xl p-4 sm:p-5 mb-10" x-data="{ open: false }">
+                            <button @click="open = !open" type="button" class="w-full flex items-center justify-between focus:outline-none group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex flex-shrink-0 items-center justify-center transition-colors group-hover:bg-emerald-500 group-hover:text-white">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </div>
+                                    <div class="text-left">
+                                        <h3 class="text-base font-black outfit text-gray-900 dark:text-white leading-tight">Working Hours</h3>
+                                        <p class="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 leading-tight mt-0.5">Tap to view schedule</p>
                                     </div>
                                 </div>
+                                <div class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center border border-gray-100 dark:border-gray-700 text-gray-400 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/20 group-hover:border-emerald-100 dark:group-hover:border-emerald-500/30 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-all">
+                                    <svg class="w-4 h-4 transition-transform duration-300" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </button>
 
-                                <div class="flex-1 w-full overflow-x-auto scrollbar-hide">
-                                    <div class="flex items-center gap-3 min-w-max py-2">
+                            <div x-show="open" 
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 -translate-y-4"
+                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                 x-cloak>
+                                <div class="mt-4 space-y-2 border-t border-gray-100 dark:border-gray-800 pt-4">
+                                    @php
+                                        $today = strtolower(now()->format('l'));
+                                    @endphp
+                                    @foreach(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as $day)
                                         @php
-                                            $today = strtolower(now()->format('l'));
+                                            $dayHours = $restaurant->operating_hours[$day] ?? null;
+                                            $isToday = $today === $day;
                                         @endphp
-                                        @foreach(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as $day)
-                                            @php
-                                                $dayHours = $restaurant->operating_hours[$day] ?? null;
-                                                $isToday = $today === $day;
-                                            @endphp
-                                            <div class="relative px-5 py-4 rounded-[2rem] flex flex-col items-center justify-center min-w-[120px] transition-all duration-300 {{ $isToday ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/30 scale-105 z-10' : 'bg-white text-gray-600 border border-gray-50 hover:border-emerald-200 hover:shadow-md' }}">
+                                        <div class="flex items-center justify-between p-3 rounded-2xl {{ $isToday ? 'bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20' : 'bg-gray-50/50 dark:bg-gray-800/30 border border-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                                            <div class="flex items-center gap-3">
+                                                <span class="text-xs font-black uppercase tracking-widest {{ $isToday ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400' }}">{{ substr($day, 0, 3) }}</span>
                                                 @if($isToday)
-                                                    <div class="absolute -top-2 left-1/2 -translate-x-1/2 bg-white text-emerald-600 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-sm border border-emerald-100">Today</div>
+                                                    <span class="bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-sm shadow-emerald-500/20">Today</span>
                                                 @endif
-                                                <span class="text-[10px] font-bold uppercase tracking-widest {{ $isToday ? 'text-emerald-100' : 'text-gray-400' }}">{{ substr($day, 0, 3) }}</span>
-                                                <span class="text-[11px] font-black mt-1 whitespace-nowrap">
-                                                    @if($dayHours && !($dayHours['closed'] ?? false))
-                                                        {{ \Carbon\Carbon::parse($dayHours['open'])->format('g:i A') }} <span class="opacity-50 mx-0.5">-</span> {{ \Carbon\Carbon::parse($dayHours['close'])->format('g:i A') }}
-                                                    @else
-                                                        <span class="{{ $isToday ? 'text-emerald-100/80' : 'text-red-400' }}">Closed</span>
-                                                    @endif
-                                                </span>
                                             </div>
-                                        @endforeach
-                                    </div>
+                                            <span class="text-xs font-black {{ $isToday ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-900 dark:text-white' }}">
+                                                @if($dayHours && !($dayHours['closed'] ?? false))
+                                                    {{ \Carbon\Carbon::parse($dayHours['open'])->format('g:i A') }} - {{ \Carbon\Carbon::parse($dayHours['close'])->format('g:i A') }}
+                                                @else
+                                                    <span class="text-red-500 dark:text-red-400">Closed</span>
+                                                @endif
+                                            </span>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
                         </div>

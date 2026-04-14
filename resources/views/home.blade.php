@@ -338,7 +338,7 @@
                                                 <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent"></div>
 
                                                 <div class="absolute right-4 top-4">
-                                                    <div class="flex items-center gap-1.5 rounded-full bg-white/90 px-4 py-1.5 text-xs font-bold text-gray-900 shadow-lg backdrop-blur-md">
+                                                    <div class="flex items-center gap-1.5 rounded-full bg-white/90 px-4 py-1.5 text-xs font-bold text-black dark:text-black shadow-lg backdrop-blur-md">
                                                         <div class="h-2 w-2 rounded-full {{ $restaurant->isOpenNow() ? 'bg-emerald-500' : 'bg-red-500' }}"></div>
                                                         {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
                                                     </div>

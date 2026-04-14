@@ -968,7 +968,7 @@
                                     
                                     if (!status || status === 'pending') {
                                         // Fetch and inject new HTML immediately without reloading page
-                                        this.refreshOrders();
+                                        await this.applyFilter(window.location.href, false);
                                     } else {
                                         // Show the banner so they can switch tabs when they are ready
                                         this.newOrderCount += data.count;

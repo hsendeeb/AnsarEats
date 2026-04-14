@@ -1001,7 +1001,7 @@
     </div>
 
     <!-- Floating Cart Button -->
-    <div id="floating-cart-btn" x-data="floatingCart" class="fixed bottom-6 right-6 left-6 md:left-auto md:w-80 z-50" x-cloak>
+    <div id="floating-cart-btn" x-data="floatingCart" class="hidden md:block fixed bottom-6 right-6 md:right-8 md:w-80 z-50" x-cloak>
         <template x-if="cart.count > 0">
             <button 
                 @click="toggleCart()"

@@ -24,7 +24,7 @@
   </defs>
   <g filter="url(#shadow)">
     <rect x="20" y="20" width="120" height="120" rx="34" fill="url(#badge)"/>
-    <path d="M42 45C50 36 64 30 82 30C98 30 110 34 120 42" stroke="white" stroke-opacity="0.75" stroke-width="8" stroke-linecap="round"/>
+
   </g>
   <circle cx="62" cy="67" r="11" fill="url(#face)"/>
   <rect x="89" y="61" width="28" height="11" rx="5.5" fill="url(#face)"/>

@@ -4,7 +4,7 @@
 @php
     $restaurantDraft = $restaurant ?? $latestRequest ?? $pendingRequest ?? null;
 @endphp
-<div class="min-h-screen bg-gray-50 py-10 px-4 relative" x-data="{ 
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-10 px-4 relative" x-data="{ 
     showRestaurantModal: false, 
     showCategoryModal: false,
     showEditCategoryModal: false,
@@ -67,7 +67,7 @@
                     @if($restaurant)
                     <div class="flex-shrink-0">
                         <button type="button" @click="toggleRestaurantStatus()" :disabled="togglingStatus" class="group w-full lg:w-auto flex items-center gap-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 px-5 rounded-2xl transition-all shadow-lg backdrop-blur-sm disabled:opacity-50">
-                            <div class="relative w-12 h-6 rounded-full transition-colors" :class="isRestaurantOpen ? 'bg-emerald-500' : 'bg-gray-400'">
+                            <div class="relative w-12 h-6 rounded-full transition-colors" :class="isRestaurantOpen ? 'bg-emerald-500' : 'bg-gray-400 dark:bg-gray-600'">
                                 <div class="absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform" :class="isRestaurantOpen ? 'translate-x-6' : ''"></div>
                             </div>
                             <span x-text="isRestaurantOpen ? 'Accepting Orders' : 'Closed'"></span>
@@ -85,7 +85,7 @@
 
         @if(!$restaurant)
             <!-- Empty State -->
-            <div class="bg-white rounded-[2rem] border border-gray-100 p-16 text-center">
+            <div class="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700 p-16 text-center">
                 @if($latestRequest?->status === 'pending')
                     <div class="max-w-xl mx-auto mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800 font-bold text-sm">
                         Your registration request is pending super admin approval.
@@ -142,7 +142,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-bold text-gray-400">Total Revenue</p>
-                        <p class="text-2xl lg:text-3xl font-black text-gray-900 outfit">${{ number_format($stats['total_revenue'], 2) }}</p>
+                        <p class="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white outfit">${{ number_format($stats['total_revenue'], 2) }}</p>
                     </div>
                     <div class="absolute bottom-4 right-4 w-24 h-12">
                         <canvas class="sparkline" data-color="#10b981" data-sparkline='@json($stats["sparklines"]["revenue"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
@@ -159,7 +159,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-bold text-gray-400">Avg. Order</p>
-                        <p class="text-2xl lg:text-3xl font-black text-gray-900 outfit">${{ number_format($stats['avg_order_value'], 2) }}</p>
+                        <p class="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white outfit">${{ number_format($stats['avg_order_value'], 2) }}</p>
                     </div>
                     <div class="absolute bottom-4 right-4 w-24 h-12">
                         <canvas class="sparkline" data-color="#14b8a6" data-sparkline='@json($stats["sparklines"]["avg_order_value"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
@@ -167,7 +167,7 @@
                 </div>
 
                 <!-- Total Orders -->
-                <a href="{{ route('owner.orders') }}" class="block bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
+                <a href="{{ route('owner.orders') }}" class="block bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
                             <x-heroicon-o-shopping-bag class="w-6 h-6" />
@@ -176,7 +176,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-bold text-gray-400">Total Orders</p>
-                        <p class="text-2xl lg:text-3xl font-black text-gray-900 outfit">{{ $stats['total_orders'] }}</p>
+                        <p class="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white outfit">{{ $stats['total_orders'] }}</p>
                     </div>
                     <div class="absolute bottom-4 right-4 w-24 h-12">
                         <canvas class="sparkline" data-color="#6366f1" data-sparkline='@json($stats["sparklines"]["total_orders"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
@@ -184,7 +184,7 @@
                 </a>
 
                 <!-- Pending Orders -->
-                <a href="{{ route('owner.orders', ['status' => 'pending']) }}" class="block bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
+                <a href="{{ route('owner.orders', ['status' => 'pending']) }}" class="block bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
                             <x-heroicon-o-clock class="w-6 h-6" />
@@ -201,7 +201,7 @@
                 </a>
 
                 <!-- Delivered Orders -->
-                <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" class="block bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
+                <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" class="block bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
                             <x-heroicon-o-check-circle class="w-6 h-6" />
@@ -218,7 +218,7 @@
                 </a>
 
                 <!-- Customers -->
-                <a href="{{ route('owner.customers') }}" class="block bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
+                <a href="{{ route('owner.customers') }}" class="block bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700 p-6 group transition-all text-left cursor-pointer relative overflow-hidden">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-500 group-hover:scale-110 transition-transform">
                             <x-heroicon-o-user-group class="w-6 h-6" />
@@ -227,7 +227,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-bold text-gray-400">Customers</p>
-                        <p class="text-2xl lg:text-3xl font-black text-gray-900 outfit">{{ $stats['customers_count'] }}</p>
+                        <p class="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white outfit">{{ $stats['customers_count'] }}</p>
                     </div>
                     <div class="absolute bottom-4 right-4 w-24 h-12">
                         <canvas class="sparkline" data-color="#f43f5e" data-sparkline='@json($stats["sparklines"]["customers"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
@@ -238,14 +238,14 @@
             <!-- Charts & Popular Items Section -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
                 <!-- Bar Chart -->
-                <div class="lg:col-span-2 bg-white rounded-[2.5rem] border border-gray-100 p-8">
+                <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 p-8">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                        <h3 class="text-xl font-black outfit text-gray-900 flex items-center gap-2">
+                        <h3 class="text-xl font-black outfit text-gray-900 dark:text-white flex items-center gap-2">
                             <span class="w-2 h-8 bg-indigo-500 rounded-full"></span>
                             <span id="barChartTitle">{{ $stats['chart_data']['bar']['title'] ?? 'Weekly Orders' }}</span>
                         </h3>
 
-                        <div class="inline-flex bg-gray-50 border border-gray-100 rounded-2xl p-1">
+                        <div class="inline-flex bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-2xl p-1">
                             <button type="button" data-period="day" class="chart-period-btn px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-gray-500 hover:text-emerald-600 hover:bg-white">
                                 Daily
                             </button>
@@ -267,19 +267,19 @@
                 </div>
 
                 <!-- Popular Items -->
-                <div class="bg-white rounded-[2.5rem] border border-gray-100 p-8">
-                    <h3 class="text-xl font-black outfit text-gray-900 mb-6 flex items-center gap-2">
+                <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 p-8">
+                    <h3 class="text-xl font-black outfit text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                         <span class="w-2 h-8 bg-emerald-500 rounded-full"></span>
                         Top Selling Items
                     </h3>
                     <div class="space-y-4">
                         @forelse($stats['top_items'] ?? [] as $item)
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-2xl border border-transparent hover:border-emerald-200 transition-all group">
+                            <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-transparent hover:border-emerald-200 dark:hover:border-emerald-500/30 transition-all group">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-emerald-500 font-bold">
                                         {{ $loop->iteration }}
                                     </div>
-                                    <p class="font-bold text-gray-900 truncate max-w-[120px]">{{ $item->name }}</p>
+                                    <p class="font-bold text-gray-900 dark:text-white truncate max-w-[120px]">{{ $item->name }}</p>
                                 </div>
                                 <div class="text-right">
                                     <p class="text-sm font-black text-emerald-600">{{ $item->total_quantity }} sold</p>
@@ -294,8 +294,8 @@
                 </div>
 
                 <!-- Pie Chart -->
-                <div class="lg:col-span-3 bg-white rounded-[2.5rem] border border-gray-100 p-8">
-                    <h3 class="text-xl font-black outfit text-gray-900 mb-6 flex items-center gap-2">
+                <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 p-8">
+                    <h3 class="text-xl font-black outfit text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                         <span class="w-2 h-8 bg-pink-500 rounded-full"></span>
                         Order Status Breakdown
                     </h3>
@@ -306,9 +306,9 @@
             </div>
 
             <!-- Orders Management Link -->
-            <div class="mb-16 bg-white rounded-3xl border border-gray-100 p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="mb-16 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h3 class="text-2xl font-black outfit text-gray-900 flex items-center gap-3">
+                    <h3 class="text-2xl font-black outfit text-gray-900 dark:text-white flex items-center gap-3">
                         <span class="w-2 h-8 bg-emerald-500 rounded-full"></span>
                         Incoming Orders
                     </h3>
@@ -324,14 +324,14 @@
             <!-- Categories & Items List -->
             <div class="space-y-8">
                 @foreach($restaurant->menuCategories as $category)
-                    <div class="relative bg-white rounded-3xl border border-gray-100 overflow-visible" :class="actionsOpen ? 'z-[110]' : 'z-0'" x-data="{ open: true, actionsOpen: false }">
-                        <div class="relative z-10 w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors">
+                    <div class="relative bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-visible" :class="actionsOpen ? 'z-[110]' : 'z-0'" x-data="{ open: true, actionsOpen: false }">
+                        <div class="relative z-10 w-full flex items-center justify-between p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                             <div class="flex items-center gap-4 cursor-pointer" @click="open = !open">
                                 <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-indigo-500/20">
                                     {{ substr($category->name, 0, 1) }}
                                 </div>
                                 <div class="text-left">
-                                    <h3 class="text-xl font-black outfit text-gray-900">{{ $category->name }}</h3>
+                                    <h3 class="text-xl font-black outfit text-gray-900 dark:text-white">{{ $category->name }}</h3>
                                     <p class="text-sm font-bold text-gray-400">{{ $category->menuItems->count() }} items</p>
                                 </div>
                             </div>
@@ -408,7 +408,7 @@
                                         </div>
                                         
                                         <div class="flex-1 min-w-0">
-                                            <h4 class="font-bold text-gray-900 truncate">{{ $item->name }}</h4>
+                                            <h4 class="font-bold text-gray-900 dark:text-white truncate">{{ $item->name }}</h4>
                                             <p class="text-sm text-gray-500 font-medium truncate">{{ $item->description ?? 'No description' }}</p>
                                         </div>
                                         
@@ -447,7 +447,7 @@
 
                                             <form method="POST" action="{{ route('owner.menu-item.toggle', $item) }}">
                                                 @csrf
-                                                <button type="submit" title="{{ $item->is_available ? 'Mark unavailable' : 'Mark available' }}" class="w-10 h-10 rounded-xl flex items-center justify-center transition-colors {{ $item->is_available ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200' }}">
+                                                <button type="submit" title="{{ $item->is_available ? 'Mark unavailable' : 'Mark available' }}" class="w-10 h-10 rounded-xl flex items-center justify-center transition-colors {{ $item->is_available ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-500/30' : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700' }}">
                                                     @if($item->is_available)
                                                         <x-heroicon-o-check-circle class="w-5 h-5" />
                                                     @else
@@ -482,7 +482,7 @@
                                                     }
                                                 }
                                             }">
-                                                <button type="button" @click="toggleFeatured()" :disabled="loading" :title="isFeatured ? 'Remove featured' : 'Make featured'" class="w-10 h-10 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50" :class="isFeatured ? 'bg-amber-100 text-amber-500 hover:bg-amber-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'">
+                                                <button type="button" @click="toggleFeatured()" :disabled="loading" :title="isFeatured ? 'Remove featured' : 'Make featured'" class="w-10 h-10 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50" :class="isFeatured ? 'bg-amber-100 text-amber-500 dark:bg-amber-500/20 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-500/30' : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'">
                                                     <x-heroicon-s-star x-show="isFeatured" x-cloak class="w-5 h-5" />
                                                     <x-heroicon-o-star x-show="!isFeatured" x-cloak class="w-5 h-5" />
                                                 </button>
@@ -668,7 +668,7 @@
     {{-- MODAL: Create / Edit Restaurant --}}
     {{-- ============================= --}}
     <div x-show="showRestaurantModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[12000] flex items-start md:items-center justify-center px-4 pt-[calc(env(safe-area-inset-top)+5rem)] md:pt-8 pb-4 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
-        <div @click.outside="showRestaurantModal = false" x-show="showRestaurantModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
+        <div @click.outside="showRestaurantModal = false" x-show="showRestaurantModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">{{ $restaurant ? 'Edit Restaurant' : ($latestRequest ? 'Update Registration Request' : 'Create Restaurant') }}</h3>
@@ -703,8 +703,8 @@
                 <div class="grid grid-cols-2 gap-4">
                     <!-- Logo Upload -->
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1.5">Restaurant Logo</label>
-                        <div @click="$refs.logoInput.click()" class="relative h-32 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center cursor-pointer overflow-hidden group hover:border-indigo-500 transition-all">
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Restaurant Logo</label>
+                        <div @click="$refs.logoInput.click()" class="relative h-32 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-center cursor-pointer overflow-hidden group hover:border-indigo-500 transition-all">
                             <template x-if="logoPreview">
                                 <img :src="logoPreview" class="w-full h-full object-cover">
                             </template>
@@ -810,7 +810,7 @@
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="hidden" name="free_delivery" :value="deliveryFeeEnabled ? 0 : 1">
                             <input type="checkbox" x-model="deliveryFeeEnabled" class="sr-only peer">
-                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/20 peer-checked:bg-emerald-500 transition-colors relative">
+                            <div class="w-11 h-6 rounded-full transition-colors relative" :class="deliveryFeeEnabled ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'">
                                 <div class="absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
                                      :class="deliveryFeeEnabled ? 'translate-x-5' : 'translate-x-0'"></div>
                             </div>
@@ -866,12 +866,15 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3" x-data="{ isOpen: {{ (optional($restaurantDraft)->is_open ?? true) ? 'true' : 'false' }} }">
                     <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="is_open" value="1" {{ (optional($restaurantDraft)->is_open ?? true) ? 'checked' : '' }} class="sr-only peer">
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                        <input type="checkbox" name="is_open" value="1" x-model="isOpen" class="sr-only">
+                        <div class="w-11 h-6 rounded-full transition-colors relative" :class="isOpen ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'" @click="isOpen = !isOpen">
+                            <div class="absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
+                                 :class="isOpen ? 'translate-x-5' : 'translate-x-0'"></div>
+                        </div>
                     </label>
-                    <span class="text-sm font-bold text-gray-700">Open for business</span>
+                    <span class="text-sm font-bold text-gray-700 dark:text-gray-300">Open for business</span>
                 </div>
                 
                 <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] mt-4">
@@ -885,7 +888,7 @@
     {{-- MODAL: Add Category --}}
     {{-- ============================= --}}
     <div x-show="showCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[12000] flex items-start md:items-center justify-center px-4 pt-[calc(env(safe-area-inset-top)+5rem)] md:pt-8 pb-4 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
-        <div @click.outside="showCategoryModal = false" x-show="showCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
+        <div @click.outside="showCategoryModal = false" x-show="showCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-md max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-600 to-blue-600 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Add Category</h3>
@@ -911,8 +914,8 @@
     {{-- ============================= --}}
     {{-- MODAL: Add Menu Item --}}
     {{-- ============================= --}}
-    <div x-show="showMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[12000] flex items-start md:items-center justify-center px-4 pt-[calc(env(safe-area-inset-top)+5rem)] md:pt-8 pb-4 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
-        <div @click.outside="showMenuItemModal = false" x-show="showMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
+    <div x-show="showMenuItemModal" ... class="fixed inset-0 z-[12000] flex items-start md:items-center justify-center px-4 pt-[calc(env(safe-area-inset-top)+5rem)] md:pt-8 pb-4 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
+        <div @click.outside="showMenuItemModal = false" x-show="showMenuItemModal" ... class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
             <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Add Menu Item</h3>
@@ -1019,7 +1022,7 @@
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="is_on_sale" value="1" x-model="isOnSale" class="sr-only peer">
-                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/20 peer-checked:bg-emerald-500 transition-colors relative">
+                            <div class="w-11 h-6 rounded-full transition-colors relative" :class="isOnSale ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'">
                                 <div class="absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
                                      :class="isOnSale ? 'translate-x-5' : 'translate-x-0'"></div>
                             </div>
@@ -1076,7 +1079,7 @@
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" name="has_variants" value="1" x-model="hasVariants" class="sr-only peer">
-                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/20 peer-checked:bg-emerald-500 transition-colors relative">
+                        <div class="w-11 h-6 rounded-full transition-colors relative" :class="hasVariants ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'">
                             <div class="absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
                                  :class="hasVariants ? 'translate-x-5' : 'translate-x-0'"></div>
                         </div>
@@ -1101,20 +1104,20 @@
                         <template x-for="(variant, index) in variants" :key="index">
                             <div class="flex items-center gap-2">
                                 <input type="text"
-                                       class="flex-1 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                       class="w-32 sm:w-48 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
                                        placeholder="e.g. Small"
                                        x-model="variant.name"
-                                       :name="`variant_names[${index}]`">
+                                       :name="`variant_names[${index}]` focus:ring-indigo-500">
                                 <input type="number"
                                        step="0.01"
                                        min="0"
-                                       class="w-28 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                       class="w-20 sm:w-24 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
                                        placeholder="$9.99"
                                        x-model="variant.price"
-                                       :name="`variant_prices[${index}]`">
+                                       :name="`variant_prices[${index}]` focus:ring-indigo-500">
                                 <button type="button"
                                         @click="removeVariantRow(index)"
-                                        class="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors">
+                                        class="text-red-400 hover:text-red-600 transition-colors">
                                     <x-heroicon-o-x-mark class="w-4 h-4" />
                                 </button>
                             </div>
@@ -1148,7 +1151,7 @@
                     </div>
 
                     <!-- Image Preview -->
-                    <div x-show="imagePreview" x-cloak class="relative rounded-2xl overflow-hidden border-2 border-gray-200 bg-gray-50">
+                    <div x-show="imagePreview" x-cloak class="relative rounded-2xl overflow-hidden border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                         <img :src="imagePreview" alt="Preview" class="w-full h-48 object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
                         <button type="button" @click="removeImage()" class="absolute top-3 right-3 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-colors">
@@ -1173,7 +1176,7 @@
     {{-- MODAL: Edit Category --}}
     {{-- ============================= --}}
     <div x-show="showEditCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[12000] flex items-start md:items-center justify-center px-4 pt-[calc(env(safe-area-inset-top)+5rem)] md:pt-8 pb-4 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
-        <div @click.outside="showEditCategoryModal = false" x-show="showEditCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
+        <div @click.outside="showEditCategoryModal = false" x-show="showEditCategoryModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-md max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-700 to-blue-700 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Edit Category</h3>
@@ -1187,8 +1190,8 @@
                 @csrf
                 @method('PUT')
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Category Name</label>
-                    <input type="text" name="name" x-model="editingCategory.name" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="e.g. Main Dishes, Drinks, Desserts">
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Category Name</label>
+                    <input type="text" name="name" x-model="editingCategory.name" required class="block w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border-2 border-gray-200 dark:border-gray-700 rounded-2xl font-medium placeholder-gray-400 dark:text-white focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="e.g. Main Dishes, Drinks, Desserts">
                 </div>
                 <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98]">
                     Save Changes
@@ -1201,7 +1204,7 @@
     {{-- MODAL: Edit Menu Item --}}
     {{-- ============================= --}}
     <div x-show="showEditMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[12000] flex items-start md:items-center justify-center px-4 pt-[calc(env(safe-area-inset-top)+5rem)] md:pt-8 pb-4 bg-black/50 backdrop-blur-sm overflow-y-auto" x-cloak>
-        <div @click.outside="showEditMenuItemModal = false" x-show="showEditMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
+        <div @click.outside="showEditMenuItemModal = false" x-show="showEditMenuItemModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-6rem)] md:max-h-[calc(100dvh-3rem)] overflow-y-auto">
             <div class="bg-gradient-to-r from-indigo-500 to-blue-500 p-6 text-white">
                 <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-black outfit">Edit Menu Item</h3>
@@ -1309,7 +1312,7 @@
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="is_on_sale" value="1" x-model="editIsOnSale" class="sr-only peer">
-                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/20 peer-checked:bg-emerald-500 transition-colors relative">
+                            <div class="w-11 h-6 rounded-full transition-colors relative" :class="editIsOnSale ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'">
                                 <div class="absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
                                      :class="editIsOnSale ? 'translate-x-5' : 'translate-x-0'"></div>
                             </div>
@@ -1366,7 +1369,7 @@
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" name="has_variants" value="1" x-model="editHasVariants" class="sr-only peer">
-                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/20 peer-checked:bg-emerald-500 transition-colors relative">
+                        <div class="w-11 h-6 rounded-full transition-colors relative" :class="editHasVariants ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'">
                             <div class="absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
                                  :class="editHasVariants ? 'translate-x-5' : 'translate-x-0'"></div>
                         </div>
@@ -1391,20 +1394,20 @@
                         <template x-for="(variant, index) in editVariants" :key="index">
                             <div class="flex items-center gap-2">
                                 <input type="text"
-                                       class="flex-1 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                       class="w-32 sm:w-48 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
                                        placeholder="e.g. Small"
                                        x-model="variant.name"
-                                       :name="`variant_names[${index}]`">
+                                       :name="`variant_names[${index}]` focus:ring-indigo-500">
                                 <input type="number"
                                        step="0.01"
                                        min="0"
-                                       class="w-28 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                       class="w-20 sm:w-24 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
                                        placeholder="$9.99"
                                        x-model="variant.price"
-                                       :name="`variant_prices[${index}]`">
+                                       :name="`variant_prices[${index}]` focus:ring-indigo-500">
                                 <button type="button"
                                         @click="removeEditVariantRow(index)"
-                                        class="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors">
+                                        class="text-red-400 hover:text-red-600 transition-colors">
                                     <x-heroicon-o-x-mark class="w-4 h-4" />
                                 </button>
                             </div>

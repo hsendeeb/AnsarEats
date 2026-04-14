@@ -701,54 +701,41 @@
                         </div>
                     @endif
                 </div>
-            </div>
-
-            <div x-show="deleteDialog.open"
+                        <div x-show="deleteDialog.open" 
                  x-cloak
-                 x-transition.opacity.duration.200ms
-                 class="fixed inset-0 z-[80] flex items-center justify-center px-4">
-                <div class="absolute inset-0 bg-gray-950/50 backdrop-blur-sm" @click="closeDeleteDialog()"></div>
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/50 backdrop-blur-sm">
+                <div @click.outside="closeDeleteDialog()"
+                     x-show="deleteDialog.open"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center">
+                    
+                    <div class="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
 
-                <div x-transition:enter="transition ease-out duration-200"
-                     x-transition:enter-start="opacity-0 translate-y-4 scale-95"
-                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                     x-transition:leave="transition ease-in duration-150"
-                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                     x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-                     class="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-white/60 bg-white shadow-2xl shadow-gray-900/20">
-                    <div class="absolute inset-x-0 top-0 h-28 bg-gradient-to-r from-red-500 via-rose-500 to-orange-400 opacity-95"></div>
-                    <div class="relative p-6 sm:p-7">
-                        <div class="mb-5 flex items-start gap-4">
-                            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-red-500 shadow-lg shadow-red-500/20">
-                                <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M4 7h16m-10 4v6m4-6v6M9 7V4h6v3m-7 0h8l-1 13a2 2 0 01-2 2h-2a2 2 0 01-2-2L8 7z"></path></svg>
-                            </div>
-                            <div class="pt-1">
-                                <p class="text-[11px] font-black uppercase tracking-[0.3em] text-red-100">Confirm Action</p>
-                                <h4 class="mt-2 text-2xl font-black text-white" x-text="deleteDialog.title"></h4>
-                            </div>
-                        </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2" x-text="deleteDialog.title"></h3>
+                    <p class="text-gray-500 mb-8 text-sm" x-text="deleteDialog.message"></p>
 
-                        <div class="rounded-[1.5rem] bg-gray-50 px-5 py-4">
-                                <p class="text-sm font-medium leading-6 text-gray-600" x-text="deleteDialog.message"></p>
-                            </div>
-
-                        <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                            <button type="button"
-                                    @click="closeDeleteDialog()"
-                                    class="inline-flex items-center justify-center rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm font-bold text-gray-500 transition-all hover:bg-gray-50 hover:text-gray-900">
-                                Keep Orders
-                            </button>
-                            <button type="button"
-                                    @click="confirmDelete()"
-                                    :disabled="deleteDialog.submitting"
-                                    class="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-500/20 transition-all hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-70">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                <span x-text="deleteDialog.buttonLabel"></span>
-                                <span x-show="deleteDialog.submitting" x-cloak class="inline-flex">
-                                    <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
-                                </span>
-                            </button>
-                        </div>
+                    <div class="flex items-center justify-center gap-3">
+                        <button @click="closeDeleteDialog()" type="button" :disabled="deleteDialog.submitting" class="flex-1 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all text-sm disabled:opacity-50">
+                            Cancel
+                        </button>
+                        <button @click="confirmDelete()" type="button" :disabled="deleteDialog.submitting" class="flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-500 transition-all text-sm disabled:opacity-50 flex items-center justify-center gap-2">
+                            <span x-text="deleteDialog.buttonLabel"></span>
+                            <span x-show="deleteDialog.submitting" x-cloak class="inline-flex">
+                                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                            </span>
+                        </button>
                     </div>
                 </div>
             </div>

@@ -20,6 +20,7 @@ class HomeRestaurantResource extends JsonResource
             'ratings_count' => (int) ($this->ratings_count ?? 0),
             'rating' => $this->ratings_count ? number_format((float) ($this->ratings_avg_rating ?? 0), 1) : null,
             'is_open_now' => (bool) $this->isOpenNow(),
+            'user_id' => $this->user_id,
         ];
     }
 }

@@ -1,4 +1,3 @@
-<?php echo '<?xml version="1.0" encoding="UTF-8"?>'; ?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
         <loc>{{ url('/') }}</loc>
@@ -35,7 +34,7 @@
         <changefreq>monthly</changefreq>
         <priority>0.4</priority>
     </url>
-@foreach($restaurants as $restaurant)
+@foreach(($restaurants ?? collect()) as $restaurant)
     <url>
         <loc>{{ route('restaurant.show', $restaurant) }}</loc>
         <lastmod>{{ optional($restaurant->updated_at)->toAtomString() }}</lastmod>

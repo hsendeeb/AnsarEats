@@ -24,6 +24,16 @@ Route::view('/terms-of-service', 'legal.terms')->name('legal.terms');
 Route::view('/privacy-policy', 'legal.privacy')->name('legal.privacy');
 Route::view('/cookie-policy', 'legal.cookies')->name('legal.cookies');
 Route::view('/help-center', 'legal.help-center')->name('help.center');
+Route::get('/sitemap.xml', function () {
+    $restaurants = \App\Models\Restaurant::query()
+        ->where('is_open', true)
+        ->latest('updated_at')
+        ->get(['id', 'updated_at']);
+
+    return response()
+        ->view('sitemap', compact('restaurants'))
+        ->header('Content-Type', 'application/xml');
+})->name('sitemap');
 
 // Basic demo auth routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');

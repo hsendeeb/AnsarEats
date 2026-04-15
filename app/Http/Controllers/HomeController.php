@@ -29,10 +29,6 @@ class HomeController extends Controller
                     ->orderByDesc('orders_count')
                     ->latest();
 
-                if ($authUserId) {
-                    $query->where('user_id', '!=', $authUserId);
-                }
-
                 return $query->take(6)->get();
             }
         );
@@ -45,10 +41,6 @@ class HomeController extends Controller
                 $query = Restaurant::query()
                     ->orderByDesc('is_open')
                     ->latest();
-
-                if ($authUserId) {
-                    $query->where('user_id', '!=', $authUserId);
-                }
 
                 return $query->get();
             }
@@ -100,9 +92,7 @@ class HomeController extends Controller
             ->orderByDesc('is_open')
             ->latest();
 
-        if ($authUserId) {
-            $query->where('user_id', '!=', $authUserId);
-        }
+        // Owners can now see their own restaurants in the all stores query
 
         return $query;
     }

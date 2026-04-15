@@ -1,2 +1,3 @@
 User-agent: *
 Disallow:
+Sitemap: https://tojjar.online/sitemap.xml

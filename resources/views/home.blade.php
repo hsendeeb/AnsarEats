@@ -246,7 +246,13 @@
             </a>
         </div>
 
-        @if(($restaurants ?? collect())->isNotEmpty())
+        @php
+            $trendingSpots = collect($restaurants ?? collect())
+                ->filter(fn ($restaurant) => (int) ($restaurant->orders_count ?? 0) > 0)
+                ->values();
+        @endphp
+
+        @if($trendingSpots->isNotEmpty())
             <div class="md:hidden relative left-1/2 w-screen -translate-x-1/2 overflow-hidden scroll-reveal"
                  x-data="{
                     shown: false,
@@ -323,7 +329,7 @@
                          class="flex items-stretch gap-4"
                          style="width: max-content; flex-wrap: nowrap;">
                         @for($duplicate = 0; $duplicate < 2; $duplicate++)
-                            @foreach($restaurants ?? [] as $restaurant)
+                            @foreach($trendingSpots as $restaurant)
                                 <div class="shrink-0 pb-2" style="width: min(84vw, 24rem);">
                                     <a href="{{ route('restaurant.show', $restaurant) }}" class="block h-full relative">
                                         <div class="relative flex h-full flex-col overflow-hidden rounded-3xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 shadow-md transition-all duration-300">
@@ -337,11 +343,17 @@
                                                 @endif
                                                 <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent"></div>
 
-                                                <div class="absolute right-4 top-4">
+                                                <div class="absolute right-4 top-4 flex flex-col items-end gap-2">
                                                     <div class="flex items-center gap-1.5 rounded-full bg-white/90 px-4 py-1.5 text-xs font-bold text-black dark:text-black shadow-lg backdrop-blur-md">
                                                         <div class="h-2 w-2 rounded-full {{ $restaurant->isOpenNow() ? 'bg-emerald-500' : 'bg-red-500' }}"></div>
                                                         {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
                                                     </div>
+
+                                                    @if(auth()->check() && $restaurant->user_id === auth()->id())
+                                                        <div class="bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg border border-amber-400/50">
+                                                            Own Store
+                                                        </div>
+                                                    @endif
                                                 </div>
 
                                                 <div class="absolute bottom-4 left-4 flex items-center gap-2">
@@ -375,7 +387,7 @@
             </div>
 
             <div class="hidden md:flex md:flex-wrap">
-                @foreach($restaurants ?? [] as $restaurant)
+                @foreach($trendingSpots as $restaurant)
                     <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-10 group scroll-reveal"
                          x-data="scrollReveal({{ ($loop->index % 3) * 90 }}, 34)"
                          x-intersect.once.margin.-60px.0.0.0="reveal()"
@@ -392,11 +404,17 @@
                                     @endif
                                     <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent"></div>
 
-                                    <div class="absolute top-4 right-4">
+                                    <div class="absolute top-4 right-4 flex flex-col items-end gap-2">
                                         <div class="bg-white/90 backdrop-blur-md text-gray-900 font-bold px-4 py-1.5 rounded-full text-xs shadow-lg flex items-center gap-1.5">
                                             <div class="w-2 h-2 rounded-full {{ $restaurant->isOpenNow() ? 'bg-emerald-500' : 'bg-red-500' }}"></div>
                                             {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
                                         </div>
+
+                                        @if(auth()->check() && $restaurant->user_id === auth()->id())
+                                            <div class="bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg border border-amber-400/50">
+                                                Own Store
+                                            </div>
+                                        @endif
                                     </div>
 
                                     <div class="absolute bottom-4 left-4 flex items-center gap-2">
@@ -692,7 +710,8 @@
              x-data="allStoresFeed({
                 items: @js($initialAllStores ?? []),
                 nextPage: @js($allStoresNextPage ?? null),
-                endpoint: '{{ route('home.stores') }}'
+                endpoint: '{{ route('home.stores') }}',
+                currentUserId: {{ auth()->id() ?? 'null' }}
              })">
             <div class="flex flex-wrap justify-between items-end mb-12 px-4 scroll-reveal"
                  x-data="scrollReveal(0, 24)"
@@ -721,12 +740,18 @@
 
                                 <div class="absolute inset-0 bg-gradient-to-t from-gray-900/75 via-gray-900/20 to-transparent"></div>
 
-                                <div class="absolute top-4 right-4">
+                                <div class="absolute top-4 right-4 flex flex-col items-end gap-2">
                                     <div class="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold shadow-lg backdrop-blur-md"
                                          :class="store.is_open_now ? 'bg-white/90 text-gray-900' : 'bg-red-50/90 text-red-600'">
                                         <div class="h-2 w-2 rounded-full" :class="store.is_open_now ? 'bg-emerald-500' : 'bg-red-500'"></div>
                                         <span x-text="store.is_open_now ? 'Open Now' : 'Closed'"></span>
                                     </div>
+
+                                    <template x-if="currentUserId && store.user_id == currentUserId">
+                                        <div class="bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg border border-amber-400/50">
+                                            Own Store
+                                        </div>
+                                    </template>
                                 </div>
 
                                 <div class="absolute bottom-4 left-4 flex items-center gap-2">

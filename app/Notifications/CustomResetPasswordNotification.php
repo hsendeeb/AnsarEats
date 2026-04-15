@@ -7,12 +7,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class CustomResetPasswordNotification extends Notification
+class CustomResetPasswordNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     public function __construct(public string $token)
     {
+        $this->onQueue('mail');
     }
 
     public function via(object $notifiable): array
@@ -22,10 +23,7 @@ class CustomResetPasswordNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $url = url(route('password.reset', [
-            'token' => $this->token,
-            'email' => $notifiable->getEmailForPasswordReset(),
-        ], false));
+        $url = url('/reset-password/' . $this->token . '?email=' . urlencode($notifiable->getEmailForPasswordReset()));
 
         return (new MailMessage)
             ->subject('Reset Your AnsarEats Password')

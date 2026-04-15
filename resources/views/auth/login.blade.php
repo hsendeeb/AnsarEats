@@ -9,6 +9,12 @@
             <h1 class="mt-1 text-3xl font-black tracking-tight text-gray-900 dark:text-white outfit">Sign in</h1>
             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Use your account to continue.</p>
 
+            @if (session('status'))
+                <div class="mt-4 p-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-2xl">
+                    <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{{ session('status') }}</p>
+                </div>
+            @endif
+
             @if ($errors->any())
                 <p class="mt-4 text-sm font-semibold text-red-600 dark:text-red-400">{{ $errors->first() }}</p>
             @endif
@@ -65,6 +71,12 @@
                             <svg x-show="showPassword" x-cloak class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
                         </button>
                     </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <a href="{{ route('password.request') }}" class="text-sm font-semibold text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors">
+                        Forgot password?
+                    </a>
                 </div>
 
                 <button type="submit" class="h-12 w-full rounded-2xl bg-emerald-500 text-base font-black text-white transition hover:bg-emerald-400">

@@ -25,6 +25,7 @@ class RestaurantCreatedMail extends Mailable implements ShouldQueue
     {
         $this->user = $user;
         $this->restaurant = $restaurant;
+        $this->onQueue('mail');
     }
 
     /**

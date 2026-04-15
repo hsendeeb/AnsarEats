@@ -17,6 +17,7 @@ class OrderStatusUpdatedMail extends Mailable implements ShouldQueue
 
     public function __construct(public Order $order)
     {
+        $this->onQueue('mail');
     }
 
     public function envelope(): Envelope

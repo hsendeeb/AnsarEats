@@ -14,7 +14,7 @@
             <div x-show="show" x-transition:enter="transition ease-out duration-700"
                 x-transition:enter-start="opacity-0 translate-y-8 scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                class="bg-white rounded-[2rem] shadow-2xl shadow-gray-200/60 border border-gray-100 overflow-hidden">
+                class="bg-white rounded-[2rem] border border-gray-100 overflow-hidden">
                 <!-- Header -->
                 <div class="bg-gradient-to-br from-emerald-500 to-teal-500 p-10 text-center relative overflow-hidden">
                     <div class="absolute -top-12 -right-12 w-48 h-48 bg-white/10 rounded-full"></div>
@@ -108,9 +108,9 @@
 
                     <div x-show="estimatedPrepTime && ['accepted', 'preparing', 'out_for_delivery'].includes(status)"
                         x-cloak
-                        class="mb-6 bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                        class="mb-6 bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center gap-4">
                         <div
-                            class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 flex-shrink-0">
+                            class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white flex-shrink-0">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -150,9 +150,9 @@
                                 $active = $i === $currentIndex; @endphp
                                 <div class="relative z-10 flex flex-col items-center gap-2 flex-1"
                                     :class="{ 'opacity-40': !isStepDone('{{ $step['key'] }}') }">
-                                    <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 shadow-sm"
+                                    <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500"
                                         :class="isStepActive('{{ $step['key'] }}') 
-                                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/40 scale-110 ring-4 ring-emerald-100' 
+                                            ? 'bg-emerald-500 text-white scale-110 ring-4 ring-emerald-100' 
                                             : (isStepDone('{{ $step['key'] }}') ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-300')">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -258,7 +258,7 @@
                     <!-- CTA -->
                     <div class="mt-8 text-center">
                         <a href="{{ route('home') }}"
-                            class="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 hover:bg-emerald-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl hover:shadow-emerald-500/30 transition-all transform hover:-translate-y-0.5 active:scale-95 text-lg">
+                            class="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 hover:bg-emerald-500 text-white font-bold rounded-2xl transition-all transform hover:-translate-y-0.5 active:scale-95 text-lg">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">

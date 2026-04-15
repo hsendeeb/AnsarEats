@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-[100svh] bg-white dark:bg-gray-950">
+<div class="min-h-[100svh] bg-white dark:bg-gray-950 mt-5">
     <div class="mx-auto w-full max-w-md px-5 pb-8 pt-10 sm:px-6 sm:pt-12" x-data="{ show: false, step: {{ $errors->has('password') || $errors->has('password_confirmation') ? 2 : 1 }} }" x-init="setTimeout(() => show = true, 80)">
         <div x-show="show" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
             <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Create account</p>

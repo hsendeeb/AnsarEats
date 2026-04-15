@@ -52,6 +52,41 @@ class Restaurant extends Model
         return $this->hasMany(Promotion::class);
     }
 
+    protected static function booted()
+    {
+        static::creating(function ($restaurant) {
+            if (!$restaurant->slug) {
+                $restaurant->slug = static::generateUniqueSlug($restaurant->name);
+            }
+        });
+
+        static::updating(function ($restaurant) {
+            if ($restaurant->isDirty('name')) {
+                $restaurant->slug = static::generateUniqueSlug($restaurant->name);
+            }
+        });
+    }
+
+    protected static function generateUniqueSlug($name)
+    {
+        $baseSlug = \Illuminate\Support\Str::slug($name);
+        $baseSlug = $baseSlug ?: 'restaurant';
+        $slug = $baseSlug;
+        $suffix = 2;
+
+        while (static::where('slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $suffix;
+            $suffix++;
+        }
+
+        return $slug;
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
     public function isOpenNow()
     {
         if (!$this->is_open) return false;

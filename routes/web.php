@@ -28,7 +28,7 @@ Route::get('/sitemap.xml', function () {
     $restaurants = \App\Models\Restaurant::query()
         ->where('is_open', true)
         ->latest('updated_at')
-        ->get(['id', 'updated_at']);
+        ->get();
 
     return response()
         ->view('sitemap', compact('restaurants'))

@@ -2,13 +2,7 @@
 
 @section('content')
     <div class="min-h-[80vh] flex items-center justify-center py-16 px-4 relative">
-        <!-- Decorative -->
-        <div class="absolute top-20 right-20 w-24 h-24 bg-emerald-200 rounded-full opacity-25 animate-bounce"
-            style="animation-duration: 4s;"></div>
-        <div class="absolute bottom-20 left-20 w-16 h-16 bg-teal-200 rounded-xl opacity-20 animate-bounce"
-            style="animation-duration: 6s;"></div>
-        <div class="absolute top-1/3 left-1/4 w-10 h-10 bg-emerald-300 rounded-full opacity-15 animate-ping"
-            style="animation-duration: 3s;"></div>
+        <!-- Decorative Removed -->
 
         <div class="w-full max-w-2xl relative z-10" x-data="orderTracker()" x-init="init()">
             <div x-show="show" x-transition:enter="transition ease-out duration-700"
@@ -16,45 +10,30 @@
                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                 class="bg-white rounded-[2rem] border border-gray-100 overflow-hidden">
                 <!-- Header -->
-                <div class="bg-gradient-to-br from-emerald-500 to-teal-500 p-10 text-center relative overflow-hidden">
-                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-white/10 rounded-full"></div>
-                    <div class="absolute -bottom-8 -left-8 w-36 h-36 bg-white/10 rounded-full"></div>
-
-                    <div class="w-24 h-24 mx-auto bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-6 animate-bounce"
-                        style="animation-duration: 2s;">
+                <div class="bg-white p-10 text-center relative overflow-hidden border-b border-gray-100">
+                    <div class="w-48 h-48 mx-auto flex items-center justify-center mb-6">
+                        <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script>
+                        
                         <template x-if="status === 'delivered'">
-                            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                            </svg>
+                            <dotlottie-player src="https://lottie.host/85d585d8-d8e3-42e2-a0d3-e11c4a9a5873/KWsF3iit2h.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
                         </template>
                         <template x-if="status === 'out_for_delivery'">
-                            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
+                            <dotlottie-player src="https://lottie.host/85d585d8-d8e3-42e2-a0d3-e11c4a9a5873/KWsF3iit2h.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
                         </template>
                         <template x-if="status === 'preparing'">
-                            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
-                                </path>
-                            </svg>
+                            <dotlottie-player src="https://lottie.host/85d585d8-d8e3-42e2-a0d3-e11c4a9a5873/KWsF3iit2h.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
                         </template>
-                        <template x-if="['pending', 'accepted'].includes(status)">
-                            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                                </path>
-                            </svg>
+                        <template x-if="status === 'pending'">
+                            <dotlottie-player src="https://lottie.host/5430184a-92a7-4f61-b780-f110f622a177/aNsiEeX1u1.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
+                        </template>
+                        <template x-if="status === 'accepted'">
+                            <dotlottie-player src="https://lottie.host/86910dac-1261-419e-812f-6d1678c84d12/wQYReYWYmG.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
                         </template>
                         <template x-if="['rejected', 'cancelled'].includes(status)">
-                            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
+                            <dotlottie-player src="https://lottie.host/9a7502eb-f874-4dcf-83e3-65683e955ea1/9tY7vTd9gR.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
                         </template>
                     </div>
-                    <h2 class="text-3xl font-black outfit text-white tracking-tight" 
+                    <h2 class="text-3xl font-black outfit text-gray-900 tracking-tight" 
                         x-text="status === 'delivered' ? 'Food Delivered! ' : 
                                (status === 'out_for_delivery' ? 'Your order is on its way!' : 
                                (status === 'preparing' ? 'Preparing your food...' : 
@@ -62,7 +41,7 @@
                                (['rejected', 'cancelled'].includes(status) ? 'Order Cancelled' : 'Order Placed! 🎉'))))">
                         Order Placed!
                     </h2>
-                    <p class="text-emerald-100 font-medium mt-2 text-lg"
+                    <p class="text-gray-500 font-medium mt-2 text-lg"
                         x-text="status === 'delivered' ? 'Enjoy your meal!' : 
                               (status === 'out_for_delivery' ? 'Your rider is nearby and will arrive shortly!' : 
                               (status === 'preparing' ? 'The kitchen is putting the final touches on your food!' : 
@@ -93,7 +72,7 @@
                                       'bg-emerald-100 text-emerald-700': status === 'delivered',
                                       'bg-red-100 text-red-700': status === 'rejected' || status === 'cancelled'
                                   }">
-                                <span class="w-2 h-2 rounded-full animate-pulse" :class="{
+                                <span class="w-2 h-2 rounded-full" :class="{
                                           'bg-amber-500': status === 'pending',
                                           'bg-blue-500': status === 'accepted',
                                           'bg-indigo-500': status === 'preparing',

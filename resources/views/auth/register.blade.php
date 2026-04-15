@@ -112,7 +112,7 @@
                         @enderror
                     </div>
 
-                    <div class="flex gap-4 mt-4">
+                    <div class="flex gap-4   mt-4">
                         <button type="button" @click="step = 1" class="h-12 rounded-2xl border border-gray-300 px-4 text-sm font-bold text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
                             Back
                         </button>

@@ -948,10 +948,11 @@
             },
         }));
 
-        Alpine.data('allStoresFeed', ({ items = [], nextPage = null, endpoint }) => ({
+        Alpine.data('allStoresFeed', ({ items = [], nextPage = null, endpoint, currentUserId = null }) => ({
             stores: items,
             nextPage,
             endpoint,
+            currentUserId,
             loading: false,
             async loadMore() {
                 if (this.loading || !this.nextPage) {

@@ -146,7 +146,7 @@
 
                     @php
                         $lbpRate = 89000;
-                        $totalLbp = (float) $cart['total'] * $lbpRate;
+                        $totalLbp = ((float) $cart['total'] + (float) $cart['delivery_fee']) * $lbpRate;
                     @endphp
 
                     <div class="space-y-3 mb-6">
@@ -239,7 +239,7 @@
                                 <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-400">1 USD = 89,000 LBP</p>
                             </div>
                             <div class="text-right">
-                                <span class="block text-2xl font-black outfit text-emerald-500">${{ number_format($cart['total'], 2) }}</span>
+                                <span class="block text-2xl font-black outfit text-emerald-500">${{ number_format($cart['total'] + $cart['delivery_fee'], 2) }}</span>
                                 <span class="block text-sm font-black text-gray-500">LBP {{ number_format($totalLbp, 0) }}</span>
                             </div>
                         </div>

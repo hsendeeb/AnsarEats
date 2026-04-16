@@ -165,8 +165,9 @@ class CartController extends Controller
         $cart['subtotal'] = $subtotal;
         $cart['discount'] = $discountAmount;
         $cart['delivery_fee'] = $deliveryFee;
-        $cart['total'] = max(0, $subtotal - $discountAmount) + $deliveryFee;
+        $cart['total'] = max(0, $subtotal - $discountAmount);
         $cart['count'] = collect($cart['items'])->sum('quantity');
+
 
         return $cart;
     }

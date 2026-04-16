@@ -17,8 +17,9 @@ class PlaceOrderFromCart
                 'delivery_address' => $checkoutData['delivery_address'],
                 'phone' => $checkoutData['phone'],
                 'notes' => $checkoutData['notes'] ?? null,
-                'total' => $cartData['total'],
+                'total' => $cartData['total'] + $cartData['delivery_fee'],
                 'delivery_fee' => $cartData['delivery_fee'],
+
                 'discount_amount' => $cartData['discount'] ?? 0,
                 'promotion_id' => $cartData['promo']['id'] ?? null,
                 'status' => 'pending',

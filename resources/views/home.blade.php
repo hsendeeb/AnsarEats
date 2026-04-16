@@ -240,9 +240,9 @@
             <div>
                 <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">Trending Spots</h2>
             </div>
-            <a href="{{ route('restaurants.index') }}" class="hidden sm:inline-block font-bold text-emerald-600 hover:text-emerald-500 flex items-center gap-2 group transition-all">
-                <span>See all</span>
-                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+            <a href="{{ route('restaurants.index') }}" class="inline-flex font-bold text-emerald-600 hover:text-emerald-500 items-center gap-1.5 group transition-all text-sm md:text-base">
+                <span>View all</span>
+                <svg class="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
             </a>
         </div>
 
@@ -253,135 +253,76 @@
         @endphp
 
         @if($trendingSpots->isNotEmpty())
-            <div class="md:hidden relative left-1/2 w-screen -translate-x-1/2 overflow-hidden scroll-reveal"
-                 x-data="{
-                    shown: false,
-                    isInteracting: false,
-                    animationFrame: null,
-                    reveal() { this.shown = true; },
-                    initTrendingSpotsMarquee() {
-                        const viewport = this.$refs.trendingViewport;
-                        const track = this.$refs.trendingTrack;
-
-                        if (!viewport || !track) {
-                            return;
-                        }
-
-                        const getLoopWidth = () => track.scrollWidth / 2;
-                        let lastTimestamp = null;
-
-                        const tick = (timestamp) => {
-                            if (lastTimestamp === null) {
-                                lastTimestamp = timestamp;
-                            }
-
-                            const delta = timestamp - lastTimestamp;
-                            lastTimestamp = timestamp;
-
-                            if (!this.isInteracting) {
-                                viewport.scrollLeft += delta * 0.03;
-                                const loopWidth = getLoopWidth();
-
-                                if (loopWidth > 0 && viewport.scrollLeft >= loopWidth) {
-                                    viewport.scrollLeft -= loopWidth;
-                                }
-                            }
-
-                            this.animationFrame = requestAnimationFrame(tick);
-                        };
-
-                        const pause = () => {
-                            this.isInteracting = true;
-                        };
-
-                        const resume = () => {
-                            this.isInteracting = false;
-                            const loopWidth = getLoopWidth();
-
-                            if (loopWidth > 0 && viewport.scrollLeft >= loopWidth) {
-                                viewport.scrollLeft -= loopWidth;
-                            }
-                        };
-
-                        viewport.addEventListener('pointerdown', pause);
-                        viewport.addEventListener('pointerup', resume);
-                        viewport.addEventListener('pointercancel', resume);
-                        viewport.addEventListener('touchstart', pause, { passive: true });
-                        viewport.addEventListener('touchend', resume);
-                        viewport.addEventListener('scroll', () => {
-                            const loopWidth = getLoopWidth();
-
-                            if (loopWidth > 0 && viewport.scrollLeft >= loopWidth) {
-                                viewport.scrollLeft -= loopWidth;
-                            }
-                        }, { passive: true });
-
-                        this.animationFrame = requestAnimationFrame(tick);
-                    }
-                 }"
-                 x-init="initTrendingSpotsMarquee()"
+            <div class="md:hidden relative w-full overflow-hidden scroll-reveal pt-2 pb-6"
+                 x-data="scrollReveal(0, 20)"
                  x-intersect.once.margin.-60px.0.0.0="reveal()"
                  :class="{ 'is-visible': shown }">
-                <div x-ref="trendingViewport"
-                     class="overflow-x-auto no-scrollbar"
-                     style="-webkit-overflow-scrolling: touch; scroll-behavior: auto; touch-action: pan-x; cursor: grab;">
-                    <div x-ref="trendingTrack"
-                         class="flex items-stretch gap-4"
-                         style="width: max-content; flex-wrap: nowrap;">
-                        @for($duplicate = 0; $duplicate < 2; $duplicate++)
+                <div class="px-4" x-data="{ initSwiper() {
+                        new Swiper('.trending-swiper', {
+                            slidesPerView: 2,
+                            slidesPerGroup: 2,
+                            spaceBetween: 12,
+                            loop: true,
+                            autoplay: {
+                                delay: 3500,
+                                disableOnInteraction: false,
+                            },
+                        });
+                    } }" x-init="initSwiper()">
+                    <div class="swiper trending-swiper !overflow-visible">
+                        <div class="swiper-wrapper">
                             @foreach($trendingSpots as $restaurant)
-                                <div class="shrink-0 pb-2" style="width: min(84vw, 24rem);">
-                                    <a href="{{ route('restaurant.show', $restaurant) }}" class="block h-full relative">
-                                        <div class="relative flex h-full flex-col overflow-hidden rounded-3xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 shadow-md transition-all duration-300">
-                                            <div class="relative flex h-48 items-center justify-center overflow-hidden bg-gray-100 dark:bg-gray-700">
+                                <div class="swiper-slide h-auto">
+                                    <a href="{{ route('restaurant.show', $restaurant) }}" class="block h-full group">
+                                        <div class="flex flex-col h-full bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group-hover:-translate-y-1">
+                                            <div class="relative h-32 overflow-hidden bg-gray-100 dark:bg-gray-700">
                                                 @if($restaurant->logo)
-                                                    <img alt="{{ $restaurant->name }}" src="{{ Storage::url($restaurant->logo) }}" class="h-full w-full object-cover transition-transform duration-700 ease-in-out"/>
+                                                    <img alt="{{ $restaurant->name }}" src="{{ Storage::url($restaurant->logo) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-in-out"/>
                                                 @else
-                                                    <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-400 via-indigo-500 to-purple-600 text-6xl font-black text-white outfit opacity-80">
+                                                    <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 text-3xl font-black text-white opacity-90 transition-transform duration-500 group-hover:scale-110">
                                                         {{ substr($restaurant->name, 0, 1) }}
                                                     </div>
                                                 @endif
-                                                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent"></div>
-
-                                                <div class="absolute right-4 top-4 flex flex-col items-end gap-2">
-                                                    <div class="flex items-center gap-1.5 rounded-full bg-white/90 px-4 py-1.5 text-xs font-bold text-black dark:text-black shadow-lg backdrop-blur-md">
-                                                        <div class="h-2 w-2 rounded-full {{ $restaurant->isOpenNow() ? 'bg-emerald-500' : 'bg-red-500' }}"></div>
-                                                        {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
+                                                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/50 to-transparent mix-blend-multiply"></div>
+                                                
+                                                <div class="absolute top-3 right-3 flex flex-col items-end gap-1.5 z-10">
+                                                    <div class="flex items-center gap-1 px-2 py-1 bg-white/70 backdrop-blur-md shadow-sm border border-white/50 rounded-full">
+                                                        <div class="w-2 h-2 rounded-full {{ $restaurant->isOpenNow() ? 'bg-emerald-500 shadow-sm' : 'bg-red-500 shadow-sm' }}"></div>
+                                                        <span class="text-[9px] font-black uppercase tracking-wider {{ $restaurant->isOpenNow() ? 'text-emerald-700' : 'text-red-700' }}">
+                                                            {{ $restaurant->isOpenNow() ? 'Open' : 'Closed' }}
+                                                        </span>
                                                     </div>
 
                                                     @if(auth()->check() && $restaurant->user_id === auth()->id())
-                                                        <div class="bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg border border-amber-400/50">
+                                                        <div class="bg-amber-500 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full shadow-md border border-amber-400">
                                                             Own Store
                                                         </div>
                                                     @endif
                                                 </div>
 
-                                                <div class="absolute bottom-4 left-4 flex items-center gap-2">
-                                                    <div class="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-bold text-gray-900 shadow-lg">
-                                                        <svg class="h-3 w-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                                <div class="absolute bottom-2.5 left-2.5 bg-white/95 backdrop-blur-sm rounded-xl px-2 py-0.5 flex items-center gap-1 shadow-sm border border-white/50">
+                                                    <svg class="w-2.5 h-2.5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                                    <span class="text-[11px] font-black text-gray-900">
                                                         @if(($restaurant->ratings_count ?? 0) > 0)
                                                             {{ number_format($restaurant->ratings_avg_rating ?? 0, 1) }}
                                                         @else
                                                             New
                                                         @endif
-                                                    </div>
-                                                    <div class="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white shadow-lg backdrop-blur-md">
-                                                        {{ $restaurant->menu_categories_count }} Categories
-                                                    </div>
+                                                    </span>
                                                 </div>
                                             </div>
-
-                                            <div class="flex-auto p-6">
-                                                <h6 class="mt-2 text-xl md:text-2xl font-black text-gray-900 dark:text-white outfit transition-colors">{{ $restaurant->name }}</h6>
-                                                <p class="mt-2 mb-4 line-clamp-2 font-medium text-gray-500 dark:text-gray-400">
-                                                    {{ $restaurant->description ?? 'Amazing food, cooked with perfection and delivered straight to you.' }}
+                                            
+                                            <div class="bg-white dark:bg-gray-800 p-4 flex-1 flex flex-col justify-center">
+                                                <h6 class="text-[13px] sm:text-sm leading-tight font-black outfit text-gray-900 dark:text-white group-hover:text-emerald-500 transition-colors line-clamp-2">{{ $restaurant->name }}</h6>
+                                                <p class="text-[10px] sm:text-[11px] text-gray-400 font-medium truncate mt-1">
+                                                    {{ $restaurant->menu_categories_count }} Categories
                                                 </p>
                                             </div>
                                         </div>
                                     </a>
                                 </div>
                             @endforeach
-                        @endfor
+                        </div>
                     </div>
                 </div>
             </div>
@@ -404,9 +345,9 @@
                                     @endif
                                     <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent"></div>
 
-                                    <div class="absolute top-4 right-4 flex flex-col items-end gap-2">
-                                        <div class="bg-white/90 backdrop-blur-md text-gray-900 font-bold px-4 py-1.5 rounded-full text-xs shadow-lg flex items-center gap-1.5">
-                                            <div class="w-2 h-2 rounded-full {{ $restaurant->isOpenNow() ? 'bg-emerald-500' : 'bg-red-500' }}"></div>
+                                    <div class="absolute top-4 right-4 flex flex-col items-end gap-2 z-10">
+                                        <div class="bg-white/70 backdrop-blur-md border border-white/50 text-gray-900 font-bold px-4 py-1.5 rounded-full text-xs shadow-lg flex items-center gap-1.5">
+                                            <div class="w-2 h-2 rounded-full {{ $restaurant->isOpenNow() ? 'bg-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]' }}"></div>
                                             {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
                                         </div>
 
@@ -458,38 +399,48 @@
             </div>
         @endif
 
-        <div class="mt-8 flex justify-center lg:hidden scroll-reveal"
-             x-data="scrollReveal(120, 22)"
-             x-intersect.once.margin.-60px.0.0.0="reveal()"
-             :class="{ 'is-visible': shown }">
-            <a href="{{ route('restaurants.index') }}" class="inline-flex items-center gap-2 px-8 py-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white font-black rounded-2xl shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all active:scale-95 group">
-                <span>View All Spots</span>
-                <svg class="w-5 h-5 text-emerald-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-            </a>
-        </div>
 
-        @include('partials.restaurant-globe', ['restaurants' => $globeRestaurants ?? $restaurants ?? collect()])
-        
+
         <!-- Trending Meals Section -->
         @if(isset($trendingMeals) && $trendingMeals->count() > 0)
-        <div class="mt-32">
-            <div class="flex flex-wrap justify-between items-end mb-12 px-4 scroll-reveal"
-                 x-data="scrollReveal(0, 24)"
-                 x-intersect.once.margin.-80px.0.0.0="reveal()"
-                 :class="{ 'is-visible': shown }">
-                <div>
-                <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">Most Loved Meals</h2>
+        <div class="mt-16 w-full lg:max-w-7xl lg:mx-auto px-4 scroll-reveal"
+             x-data="scrollReveal(0, 24)"
+             x-intersect.once.margin.-80px.0.0.0="reveal()"
+             :class="{ 'is-visible': shown }">
+            <div class="flex flex-wrap justify-between items-end mb-8 text-left ">
+                <div class="w-full">
+                    <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">Most Ordered</h2>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @foreach($trendingMeals as $meal)
-                    <div class="group scroll-reveal"
-                         id="browse-card-[homemeal]-{{ $meal->id }}"
-                         x-data="scrollReveal({{ ($loop->index % 3) * 100 }}, 30)"
-                         x-intersect.once.margin.-60px.0.0.0="reveal()"
-                         :class="{ 'is-visible': shown }">
-                        <div class="bg-white dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow relative overflow-hidden h-full"
+            <div x-data="{
+                initMealSwiper() {
+                    if (typeof Swiper !== 'undefined') {
+                        new Swiper('.most-ordered-swiper', {
+                            slidesPerView: 1,
+                            spaceBetween: 16,
+                            loop: true,
+                            autoplay: { delay: 4500, disableOnInteraction: false },
+                            pagination: {
+                                el: '.swiper-pagination-meals',
+                                clickable: true,
+                            },
+                            breakpoints: {
+                                768: { slidesPerView: 2, spaceBetween: 20 },
+                                1024: { slidesPerView: 3, spaceBetween: 24 }
+                            }
+                        });
+                    }
+                }
+            }" x-init="initMealSwiper()" class="relative w-full">
+                
+                <div class="swiper most-ordered-swiper !pb-8 !px-1.5 !pt-1.5" style="overflow: hidden;">
+                    <div class="swiper-wrapper">
+                        @foreach($trendingMeals->chunk(2) as $mealPair)
+                            <div class="swiper-slide h-auto flex flex-col gap-4">
+                                @foreach($mealPair as $meal)
+                                    <div class="group h-full" id="browse-card-[homemeal]-{{ $meal->id }}">
+                                        <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex gap-4 hover:shadow-2xl transition-all duration-300 relative h-full group-hover:-translate-y-1"
                              x-data="{
                                 adding: false,
                                 basePrice: parseFloat('{{ $meal->price }}'),
@@ -628,12 +579,14 @@
                                 <div>
                                     <div class="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
                                         <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="min-w-0 flex-1">
-                                            <h4 class="font-bold text-lg text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors leading-tight break-words flex items-center gap-2">
+                                            <h4 class="font-bold text-lg text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors leading-tight break-words block">
                                                 {{ $meal->name }}
-                                                @if($meal->is_featured)
-                                                    <span class="inline-flex items-center text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-widest border border-amber-100 whitespace-nowrap">Featured</span>
-                                                @endif
                                             </h4>
+                                            @if($meal->is_featured)
+                                                <div class="mt-1 flex block">
+                                                    <span class="inline-flex items-center text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-widest border border-amber-100 whitespace-nowrap">Featured</span>
+                                                </div>
+                                            @endif
                                             <div class="hidden sm:flex items-center gap-1.5 mt-1">
                                                 <div class="w-4 h-4 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
                                                     @if($meal->menuCategory->restaurant->logo)
@@ -668,8 +621,8 @@
                                                     class="px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all"
                                                     :class="selectedIndex === idx ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'">
                                                 <span x-text="opt.label"></span>
-                                                <span x-show="hasActiveSale" x-cloak class="ml-1 text-[10px] text-gray-400 line-through" x-text="formattedOptionOriginalPrice(opt)"></span>
-                                                <span class="ml-1 opacity-80" :class="hasActiveSale ? 'font-bold text-emerald-500 opacity-100' : ''" x-text="hasActiveSale ? formattedOptionSalePrice(opt) : formattedOptionOriginalPrice(opt)"></span>
+                                                <span x-show="hasActiveSale" x-cloak class="ml-1 text-[10px] line-through" :class="selectedIndex === idx ? 'text-emerald-100' : 'text-gray-400'" x-text="formattedOptionOriginalPrice(opt)"></span>
+                                                <span class="ml-1" :class="hasActiveSale ? (selectedIndex === idx ? 'font-bold text-white opacity-100' : 'font-bold text-emerald-500 opacity-100') : 'opacity-80'" x-text="hasActiveSale ? formattedOptionSalePrice(opt) : formattedOptionOriginalPrice(opt)"></span>
                                             </button>
                                         </template>
                                     </div>
@@ -699,12 +652,24 @@
                                     @endif
                                 </div>
                             </div>
-                        </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endforeach
                     </div>
-                @endforeach
+                    <!-- Pagination dots removed from inside Swiper absolute flow -->
+                </div>
+                
+                <!-- Pagination Dots physically placed UNDER the cards -->
+                <div class="swiper-pagination-meals flex justify-center items-center gap-1.5 mt-10 w-full text-emerald-500"></div>
             </div>
         </div>
         @endif
+
+        <div class="mt-20">
+            @include('partials.restaurant-globe', ['restaurants' => $globeRestaurants ?? $restaurants ?? collect()])
+        </div>
 
         <div class="mt-28"
              x-data="allStoresFeed({

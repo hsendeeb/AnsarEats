@@ -129,8 +129,8 @@
                                             class="px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all"
                                             :class="selectedIndex === idx ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'">
                                         <span x-text="opt.label"></span>
-                                        <span x-show="hasActiveSale" x-cloak class="ml-1 text-[10px] text-gray-400 line-through" x-text="formattedOptionOriginalPrice(opt)"></span>
-                                        <span class="ml-1 opacity-80" :class="hasActiveSale ? 'font-bold text-emerald-500 opacity-100' : ''" x-text="hasActiveSale ? formattedOptionSalePrice(opt) : formattedOptionOriginalPrice(opt)"></span>
+                                        <span x-show="hasActiveSale" x-cloak class="ml-1 text-[10px] line-through" :class="selectedIndex === idx ? 'text-emerald-100' : 'text-gray-400'" x-text="formattedOptionOriginalPrice(opt)"></span>
+                                        <span class="ml-1" :class="hasActiveSale ? (selectedIndex === idx ? 'font-bold text-white opacity-100' : 'font-bold text-emerald-500 opacity-100') : 'opacity-80'" x-text="hasActiveSale ? formattedOptionSalePrice(opt) : formattedOptionOriginalPrice(opt)"></span>
                                     </button>
                                 </template>
                             </div>
@@ -694,8 +694,8 @@
                         '<template x-for="(opt, idx) in variants" :key="idx">' +
                             '<button type="button" @click="selectedIndex = idx" class="px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all" :class="selectedIndex === idx ? \'bg-emerald-500 text-white border-emerald-500 shadow-sm\' : \'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100\'">' +
                                 '<span x-text="opt.label"></span>' +
-                                '<span x-show="hasActiveSale" x-cloak class="ml-1 text-[10px] text-gray-400 line-through" x-text="formattedOptionOriginalPrice(opt)"></span>' +
-                                '<span class="ml-1 opacity-80" :class="hasActiveSale ? \'font-bold text-emerald-500 opacity-100\' : \'\'" x-text="hasActiveSale ? formattedOptionSalePrice(opt) : formattedOptionOriginalPrice(opt)"></span>' +
+                                '<span x-show="hasActiveSale" x-cloak class="ml-1 text-[10px] line-through" :class="selectedIndex === idx ? \'text-emerald-100\' : \'text-gray-400\'" x-text="formattedOptionOriginalPrice(opt)"></span>' +
+                                '<span class="ml-1" :class="hasActiveSale ? (selectedIndex === idx ? \'font-bold text-white opacity-100\' : \'font-bold text-emerald-500 opacity-100\') : \'opacity-80\'" x-text="hasActiveSale ? formattedOptionSalePrice(opt) : formattedOptionOriginalPrice(opt)"></span>' +
                             '</button>' +
                         '</template>' +
                     '</div>' +

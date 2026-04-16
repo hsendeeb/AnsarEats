@@ -1,5 +1,51 @@
 @extends('layouts.app')
 
+@section('skeleton')
+<div class="min-h-[80vh] flex items-center justify-center py-16 px-4 relative">
+    <div class="w-full max-w-2xl relative z-10">
+        <div class="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+            <!-- Header Skeleton -->
+            <div class="p-10 text-center border-b border-gray-100 dark:border-gray-700">
+                <div class="w-48 h-48 mx-auto bg-gray-100 dark:bg-gray-700 rounded-full animate-pulse mb-6"></div>
+                <div class="w-64 h-8 bg-gray-100 dark:bg-gray-700 rounded-xl mx-auto mb-3 animate-pulse"></div>
+                <div class="w-48 h-4 bg-gray-50 dark:bg-gray-700/50 rounded mx-auto animate-pulse"></div>
+            </div>
+            
+            <div class="p-8 space-y-8">
+                <!-- Info Row -->
+                <div class="flex items-center justify-between bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4">
+                    <div class="space-y-2">
+                        <div class="w-16 h-2 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                        <div class="w-24 h-6 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                    </div>
+                    <div class="w-24 h-8 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse"></div>
+                </div>
+
+                <!-- Progress Stepper -->
+                <div class="flex justify-between px-4">
+                    @for($i=0; $i<5; $i++)
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full animate-pulse"></div>
+                        <div class="w-12 h-2 bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
+                    </div>
+                    @endfor
+                </div>
+
+                <!-- Items -->
+                <div class="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                    @for($i=0; $i<2; $i++)
+                    <div class="flex justify-between">
+                        <div class="w-40 h-4 bg-gray-100 dark:bg-gray-700 rounded animate-pulse"></div>
+                        <div class="w-16 h-4 bg-gray-100 dark:bg-gray-700 rounded animate-pulse"></div>
+                    </div>
+                    @endfor
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
 @section('content')
     <div class="min-h-[80vh] flex items-center justify-center py-16 px-4 relative">
         <!-- Decorative Removed -->

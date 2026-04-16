@@ -1,5 +1,24 @@
 @extends('layouts.app')
 
+@section('skeleton')
+<div class="w-full h-[360px] sm:h-[420px] md:h-[400px] lg:h-96 bg-gray-200 dark:bg-gray-800 animate-pulse relative"></div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 lg:mt-24">
+    <div class="flex flex-col lg:flex-row gap-10">
+        <div class="w-full lg:w-1/4">
+            <div class="w-full h-96 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
+        </div>
+        <div class="w-full lg:w-3/4 space-y-10">
+            <div class="w-1/3 h-8 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse mb-8"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                @for ($i = 0; $i < 6; $i++)
+                <div class="w-full h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
+                @endfor
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
 @section('content')
     <!-- Page Logic -->
     <script>

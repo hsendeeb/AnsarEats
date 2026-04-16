@@ -1,5 +1,40 @@
 @extends('layouts.app')
 
+@section('skeleton')
+<div class="min-h-screen bg-gray-50 py-10 px-4">
+    <div class="max-w-5xl mx-auto">
+        <!-- Hero Skeleton -->
+        <div class="h-64 bg-gray-200 dark:bg-gray-800 rounded-[2rem] animate-pulse mb-8"></div>
+        
+        <!-- Form Skeleton -->
+        <div class="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+            <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-900/50 space-y-2">
+                <div class="w-48 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+                <div class="w-64 h-3 bg-gray-100 dark:bg-gray-700 rounded animate-pulse"></div>
+            </div>
+            
+            <div class="p-6 space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="h-36 bg-gray-100 dark:bg-gray-700 rounded-3xl animate-pulse"></div>
+                    <div class="h-36 bg-gray-100 dark:bg-gray-700 rounded-3xl animate-pulse"></div>
+                </div>
+                
+                <div class="space-y-6">
+                    @for($i=0; $i<4; $i++)
+                    <div class="space-y-2">
+                        <div class="w-24 h-3 bg-gray-100 dark:bg-gray-700 rounded animate-pulse"></div>
+                        <div class="w-full h-12 bg-gray-50 dark:bg-gray-900 rounded-2xl animate-pulse"></div>
+                    </div>
+                    @endfor
+                </div>
+
+                <div class="w-full h-14 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
 @section('content')
 @php
     $restaurantDraft = $latestRequest ?? null;

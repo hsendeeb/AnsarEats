@@ -11,6 +11,24 @@
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/ansareats-logo-v2.svg') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/brand/ansareats-app-icon.svg') }}">
     
+    <style>
+        #page-loader {
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        body.page-loading #page-loader {
+            opacity: 1;
+            pointer-events: auto;
+            visibility: visible;
+        }
+        /* Lock scroll while loading to prevent jitter */
+        body.page-loading {
+            overflow: hidden;
+        }
+    </style>
+    
     <!-- Alpine.js Plugins (MUST be before core) -->
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -202,9 +220,22 @@
         $hasRestaurant = auth()->check() && auth()->user()->restaurant;
     @endphp
 
-    <!-- Global Page Loader -->
-    <div id="page-loader" class="fixed inset-0 flex items-center justify-center bg-emerald-50/80 backdrop-blur-sm z-40">
-        <div class="w-14 h-14 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin"></div>
+    <!-- Global Page Loader (Skeleton Transition) -->
+    <div id="page-loader" class="fixed top-20 inset-x-0 bottom-0 bg-white dark:bg-gray-900 z-40 overflow-hidden pointer-events-none transition-opacity duration-300">
+        <!-- Body Skeleton Grid -->
+        @hasSection('skeleton')
+            @yield('skeleton')
+        @else
+            <div class="max-w-7xl mx-auto px-4 mt-8 md:mt-12">
+                <div class="w-3/4 md:w-1/2 h-10 md:h-14 bg-gray-200 dark:bg-gray-800 rounded-xl mb-4 animate-pulse"></div>
+                <div class="w-1/2 md:w-1/3 h-5 bg-gray-200 dark:bg-gray-800 rounded-lg mb-10 animate-pulse"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+                    @for ($i = 0; $i < 6; $i++)
+                    <div class="h-[300px] bg-gray-200 dark:bg-gray-800 rounded-[2rem] animate-pulse @if($i > 1) hidden md:block @endif @if($i > 2) hidden lg:block @endif"></div>
+                    @endfor
+                </div>
+            </div>
+        @endif
     </div>
     
     <!-- Navigation -->
@@ -688,11 +719,6 @@
             setTimeout(() => {
                 window.hidePageLoader();
             }, 150);
-
-            // Show loader when navigating away
-            window.addEventListener('beforeunload', () => {
-                window.showPageLoader();
-            });
 
             // Hide loader if arriving via back/forward cache
             window.addEventListener('pageshow', (event) => {

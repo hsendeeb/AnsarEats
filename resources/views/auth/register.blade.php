@@ -1,5 +1,35 @@
 @extends('layouts.app')
 
+@section('skeleton')
+<div class="min-h-[100svh] bg-white dark:bg-gray-950 mt-5">
+    <div class="mx-auto w-full max-w-md px-5 pb-8 pt-10 sm:px-6 sm:pt-12 space-y-8">
+        <div class="space-y-2">
+            <div class="w-24 h-4 bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
+            <div class="w-32 h-10 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse"></div>
+            <div class="w-48 h-4 bg-gray-50 dark:bg-gray-900 rounded animate-pulse"></div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 animate-pulse"></div>
+            <div class="flex-1 h-px bg-gray-200 dark:bg-gray-800 animate-pulse"></div>
+            <div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 animate-pulse"></div>
+        </div>
+        
+        <div class="space-y-3">
+            <div class="w-full h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
+            <div class="w-full h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
+        </div>
+
+        <div class="space-y-6 pt-4">
+            <div class="w-full h-12 bg-gray-50 dark:bg-gray-900 rounded-2xl animate-pulse"></div>
+            <div class="w-full h-12 bg-gray-50 dark:bg-gray-900 rounded-2xl animate-pulse"></div>
+        </div>
+        
+        <div class="w-full h-12 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
+    </div>
+</div>
+@endsection
+
 @section('content')
 <div class="min-h-[100svh] bg-white dark:bg-gray-950 mt-5">
     <div class="mx-auto w-full max-w-md px-5 pb-8 pt-10 sm:px-6 sm:pt-12" x-data="{ show: false, step: {{ $errors->has('password') || $errors->has('password_confirmation') ? 2 : 1 }} }" x-init="setTimeout(() => show = true, 80)">

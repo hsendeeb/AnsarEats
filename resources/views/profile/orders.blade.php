@@ -1,5 +1,27 @@
 @extends('layouts.app')
 
+@section('skeleton')
+<div class="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+        <div>
+            <div class="w-48 h-10 bg-gray-200 dark:bg-gray-800 rounded-xl mb-3 animate-pulse"></div>
+            <div class="w-64 h-5 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+        </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="md:col-span-1 space-y-6">
+            <div class="w-full h-14 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
+            <div class="w-full h-48 bg-gray-200 dark:bg-gray-800 rounded-3xl animate-pulse"></div>
+        </div>
+        <div class="md:col-span-2 space-y-6">
+            @for ($i = 0; $i < 4; $i++)
+            <div class="w-full h-24 bg-gray-200 dark:bg-gray-800 rounded-3xl animate-pulse"></div>
+            @endfor
+        </div>
+    </div>
+</div>
+@endsection
+
 @section('content')
 <div class="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
     <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">

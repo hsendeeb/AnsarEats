@@ -1,5 +1,62 @@
 @extends('layouts.app')
 
+@section('skeleton')
+<!-- Header Area -->
+<div class="bg-white py-12 border-b border-gray-50">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 h-[66px]">
+            <div></div> <!-- Spacer -->
+            <div class="bg-gray-100 p-2 rounded-[2.5rem] border border-gray-200 animate-pulse flex items-center min-w-[300px] h-16">
+                <!-- Status icon placeholder -->
+                <div class="w-12 h-12 bg-gray-200 rounded-2xl flex-shrink-0 animate-pulse"></div>
+                <!-- Status text placeholder -->
+                <div class="flex-1 px-4 space-y-2">
+                    <div class="w-16 h-2 bg-gray-200 rounded animate-pulse"></div>
+                    <div class="w-24 h-3 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Area -->
+<div class="py-12 bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4">
+        <!-- Top Filters Bar -->
+        <div class="mb-12 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 overflow-visible h-5">
+            <div></div> <!-- Spacer -->
+            <div class="flex w-full md:w-auto items-center justify-end gap-4 md:gap-6 overflow-visible relative">
+                <!-- Sort fake button -->
+                <div class="flex items-center gap-2">
+                    <div class="w-20 h-5 bg-gray-200 rounded hidden md:block animate-pulse"></div>
+                </div>
+                <!-- Location fake button -->
+                <div class="flex items-center gap-2">
+                    <div class="w-20 h-5 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Listing Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            @for ($i = 0; $i < 6; $i++)
+            <article class="bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/40 overflow-hidden animate-pulse">
+                <div class="h-48 w-full bg-gray-200 dark:bg-gray-800"></div>
+                <div class="p-6 space-y-4 relative">
+                    <div class="absolute -top-10 left-6 w-16 h-16 rounded-2xl bg-gray-300 dark:bg-gray-700 border-4 border-white dark:border-gray-900"></div>
+                    <div class="pt-6 h-6 bg-gray-200 dark:bg-gray-800 rounded w-3/4"></div>
+                    <div class="flex gap-2">
+                        <div class="h-5 bg-gray-200 dark:bg-gray-800 rounded-full w-16"></div>
+                        <div class="h-5 bg-gray-200 dark:bg-gray-800 rounded-full w-20"></div>
+                    </div>
+                </div>
+            </article>
+            @endfor
+        </div>
+    </div>
+</div>
+@endsection
+
 @section('content')
 <div class="bg-white py-12 border-b border-gray-50">
     <div class="container mx-auto px-4">
@@ -214,13 +271,22 @@
                 @endforelse
             </div>
 
-            <!-- Loading Spinnner & Intersection Observer -->
-            <div x-show="hasMore" 
-                 x-intersect.full="loadMore()" 
-                 class="mt-12 flex justify-center py-8">
-                <div x-show="loading" class="flex flex-col items-center gap-3">
-                    <div class="w-10 h-10 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin"></div>
-                    <span class="text-sm font-bold text-gray-400 uppercase tracking-widest">Loading more places...</span>
+            <!-- Loading Skeleton & Intersection Observer -->
+            <div x-show="hasMore" x-intersect.full="loadMore()" class="mt-8">
+                <div x-show="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 py-4">
+                    @for ($i = 0; $i < 3; $i++)
+                    <article class="bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/40 overflow-hidden animate-pulse">
+                        <div class="h-48 w-full bg-gray-200"></div>
+                        <div class="p-6 space-y-4 relative">
+                            <div class="absolute -top-10 left-6 w-16 h-16 rounded-2xl bg-gray-300 border-4 border-white"></div>
+                            <div class="pt-6 h-6 bg-gray-200 rounded w-3/4"></div>
+                            <div class="flex gap-2">
+                                <div class="h-5 bg-gray-200 rounded-full w-16"></div>
+                                <div class="h-5 bg-gray-200 rounded-full w-20"></div>
+                            </div>
+                        </div>
+                    </article>
+                    @endfor
                 </div>
             </div>
         </div>

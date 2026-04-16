@@ -1,6 +1,27 @@
 @extends('layouts.app')
 @section('hideFooter', '1')
 
+@section('skeleton')
+<div class="min-h-[100svh] bg-white dark:bg-gray-950 mt-5">
+    <div class="mx-auto w-full max-w-md px-5 pb-8 pt-10 sm:px-6 sm:pt-12 space-y-8">
+        <div class="space-y-2">
+            <div class="w-24 h-4 bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
+            <div class="w-48 h-10 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse"></div>
+            <div class="w-64 h-4 bg-gray-50 dark:bg-gray-900 rounded animate-pulse"></div>
+        </div>
+        
+        <div class="pt-8">
+            <div class="w-full h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
+        </div>
+
+        <div class="space-y-3">
+            <div class="w-full h-12 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
+            <div class="w-full h-12 bg-gray-50 dark:bg-gray-900 rounded-2xl animate-pulse"></div>
+        </div>
+    </div>
+</div>
+@endsection
+
 @section('content')
 <div class="min-h-[100svh] bg-white dark:bg-gray-950 mt-5">
     <div class="mx-auto w-full max-w-md px-5 pb-8 pt-10 sm:px-6 sm:pt-12">

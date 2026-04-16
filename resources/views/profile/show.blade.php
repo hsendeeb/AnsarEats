@@ -1,5 +1,17 @@
 @extends('layouts.app')
 
+@section('skeleton')
+<div class="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+    <div class="mb-12">
+        <div class="w-32 h-6 bg-gray-200 dark:bg-gray-800 rounded-lg mb-6 animate-pulse"></div>
+        <div class="w-48 h-10 bg-gray-200 dark:bg-gray-800 rounded-xl mb-2 animate-pulse"></div>
+        <div class="w-64 h-5 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+    </div>
+    <div class="max-w-2xl mx-auto bg-gray-100 dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 overflow-hidden h-[500px] animate-pulse">
+    </div>
+</div>
+@endsection
+
 @section('content')
 <div class="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
     <div class="mb-12 relative">

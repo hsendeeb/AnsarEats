@@ -1,5 +1,52 @@
 @extends('layouts.app')
 
+@section('skeleton')
+<div class="min-h-[80vh] bg-gray-50 py-12 px-4 relative">
+    <div class="max-w-4xl mx-auto relative z-10">
+        <!-- Header Skeleton -->
+        <div class="mb-8">
+            <div class="w-16 h-4 bg-gray-200 dark:bg-gray-800 rounded mb-3 animate-pulse"></div>
+            <div class="w-48 h-10 bg-gray-200 dark:bg-gray-800 rounded-xl mb-2 animate-pulse"></div>
+            <div class="w-64 h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <!-- Left Form -->
+            <div class="lg:col-span-3">
+                <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-6 space-y-6">
+                    <div class="w-40 h-8 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse"></div>
+                    <div class="space-y-3">
+                        <div class="w-24 h-3 bg-gray-100 dark:bg-gray-700 rounded animate-pulse"></div>
+                        <div class="w-full h-12 bg-gray-50 dark:bg-gray-900 rounded-2xl animate-pulse"></div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="w-24 h-3 bg-gray-100 dark:bg-gray-700 rounded animate-pulse"></div>
+                        <div class="w-full h-12 bg-gray-50 dark:bg-gray-900 rounded-2xl animate-pulse"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Right Summary -->
+            <div class="lg:col-span-2">
+                <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-6 space-y-6">
+                    <div class="w-32 h-6 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+                    <div class="space-y-4">
+                        @for($i=0; $i<3; $i++)
+                        <div class="flex justify-between items-center">
+                            <div class="w-24 h-4 bg-gray-100 dark:bg-gray-700 rounded animate-pulse"></div>
+                            <div class="w-12 h-4 bg-gray-100 dark:bg-gray-700 rounded animate-pulse"></div>
+                        </div>
+                        @endfor
+                    </div>
+                    <div class="pt-4 border-t-2 border-dashed border-gray-200 dark:border-gray-700">
+                        <div class="w-full h-14 bg-gray-100 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
 @section('content')
 <div class="min-h-[80vh] bg-gray-50 py-12 px-4 relative">
     <!-- Decorative -->

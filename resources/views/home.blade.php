@@ -1,5 +1,28 @@
 @extends('layouts.app')
 
+@section('skeleton')
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+    <div class="w-full h-16 bg-gray-200 dark:bg-gray-800 rounded-3xl mb-8 animate-pulse"></div>
+    <div class="w-full h-[400px] lg:h-[500px] bg-gray-200 dark:bg-gray-800 rounded-[2.5rem] mb-12 animate-pulse"></div>
+    <div class="flex items-center justify-between mb-6 md:mb-8">
+        <div class="w-48 h-8 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse"></div>
+        <div class="w-24 h-6 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse"></div>
+    </div>
+    <!-- Trending Spots Matching Skeleton (2 col on mobile) -->
+    <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6 mb-16 overflow-hidden">
+        @for ($i = 0; $i < 4; $i++)
+        <div class="h-56 md:h-72 bg-gray-200 dark:bg-gray-800 rounded-2xl md:rounded-3xl animate-pulse flex flex-col overflow-hidden @if($i > 1) hidden md:flex @endif @if($i > 2) hidden lg:flex @endif">
+            <div class="h-28 md:h-40 bg-gray-300 dark:bg-gray-700 w-full animate-pulse opacity-50"></div>
+            <div class="flex-1 p-3 md:p-5 flex flex-col gap-2 justify-end">
+                <div class="w-3/4 h-3 md:h-4 bg-gray-300 dark:bg-gray-700 rounded animate-pulse opacity-50"></div>
+                <div class="w-1/2 h-3 md:h-4 bg-gray-300 dark:bg-gray-700 rounded animate-pulse opacity-50"></div>
+            </div>
+        </div>
+        @endfor
+    </div>
+</div>
+@endsection
+
 @section('content')
 <style>
     .scroll-reveal {
@@ -740,12 +763,21 @@
                 </template>
             </div>
 
-            <!-- Loading Spinner & Intersection Trigger -->
-            <div x-show="nextPage" 
-                 class="mt-12 flex justify-center py-8">
-                <div x-show="loading" class="flex flex-col items-center gap-3">
-                    <div class="w-10 h-10 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin"></div>
-                    <span class="text-sm font-bold text-gray-400 uppercase tracking-widest">Loading more stores...</span>
+            <!-- Loading Skeleton & Intersection Trigger -->
+            <div x-show="nextPage" x-intersect.full="loadMore()" class="mt-8">
+                <div x-show="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 py-4">
+                    @for ($i = 0; $i < 3; $i++)
+                    <article class="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-xl shadow-gray-200/40 overflow-hidden animate-pulse">
+                        <div class="aspect-[4/3] w-full bg-gray-200 dark:bg-gray-700"></div>
+                        <div class="p-6 space-y-4">
+                            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                            <div class="space-y-2">
+                                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+                            </div>
+                        </div>
+                    </article>
+                    @endfor
                 </div>
             </div>
 

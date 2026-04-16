@@ -1,5 +1,23 @@
 @extends('layouts.app')
 
+@section('skeleton')
+<div class="bg-white dark:bg-gray-800/10 border-b border-gray-100 dark:border-gray-800 shadow-sm py-5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex gap-4 overflow-hidden">
+        @for ($i = 0; $i < 8; $i++)
+        <div class="shrink-0 w-32 h-10 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse"></div>
+        @endfor
+    </div>
+</div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="w-32 h-5 bg-gray-200 dark:bg-gray-800 rounded mb-8 animate-pulse"></div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        @for ($i = 0; $i < 6; $i++)
+        <div class="w-full h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
+        @endfor
+    </div>
+</div>
+@endsection
+
 @section('content')
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
 

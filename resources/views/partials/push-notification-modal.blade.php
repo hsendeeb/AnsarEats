@@ -1,7 +1,7 @@
 <div 
     x-data="{ 
         show: false,
-        permission: '{{ 'Notification' in window ? 'prompt' : 'unsupported' }}',
+        permission: ('Notification' in window) ? Notification.permission : 'unsupported',
         init() {
             window.showPushPrompt = () => {
                 if ('Notification' in window && Notification.permission === 'default') {

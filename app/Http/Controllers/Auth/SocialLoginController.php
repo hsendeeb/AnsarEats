@@ -20,6 +20,11 @@ class SocialLoginController extends Controller
 {
     public function redirect(string $provider): SymfonyRedirectResponse
     {
+        // Explicitly save the session to ensure the 'state' token is persisted
+        // before the redirect occurs. This fixes the common issue where social 
+        // login only works on the second attempt.
+        request()->session()->save();
+
         return Socialite::driver($provider)->redirect();
     }
 

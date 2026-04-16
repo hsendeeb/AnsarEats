@@ -31,7 +31,7 @@ class SocialLoginController extends Controller
     public function callback(Request $request, string $provider): RedirectResponse
     {
         try {
-            $socialUser = Socialite::driver($provider)->user();
+            $socialUser = Socialite::driver($provider)->stateless()->user();
             $user = $this->resolveUser($provider, $socialUser);
         } catch (\Throwable $exception) {
             Log::warning('Social login failed.', [

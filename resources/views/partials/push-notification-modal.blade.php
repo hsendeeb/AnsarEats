@@ -41,7 +41,7 @@
                 <template x-if="!isDenied">
                     <div>
                         <h4 class="font-bold text-sm tracking-tight mb-0.5">Enable Order Alerts</h4>
-                        <p class="text-[11px] text-gray-500 dark:text-gray-400">Get a ping when your food is ready.</p>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400">Get notified about your order status.</p>
                     </div>
                 </template>
                 <template x-if="isDenied">

@@ -93,7 +93,7 @@
 
                     // Request notification permission safely
                     @auth
-                    const subscribeToPush = async () => {
+                    window.subscribeToPush = async () => {
                         if (Notification.permission !== 'granted') return;
                         try {
                             const vapidPublicKey = "{{ config('push.vapid.public_key', env('VAPID_PUBLIC_KEY')) }}";
@@ -142,19 +142,7 @@
 
                     if ('Notification' in window) {
                         if (Notification.permission === 'granted') {
-                            subscribeToPush();
-                        } else if (Notification.permission === 'default') {
-                            // Browsers heavily block requestPermission if not tied to a user interaction.
-                            // We attach an event listener to trigger it on their first click anywhere.
-                            const requestPushPerm = () => {
-                                Notification.requestPermission().then(permission => {
-                                    if (permission === 'granted') {
-                                        subscribeToPush();
-                                    }
-                                });
-                                document.removeEventListener('click', requestPushPerm);
-                            };
-                            document.addEventListener('click', requestPushPerm);
+                            window.subscribeToPush();
                         }
                     }
                     @endauth
@@ -729,5 +717,6 @@
         });
     </script>
     @stack('scripts')
+    @include('partials.push-notification-modal')
 </body>
 </html>

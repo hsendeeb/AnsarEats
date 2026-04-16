@@ -61,7 +61,7 @@
                         <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script>
                         
                         <template x-if="status === 'delivered'">
-                            <dotlottie-player src="https://lottie.host/5ea1ad75-a551-448c-acf4-9671fd1a1136/jLuUvzKVQQ.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
+                            <dotlottie-player src="https://lottie.host/85d585d8-d8e3-42e2-a0d3-e11c4a9a5873/KWsF3iit2h.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
                         </template>
                         <template x-if="status === 'out_for_delivery'">
                             <dotlottie-player src="https://lottie.host/85d585d8-d8e3-42e2-a0d3-e11c4a9a5873/KWsF3iit2h.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>

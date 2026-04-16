@@ -443,14 +443,13 @@
 
         <!-- Trending Meals Section -->
         @if(isset($trendingMeals) && $trendingMeals->count() > 0)
-        <div class="mt-16 w-full lg:max-w-7xl lg:mx-auto px-4 scroll-reveal"
+        <div class="mt-16 w-full scroll-reveal"
              x-data="scrollReveal(0, 24)"
              x-intersect.once.margin.-80px.0.0.0="reveal()"
              :class="{ 'is-visible': shown }">
-            <div class="flex flex-wrap justify-between items-end mb-8 text-left ">
-                <div class="w-full">
-                    <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">Most Ordered</h2>
-                </div>
+            
+            <div class="max-w-7xl mx-auto px-4 mb-10 text-left ">
+                <h2 class="text-3xl md:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">Most Ordered</h2>
             </div>
 
             <div x-data="{
@@ -467,7 +466,9 @@
                             },
                             breakpoints: {
                                 768: { slidesPerView: 2, spaceBetween: 20 },
-                                1024: { slidesPerView: 3, spaceBetween: 24 }
+                                1024: { slidesPerView: 3, spaceBetween: 24 },
+                                1280: { slidesPerView: 4, spaceBetween: 24 },
+                                1536: { slidesPerView: 5, spaceBetween: 30 }
                             }
                         });
                     }

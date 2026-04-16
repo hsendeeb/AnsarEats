@@ -719,4 +719,6 @@
     @stack('scripts')
     @include('partials.push-notification-modal')
 </body>
+
 </html>
+

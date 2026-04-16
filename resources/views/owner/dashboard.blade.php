@@ -109,24 +109,36 @@
                 </button>
             </div>
         @else
-            <!-- Action Buttons -->
-            <div class="flex flex-wrap gap-3 mb-10">
-                <button @click="showCategoryModal = true" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-95">
-                    <x-heroicon-o-plus class="w-5 h-5" />
-                    Add Category
-                </button>
-                
+            <!-- Action Buttons (Mobile Circular Style) -->
+            <div class="flex items-start justify-between sm:justify-start sm:gap-8 mb-10 px-2 sm:px-0">
+                <!-- Add Category -->
+                <div class="flex flex-col items-center gap-2 transition-transform active:scale-95">
+                    <button @click="showCategoryModal = true" 
+                            class="w-16 h-16 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition-all">
+                        <x-heroicon-o-plus class="w-7 h-7" />
+                    </button>
+                    <span class="text-[10px] sm:text-xs font-black uppercase tracking-tight text-gray-500 text-center leading-tight">Add<br>Category</span>
+                </div>
+
                 @if($restaurant->menuCategories->count() > 0)
-                <button @click="showMenuItemModal = true" class="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-white font-bold rounded-2xl shadow-lg shadow-amber-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-95">
-                    <x-heroicon-o-plus class="w-5 h-5" />
-                    Add Menu Item
-                </button>
+                    <!-- Add Menu Item -->
+                    <div class="flex flex-col items-center gap-2 transition-transform active:scale-95">
+                        <button @click="showMenuItemModal = true" 
+                                class="w-16 h-16 rounded-full bg-amber-500 hover:bg-amber-400 text-white flex items-center justify-center transition-all">
+                            <x-heroicon-o-plus class="w-7 h-7" />
+                        </button>
+                        <span class="text-[10px] sm:text-xs font-black uppercase tracking-tight text-gray-500 text-center leading-tight">Add<br>Item</span>
+                    </div>
                 @endif
-                
-                <a href="{{ route('restaurant.show', $restaurant) }}" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 hover:border-emerald-500 text-gray-700 hover:text-emerald-600 font-bold rounded-2xl transition-all transform hover:-translate-y-0.5 active:scale-95">
-                    <x-heroicon-o-arrow-top-right-on-square class="w-5 h-5" />
-                    View Public Page
-                </a>
+
+                <!-- View Public Page -->
+                <div class="flex flex-col items-center gap-2 transition-transform active:scale-95">
+                    <a href="{{ route('restaurant.show', $restaurant) }}" target="_blank" 
+                       class="w-16 h-16 rounded-full bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-emerald-500 flex items-center justify-center transition-all hover:border-emerald-500">
+                        <x-heroicon-o-arrow-top-right-on-square class="w-7 h-7" />
+                    </a>
+                    <span class="text-[10px] sm:text-xs font-black uppercase tracking-tight text-gray-500 text-center leading-tight">View<br>Page</span>
+                </div>
             </div>
 
             <div id="dashboard-live-sections">

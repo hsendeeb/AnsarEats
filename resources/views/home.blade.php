@@ -2,26 +2,43 @@
 
 @section('skeleton')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-    <div class="w-full h-16 bg-gray-200 dark:bg-gray-800 rounded-3xl mb-8 animate-pulse"></div>
-    <div class="w-full h-[400px] lg:h-[500px] bg-gray-200 dark:bg-gray-800 rounded-[2.5rem] mb-12 animate-pulse"></div>
-    <div class="flex items-center justify-between mb-6 md:mb-8">
-        <div class="w-48 h-8 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse"></div>
-        <div class="w-24 h-6 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse"></div>
+    <!-- Search Bar Skeleton -->
+    <div class="w-full h-16 bg-gray-100 dark:bg-gray-800 rounded-3xl mb-12 animate-pulse"></div>
+
+    <!-- Categories Row Skeleton -->
+    <div class="flex gap-4 md:gap-8 mb-12 overflow-hidden justify-center md:justify-start">
+        @for ($i = 0; $i < 6; $i++)
+        <div class="flex flex-col items-center gap-3 animate-pulse @if($i > 2) hidden sm:flex @endif @if($i > 4) hidden lg:flex @endif">
+            <div class="w-16 h-16 md:w-24 md:h-24 bg-gray-100 dark:bg-gray-800 rounded-full"></div>
+            <div class="w-12 h-3 bg-gray-100 dark:bg-gray-800 rounded-full"></div>
+        </div>
+        @endfor
     </div>
-    <!-- Trending Spots Matching Skeleton (2 col on mobile) -->
-    <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6 mb-16 overflow-hidden">
-        @for ($i = 0; $i < 4; $i++)
-        <div class="h-56 md:h-72 bg-gray-200 dark:bg-gray-800 rounded-2xl md:rounded-3xl animate-pulse flex flex-col overflow-hidden @if($i > 1) hidden md:flex @endif @if($i > 2) hidden lg:flex @endif">
-            <div class="h-28 md:h-40 bg-gray-300 dark:bg-gray-700 w-full animate-pulse opacity-50"></div>
-            <div class="flex-1 p-3 md:p-5 flex flex-col gap-2 justify-end">
-                <div class="w-3/4 h-3 md:h-4 bg-gray-300 dark:bg-gray-700 rounded animate-pulse opacity-50"></div>
-                <div class="w-1/2 h-3 md:h-4 bg-gray-300 dark:bg-gray-700 rounded animate-pulse opacity-50"></div>
+
+    <!-- Section Header Skeleton -->
+    <div class="flex items-center justify-between mb-8">
+        <div class="w-48 h-8 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse"></div>
+        <div class="w-24 h-6 bg-gray-100 dark:bg-gray-800 rounded-full animate-pulse"></div>
+    </div>
+
+    <!-- Trending Spots Grid Skeleton -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 px-4">
+        @for ($i = 0; $i < 3; $i++)
+        <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-50 dark:border-gray-800 overflow-hidden animate-pulse shadow-sm">
+            <div class="h-48 bg-gray-100 dark:bg-gray-700 w-full"></div>
+            <div class="p-6 space-y-4">
+                <div class="h-6 bg-gray-100 dark:bg-gray-700 rounded-xl w-3/4"></div>
+                <div class="space-y-2">
+                    <div class="h-3 bg-gray-100 dark:bg-gray-700 rounded-lg w-full"></div>
+                    <div class="h-3 bg-gray-100 dark:bg-gray-700 rounded-lg w-5/6"></div>
+                </div>
             </div>
         </div>
         @endfor
     </div>
 </div>
 @endsection
+
 
 @section('content')
 <style>

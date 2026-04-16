@@ -1,20 +1,30 @@
+<style>[x-cloak] { display: none !important; }</style>
+
 <div 
     x-data="{ 
         show: false,
         init() {
+            console.log('Push Banner Init:', {
+                hasNotification: 'Notification' in window,
+                permission: 'Notification' in window ? Notification.permission : 'n/a',
+                path: window.location.pathname
+            });
+
             // Only show if permission is still 'default'
             if ('Notification' in window && Notification.permission === 'default') {
                 const path = window.location.pathname;
                 const isCheckoutPage = path.endsWith('/checkout') || path.includes('/checkout/');
                 
                 if (isCheckoutPage) {
-                    // Show after a refined 2.5s delay for smooth entrance
+                    console.log('On Checkout Page - Triggering Banner in 2.5s');
                     setTimeout(() => { this.show = true; }, 2500);
                 }
             }
 
-            // Global test override
-            window.showPushPrompt = () => { this.show = true; };
+            window.showPushPrompt = () => { 
+                console.log('Manual Trigger Called - Force Showing');
+                this.show = true; 
+            };
         },
         async requestPerm() {
             this.show = false;

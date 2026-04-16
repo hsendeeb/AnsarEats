@@ -199,7 +199,6 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen flex flex-col text-gray-800 bg-white dark:bg-gray-900 overflow-x-hidden relative page-loading transition-theme pb-40 md:pb-0">
-    @include('partials.push-notification-modal')
     @php
         $hasActiveOrders = auth()->check()
             ? \App\Models\Order::where('user_id', auth()->id())
@@ -718,6 +717,7 @@
         });
     </script>
     @stack('scripts')
+    @include('partials.push-notification-modal')
 </body>
 
 </html>

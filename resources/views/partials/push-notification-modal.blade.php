@@ -2,15 +2,19 @@
     x-data="{ 
         show: false,
         init() {
-            @auth
-            // Only show if on checkout page and permission is still 'default'
-            const isCheckoutPage = window.location.pathname.includes('/checkout');
-            
-            if (isCheckoutPage && 'Notification' in window && Notification.permission === 'default') {
-                // Show after 2 seconds on the checkout page
-                setTimeout(() => { this.show = true; }, 2000);
+            // Only show if permission is still 'default'
+            if ('Notification' in window && Notification.permission === 'default') {
+                const path = window.location.pathname;
+                const isCheckoutPage = path.endsWith('/checkout') || path.includes('/checkout/');
+                
+                if (isCheckoutPage) {
+                    // Show after 2 seconds on the checkout page
+                    setTimeout(() => { this.show = true; }, 2000);
+                }
             }
-            @endauth
+
+            // Expose a global function for testing
+            window.showPushPrompt = () => { this.show = true; };
         },
         async requestPerm() {
             this.show = false;
@@ -27,7 +31,7 @@
     x-transition:leave="transition ease-in duration-300"
     x-transition:leave-start="translate-y-0 opacity-100"
     x-transition:leave-end="translate-y-full opacity-0"
-    class="fixed bottom-0 left-0 right-0 md:bottom-6 md:left-6 md:right-auto md:max-w-md z-[1000000] p-4"
+    class="fixed bottom-24 left-4 right-4 md:bottom-6 md:left-6 md:right-auto md:max-w-md z-[2000000] p-0 md:p-4"
     x-cloak
 >
     <div class="bg-gray-900 dark:bg-emerald-950 text-white rounded-3xl shadow-2xl shadow-emerald-500/10 border border-white/10 p-5 md:p-6 backdrop-blur-xl">

@@ -27,7 +27,7 @@
     x-transition:leave="transition ease-in duration-300"
     x-transition:leave-start="translate-y-0 opacity-100"
     x-transition:leave-end="translate-y-full opacity-0"
-    class="fixed bottom-0 left-0 right-0 md:bottom-6 md:left-6 md:right-auto md:max-w-md z-[9999] p-4"
+    class="fixed bottom-0 left-0 right-0 md:bottom-6 md:left-6 md:right-auto md:max-w-md z-[1000000] p-4"
     x-cloak
 >
     <div class="bg-gray-900 dark:bg-emerald-950 text-white rounded-3xl shadow-2xl shadow-emerald-500/10 border border-white/10 p-5 md:p-6 backdrop-blur-xl">

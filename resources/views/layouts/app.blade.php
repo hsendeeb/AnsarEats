@@ -680,6 +680,50 @@
             document.body.classList.remove('page-loading');
         };
 
+        window.shouldShowPageLoaderForLink = function(link, event) {
+            if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                return false;
+            }
+
+            if (link.target && link.target !== '_self') return false;
+            if (link.hasAttribute('download') || link.dataset.noPageLoader !== undefined) return false;
+
+            const href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) {
+                return false;
+            }
+
+            const url = new URL(link.href, window.location.href);
+            if (url.origin !== window.location.origin) return false;
+
+            return !(url.pathname === window.location.pathname && url.search === window.location.search && url.hash);
+        };
+
+        document.addEventListener('click', (event) => {
+            const link = event.target.closest('a[href]');
+            if (!window.shouldShowPageLoaderForLink(link, event)) {
+                return;
+            }
+
+            event.preventDefault();
+            window.showPageLoader();
+
+            requestAnimationFrame(() => {
+                window.setTimeout(() => {
+                    window.location.href = link.href;
+                }, 40);
+            });
+        }, true);
+
+        document.addEventListener('submit', (event) => {
+            const form = event.target;
+            if (!form || form.dataset.noPageLoader !== undefined || form.target && form.target !== '_self') {
+                return;
+            }
+
+            window.showPageLoader();
+        }, true);
+
         document.addEventListener('DOMContentLoaded', () => {
             if (window.gsap && window.MotionPathPlugin) {
                 gsap.registerPlugin(MotionPathPlugin);
@@ -707,4 +751,3 @@
 </body>
 
 </html>
-

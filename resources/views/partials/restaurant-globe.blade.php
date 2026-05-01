@@ -1,5 +1,9 @@
 @php
-    $globeRestaurantSource = collect($restaurants ?? $globeRestaurants ?? [])->values();
+    $globeRestaurantSource = collect($restaurants ?? $globeRestaurants ?? [])
+        ->filter(fn ($restaurant) => $restaurant->isOpenNow())
+        ->shuffle()
+        ->take(15)
+        ->values();
     $globeRestaurantsPayload = $globeRestaurantSource->map(fn ($restaurant) => [
         'id' => (int) $restaurant->id,
         'name' => $restaurant->name,

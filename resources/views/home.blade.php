@@ -454,7 +454,7 @@
 
             <div x-data="{
                 initMealSwiper() {
-                    if (typeof Swiper !== 'undefined') {
+                    if (typeof Swiper !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
                         new Swiper('.most-ordered-swiper', {
                             slidesPerView: 1,
                             spaceBetween: 16,
@@ -463,22 +463,16 @@
                             pagination: {
                                 el: '.swiper-pagination-meals',
                                 clickable: true,
-                            },
-                            breakpoints: {
-                                768: { slidesPerView: 2, spaceBetween: 20 },
-                                1024: { slidesPerView: 3, spaceBetween: 24 },
-                                1280: { slidesPerView: 4, spaceBetween: 24 },
-                                1536: { slidesPerView: 5, spaceBetween: 30 }
                             }
                         });
                     }
                 }
             }" x-init="initMealSwiper()" class="relative w-full">
                 
-                <div class="swiper most-ordered-swiper !pb-8 !px-1.5 !pt-1.5" style="overflow: hidden;">
-                    <div class="swiper-wrapper">
+                <div class="swiper most-ordered-swiper !pb-8 !px-1.5 !pt-1.5 md:!overflow-visible" style="overflow: hidden;">
+                    <div class="swiper-wrapper md:!flex md:!flex-wrap md:!gap-6 md:!transform-none md:!h-auto">
                         @foreach($trendingMeals->chunk(2) as $mealPair)
-                            <div class="swiper-slide h-auto flex flex-col gap-4">
+                            <div class="swiper-slide h-auto flex flex-col gap-4 md:!w-[calc(50%-0.75rem)] xl:!w-[calc(33.333%-1rem)] md:!mr-0">
                                 @foreach($mealPair as $meal)
                                     <div class="group h-full" id="browse-card-[homemeal]-{{ $meal->id }}">
                                         <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex gap-4 hover:shadow-2xl transition-all duration-300 relative h-full group-hover:-translate-y-1"
@@ -703,7 +697,7 @@
                 </div>
                 
                 <!-- Pagination Dots physically placed UNDER the cards -->
-                <div class="swiper-pagination-meals flex justify-center items-center gap-1.5 mt-10 w-full text-emerald-500"></div>
+                <div class="swiper-pagination-meals flex md:hidden justify-center items-center gap-1.5 mt-10 w-full text-emerald-500"></div>
             </div>
         </div>
         @endif

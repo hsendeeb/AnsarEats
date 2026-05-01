@@ -53,13 +53,38 @@
             }
         </script>
         <script type="module">
-            import * as THREE from 'three';
-            import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/controls/OrbitControls.js';
-
             const globeElement = document.getElementById('home-restaurant-globe');
             const tooltipElement = document.getElementById('home-restaurant-globe-tooltip');
 
             if (globeElement) {
+                let globeStarted = false;
+
+                const startGlobe = async () => {
+                    if (globeStarted) return;
+                    globeStarted = true;
+
+                    const [THREE, controlsModule] = await Promise.all([
+                        import('three'),
+                        import('https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/controls/OrbitControls.js'),
+                    ]);
+
+                    initRestaurantGlobe(THREE, controlsModule.OrbitControls);
+                };
+
+                if ('IntersectionObserver' in window) {
+                    const loadObserver = new IntersectionObserver((entries, observer) => {
+                        if (entries.some((entry) => entry.isIntersecting)) {
+                            observer.disconnect();
+                            startGlobe();
+                        }
+                    }, { rootMargin: '500px 0px' });
+
+                    loadObserver.observe(globeElement);
+                } else {
+                    window.addEventListener('load', startGlobe, { once: true });
+                }
+
+                function initRestaurantGlobe(THREE, OrbitControls) {
                 const restaurants = JSON.parse(globeElement.dataset.restaurants || '[]');
 
                 const scene = new THREE.Scene();
@@ -265,7 +290,44 @@
                 window.addEventListener('resize', resizeRenderer);
                 resizeRenderer();
 
-                animate();
+                let isSceneVisible = true;
+                let animationFrameId = null;
+
+                const requestNextFrame = () => {
+                    if (animationFrameId === null) {
+                        animationFrameId = requestAnimationFrame(animate);
+                    }
+                };
+
+                const stopAnimation = () => {
+                    if (animationFrameId !== null) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
+                };
+
+                if ('IntersectionObserver' in window) {
+                    const renderObserver = new IntersectionObserver((entries) => {
+                        isSceneVisible = entries.some((entry) => entry.isIntersecting);
+                        if (isSceneVisible && !document.hidden) {
+                            requestNextFrame();
+                        } else {
+                            stopAnimation();
+                        }
+                    }, { rootMargin: '120px 0px' });
+
+                    renderObserver.observe(globeElement);
+                } else {
+                    requestNextFrame();
+                }
+
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        stopAnimation();
+                    } else if (isSceneVisible) {
+                        requestNextFrame();
+                    }
+                });
 
                 // Core Functions
                 function resizeRenderer() {
@@ -341,7 +403,7 @@
                 }
 
                 async function createMarker(restaurant, index, total) {
-                    const { latitude, longitude, usedFallback } = resolveCoordinates(restaurant, index, total);
+                    const { latitude, longitude } = resolveCoordinates(restaurant, index, total);
                     const markerTexture = await createMarkerTexture(restaurant);
                     markerTexture.colorSpace = THREE.SRGBColorSpace;
 
@@ -350,8 +412,8 @@
                     const badgePos = latLngToVector(latitude, longitude, earthRadius + 0.9);
 
                     sprite.position.copy(badgePos);
-                    sprite.scale.setScalar(usedFallback ? 1.25 : 1.4);
-                    sprite.userData = { restaurant, baseScale: usedFallback ? 1.25 : 1.4 };
+                    sprite.scale.setScalar(1.4);
+                    sprite.userData = { restaurant, baseScale: 1.4 };
 
                     const stem = new THREE.Line(
                         new THREE.BufferGeometry().setFromPoints([surfPos, badgePos.clone().multiplyScalar(0.98)]),
@@ -371,18 +433,27 @@
                 }
 
                 function resolveCoordinates(restaurant, index, total) {
-                    if (Number.isFinite(restaurant.latitude) && Number.isFinite(restaurant.longitude)) {
-                        return { latitude: restaurant.latitude, longitude: restaurant.longitude, usedFallback: false };
-                    }
+                    const seed = hashRestaurantSeed(`${restaurant.id}-${restaurant.name}`);
                     const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-                    const y = 1 - ((index + 1) / (total + 1)) * 2;
+                    const offset = seed % Math.max(total, 1);
+                    const normalizedIndex = (index + offset) % Math.max(total, 1);
+                    const y = 1 - ((normalizedIndex + 1) / (total + 1)) * 2;
                     const r = Math.sqrt(1 - y * y);
-                    const theta = goldenAngle * (index + 1);
+                    const theta = goldenAngle * (normalizedIndex + 1) + (seed % 628) / 100;
+
                     return {
                         latitude: THREE.MathUtils.radToDeg(Math.asin(y)),
                         longitude: THREE.MathUtils.radToDeg(Math.atan2(Math.sin(theta) * r, Math.cos(theta) * r)),
-                        usedFallback: true
                     };
+                }
+
+                function hashRestaurantSeed(value) {
+                    let hash = 2166136261;
+                    for (let i = 0; i < value.length; i++) {
+                        hash ^= value.charCodeAt(i);
+                        hash = Math.imul(hash, 16777619);
+                    }
+                    return hash >>> 0;
                 }
 
                 function latLngToVector(lat, lng, r) {
@@ -418,7 +489,12 @@
                 }
 
                 function animate() {
-                    requestAnimationFrame(animate);
+                    animationFrameId = null;
+                    if (!isSceneVisible || document.hidden) {
+                        return;
+                    }
+                    requestNextFrame();
+
                     const t = clock.getElapsedTime();
                     clouds.rotation.y += 0.0006;
                     starField.rotation.y -= 0.0001;
@@ -433,6 +509,7 @@
                     controls.update();
                     if (hoveredMarker) showTooltip(hoveredMarker.userData.restaurant, hoveredMarker);
                     renderer.render(scene, camera);
+                }
                 }
             }
         </script>

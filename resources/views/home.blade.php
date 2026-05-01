@@ -775,21 +775,13 @@
                 </template>
             </div>
 
-            <!-- Loading Skeleton & Intersection Trigger -->
+            <!-- Loading Spinner & Intersection Trigger -->
             <div x-show="nextPage" x-intersect.full="loadMore()" class="mt-8">
-                <div x-show="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 py-4">
-                    @for ($i = 0; $i < 3; $i++)
-                    <article class="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-xl shadow-gray-200/40 overflow-hidden animate-pulse">
-                        <div class="aspect-[4/3] w-full bg-gray-200 dark:bg-gray-700"></div>
-                        <div class="p-6 space-y-4">
-                            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                            <div class="space-y-2">
-                                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
-                                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
-                            </div>
-                        </div>
-                    </article>
-                    @endfor
+                <div x-show="loading" x-cloak class="flex items-center justify-center py-8">
+                    <svg class="h-8 w-8 animate-spin text-emerald-500" viewBox="0 0 24 24" fill="none" aria-label="Loading more stores">
+                        <circle class="opacity-20" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"></circle>
+                        <path class="opacity-90" stroke="currentColor" stroke-linecap="round" stroke-width="3" d="M21 12a9 9 0 0 0-9-9"></path>
+                    </svg>
                 </div>
             </div>
 
@@ -801,7 +793,7 @@
         </div>
 
         @if(!auth()->check() || !auth()->user()->restaurant)
-        <div class="mt-28 w-full" x-data="{
+        <div class="mt-28 hidden w-full lg:block" x-data="{
             hasCounted: false,
             revealed: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
             menuReady: 0,

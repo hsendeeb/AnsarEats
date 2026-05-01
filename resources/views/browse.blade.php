@@ -57,7 +57,8 @@
         <div id="items-grid"
              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 transition-opacity duration-300">
             @forelse($items as $meal)
-                <div id="browse-card-{{ $meal->id }}" class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow group overflow-hidden h-full"
+                <div id="browse-card-{{ $meal->id }}" class="relative bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow group overflow-visible h-full"
+                     :class="{ 'z-30': variantDropdownOpen }"
                      x-data="menuItemPricing({{ $meal->price }}, @js($meal->variants ?? []), {{ $meal->is_on_sale ? 'true' : 'false' }}, {{ Js::from($meal->sale_price) }}, {{ Js::from($meal->saleDiscountPercentage()) }})">
                     
                     <!-- Item Image -->
@@ -141,7 +142,7 @@
                         <!-- Variants -->
                         <div x-show="hasVariants" x-cloak class="mt-3">
                             <p class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1" x-text="variantType ? variantType : 'Option'"></p>
-                            <div class="flex flex-wrap gap-2">
+                            <div x-show="!shouldUseVariantDropdown" x-cloak class="flex flex-wrap gap-2">
                                 <template x-for="(opt, idx) in variants" :key="idx">
                                     <button type="button" @click="selectedIndex = idx"
                                             class="px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all"
@@ -151,6 +152,46 @@
                                         <span class="ml-1" :class="hasActiveSale ? (selectedIndex === idx ? 'font-bold text-white opacity-100' : 'font-bold text-emerald-500 opacity-100') : 'opacity-80'" x-text="hasActiveSale ? formattedOptionSalePrice(opt) : formattedOptionOriginalPrice(opt)"></span>
                                     </button>
                                 </template>
+                            </div>
+                            <div x-show="shouldUseVariantDropdown" x-cloak class="relative" @click.outside="variantDropdownOpen = false">
+                                <button
+                                    type="button"
+                                    @click="variantDropdownOpen = !variantDropdownOpen"
+                                    :aria-expanded="variantDropdownOpen.toString()"
+                                    class="w-full cursor-pointer rounded-xl border border-gray-200 bg-white px-3 py-2 text-left shadow-sm transition-all hover:border-emerald-200 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                    <span class="flex items-center justify-between gap-3">
+                                        <span class="min-w-0">
+                                            <span class="block truncate text-sm font-black text-gray-800" x-text="currentLabel || 'Choose option'"></span>
+                                            <span class="mt-0.5 block text-[11px] font-bold text-gray-400" x-text="formattedPrice"></span>
+                                        </span>
+                                        <span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500 transition-transform" :class="{ 'rotate-180': variantDropdownOpen }">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                                        </span>
+                                    </span>
+                                </button>
+                                <div
+                                    x-show="variantDropdownOpen"
+                                    x-transition:enter="transition ease-out duration-150"
+                                    x-transition:enter-start="opacity-0 -translate-y-1"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-100"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 -translate-y-1"
+                                    class="absolute left-0 right-0 top-full z-40 mt-1 max-h-44 overflow-y-auto rounded-xl border border-gray-100 bg-white p-1 shadow-xl shadow-gray-900/10">
+                                    <template x-for="(opt, idx) in variants" :key="idx">
+                                        <button
+                                            type="button"
+                                            @click="selectVariant(idx)"
+                                            class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-1.5 text-left transition-colors hover:bg-emerald-50"
+                                            :class="selectedIndex === idx ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'">
+                                            <span class="min-w-0">
+                                                <span class="block truncate text-sm font-bold" x-text="opt.label"></span>
+                                                <span x-show="hasActiveSale" x-cloak class="text-[11px] font-semibold text-gray-400 line-through" x-text="formattedOptionOriginalPrice(opt)"></span>
+                                            </span>
+                                            <span class="flex-shrink-0 text-sm font-black" :class="selectedIndex === idx ? 'text-emerald-600' : 'text-gray-900'" x-text="hasActiveSale ? formattedOptionSalePrice(opt) : formattedOptionOriginalPrice(opt)"></span>
+                                        </button>
+                                    </template>
+                                </div>
                             </div>
                         </div>
 
@@ -230,8 +271,12 @@
             salePrice: salePrice !== null && salePrice !== undefined && salePrice !== '' ? parseFloat(salePrice) : null,
             discountPercentage: discountPercentage !== null && discountPercentage !== undefined && discountPercentage !== '' ? parseFloat(discountPercentage) : null,
             selectedIndex: 0,
+            variantDropdownOpen: false,
             get hasVariants() {
                 return this.variants && this.variants.length > 0;
+            },
+            get shouldUseVariantDropdown() {
+                return this.variants && this.variants.length > 2;
             },
             formatCurrency(value) {
                 const numericValue = parseFloat(value);
@@ -305,6 +350,17 @@
             },
             formattedOptionSalePrice(option) {
                 return this.formatCurrency(this.optionSalePrice(option));
+            },
+            variantOptionText(option) {
+                const label = option?.label || 'Option';
+                const price = this.hasActiveSale
+                    ? this.formattedOptionSalePrice(option)
+                    : this.formattedOptionOriginalPrice(option);
+                return `${label} - ${price}`;
+            },
+            selectVariant(index) {
+                this.selectedIndex = index;
+                this.variantDropdownOpen = false;
             }
         };
     };
@@ -671,7 +727,7 @@
         var variantsJson = JSON.stringify(meal.variants || []);
         var xDataStr = "menuItemPricing(" + meal.raw_price + ", " + variantsJson.replace(/\"/g, '&quot;') + ", " + (meal.is_on_sale ? 'true' : 'false') + ", " + (meal.raw_sale_price !== null ? meal.raw_sale_price : 'null') + ", " + (meal.discount_percentage !== null ? meal.discount_percentage : 'null') + ")";
 
-        return '<div id="browse-card-' + meal.id + '" class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow group overflow-hidden h-full" x-data="' + xDataStr + '">' +
+        return '<div id="browse-card-' + meal.id + '" class="relative bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-xl transition-shadow group overflow-visible h-full" :class="{ \'z-30\': variantDropdownOpen }" x-data="' + xDataStr + '">' +
             '<!-- Item Image -->' +
             '<div id="browse-img-' + meal.id + '" class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative">' +
                 '<a href="' + meal.url + '#meal-' + meal.id + '" class="block w-full h-full">' +
@@ -708,7 +764,7 @@
                 '<!-- Variants -->' +
                 '<div x-show="hasVariants" x-cloak class="mt-3">' +
                     '<p class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1" x-text="variantType ? variantType : \'Option\'"></p>' +
-                    '<div class="flex flex-wrap gap-2">' +
+                    '<div x-show="!shouldUseVariantDropdown" x-cloak class="flex flex-wrap gap-2">' +
                         '<template x-for="(opt, idx) in variants" :key="idx">' +
                             '<button type="button" @click="selectedIndex = idx" class="px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all" :class="selectedIndex === idx ? \'bg-emerald-500 text-white border-emerald-500 shadow-sm\' : \'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100\'">' +
                                 '<span x-text="opt.label"></span>' +
@@ -716,6 +772,30 @@
                                 '<span class="ml-1" :class="hasActiveSale ? (selectedIndex === idx ? \'font-bold text-white opacity-100\' : \'font-bold text-emerald-500 opacity-100\') : \'opacity-80\'" x-text="hasActiveSale ? formattedOptionSalePrice(opt) : formattedOptionOriginalPrice(opt)"></span>' +
                             '</button>' +
                         '</template>' +
+                    '</div>' +
+                    '<div x-show="shouldUseVariantDropdown" x-cloak class="relative" @click.outside="variantDropdownOpen = false">' +
+                        '<button type="button" @click="variantDropdownOpen = !variantDropdownOpen" :aria-expanded="variantDropdownOpen.toString()" class="w-full cursor-pointer rounded-xl border border-gray-200 bg-white px-3 py-2 text-left shadow-sm transition-all hover:border-emerald-200 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">' +
+                            '<span class="flex items-center justify-between gap-3">' +
+                                '<span class="min-w-0">' +
+                                    '<span class="block truncate text-sm font-black text-gray-800" x-text="currentLabel || \'Choose option\'"></span>' +
+                                    '<span class="mt-0.5 block text-[11px] font-bold text-gray-400" x-text="formattedPrice"></span>' +
+                                '</span>' +
+                                '<span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500 transition-transform" :class="{ \'rotate-180\': variantDropdownOpen }">' +
+                                    '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>' +
+                                '</span>' +
+                            '</span>' +
+                        '</button>' +
+                        '<div x-show="variantDropdownOpen" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="absolute left-0 right-0 top-full z-40 mt-1 max-h-44 overflow-y-auto rounded-xl border border-gray-100 bg-white p-1 shadow-xl shadow-gray-900/10">' +
+                            '<template x-for="(opt, idx) in variants" :key="idx">' +
+                                '<button type="button" @click="selectVariant(idx)" class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-1.5 text-left transition-colors hover:bg-emerald-50" :class="selectedIndex === idx ? \'bg-emerald-50 text-emerald-700\' : \'text-gray-700\'">' +
+                                    '<span class="min-w-0">' +
+                                        '<span class="block truncate text-sm font-bold" x-text="opt.label"></span>' +
+                                        '<span x-show="hasActiveSale" x-cloak class="text-[11px] font-semibold text-gray-400 line-through" x-text="formattedOptionOriginalPrice(opt)"></span>' +
+                                    '</span>' +
+                                    '<span class="flex-shrink-0 text-sm font-black" :class="selectedIndex === idx ? \'text-emerald-600\' : \'text-gray-900\'" x-text="hasActiveSale ? formattedOptionSalePrice(opt) : formattedOptionOriginalPrice(opt)"></span>' +
+                                '</button>' +
+                            '</template>' +
+                        '</div>' +
                     '</div>' +
                 '</div>' +
 

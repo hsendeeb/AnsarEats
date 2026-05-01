@@ -87,7 +87,7 @@
                 <div class="h-px flex-1 bg-gray-200 dark:bg-gray-800"></div>
             </div>
 
-            <form method="POST" action="{{ route('register') }}" class="space-y-3.5">
+            <form method="POST" action="{{ route('register') }}" class="space-y-3.5" x-data="{ submitting: false }" @submit="submitting = true">
                 @csrf
 
                 <div x-show="step === 1" class="space-y-3.5" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
@@ -146,8 +146,12 @@
                         <button type="button" @click="step = 1" class="h-12 rounded-2xl border border-gray-300 px-4 text-sm font-bold text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
                             Back
                         </button>
-                        <button type="submit" class="h-12 flex-1 rounded-2xl bg-emerald-500 text-base font-black text-white transition hover:bg-emerald-400">
-                            Create Account
+                        <button type="submit" :disabled="submitting" class="relative flex h-12 flex-1 items-center justify-center rounded-2xl bg-emerald-500 text-base font-black text-white transition hover:bg-emerald-400 disabled:cursor-wait disabled:opacity-80">
+                            <span :class="{ 'opacity-0': submitting }">Create Account</span>
+                            <svg x-show="submitting" x-cloak class="absolute h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <circle class="opacity-25" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"></circle>
+                                <path class="opacity-90" stroke="currentColor" stroke-linecap="round" stroke-width="3" d="M21 12a9 9 0 0 0-9-9"></path>
+                            </svg>
                         </button>
                     </div>
                 </div>

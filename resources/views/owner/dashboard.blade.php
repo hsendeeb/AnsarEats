@@ -691,6 +691,7 @@
             </div>
             
             <form method="POST" action="{{ route('owner.restaurant.store') }}" enctype="multipart/form-data" class="p-6 space-y-4" x-data="{
+                submitting: false,
                 logoPreview: '{{ $restaurantDraft && $restaurantDraft->logo ? Storage::url($restaurantDraft->logo) : '' }}',
                 coverPreview: '{{ $restaurantDraft && $restaurantDraft->cover_image ? Storage::url($restaurantDraft->cover_image) : '' }}',
                 deliveryFeeEnabled: {{ old('free_delivery', $restaurantDraft ? (((float) (optional($restaurantDraft)->delivery_fee ?? 0) <= 0) ? 1 : 0) : 0) ? 'false' : 'true' }},
@@ -710,7 +711,7 @@
                         reader.readAsDataURL(file);
                     }
                 }
-            }">
+            }" @submit="submitting = true">
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
                     <!-- Logo Upload -->
@@ -889,8 +890,9 @@
                     <span class="text-sm font-bold text-gray-700 dark:text-gray-300">Open for business</span>
                 </div>
                 
-                <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] mt-4">
-                    {{ $restaurant ? 'Update Restaurant' : ($latestRequest ? 'Update Request' : 'Submit for Approval') }}
+                <button type="submit" :disabled="submitting" class="relative flex w-full items-center justify-center py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] mt-4 disabled:cursor-wait disabled:opacity-80 disabled:hover:-translate-y-0">
+                    <span :class="{ 'opacity-0': submitting }">{{ $restaurant ? 'Update Restaurant' : ($latestRequest ? 'Update Request' : 'Submit for Approval') }}</span>
+                    <x-heroicon-o-arrow-path x-show="submitting" x-cloak class="absolute h-5 w-5 animate-spin" />
                 </button>
             </form>
         </div>
@@ -910,14 +912,15 @@
                 </div>
             </div>
             
-            <form method="POST" action="{{ route('owner.category.store') }}" class="p-6 space-y-4">
+            <form method="POST" action="{{ route('owner.category.store') }}" class="p-6 space-y-4" x-data="{ submitting: false }" @submit="submitting = true">
                 @csrf
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Category Name</label>
                     <input type="text" name="name" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="e.g. Main Dishes, Drinks, Desserts">
                 </div>
-                <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98]">
-                    Add Category
+                <button type="submit" :disabled="submitting" class="relative flex w-full items-center justify-center py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] disabled:cursor-wait disabled:opacity-80 disabled:hover:-translate-y-0">
+                    <span :class="{ 'opacity-0': submitting }">Add Category</span>
+                    <x-heroicon-o-arrow-path x-show="submitting" x-cloak class="absolute h-5 w-5 animate-spin" />
                 </button>
             </form>
         </div>
@@ -938,6 +941,7 @@
             </div>
             
             <form method="POST" action="{{ route('owner.menu-item.store') }}" enctype="multipart/form-data" class="p-6 space-y-4" x-data="{
+                submitting: false,
                 imagePreview: null,
                 basePrice: '',
                 hasVariants: false,
@@ -1001,7 +1005,7 @@
                         this.variants[0] = { name: '', price: '' };
                     }
                 }
-            }">
+            }" @submit="submitting = true">
                 @csrf
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Category</label>
@@ -1177,8 +1181,9 @@
                     <input type="file" name="image" accept="image/*" x-ref="imageInput" @change="handleFileSelect($event)" class="hidden">
                 </div>
 
-                <button type="submit" class="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-white font-bold rounded-2xl shadow-lg shadow-amber-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98]">
-                    Add Menu Item
+                <button type="submit" :disabled="submitting" class="relative flex w-full items-center justify-center py-3.5 bg-amber-500 hover:bg-amber-400 text-white font-bold rounded-2xl shadow-lg shadow-amber-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] disabled:cursor-wait disabled:opacity-80 disabled:hover:-translate-y-0">
+                    <span :class="{ 'opacity-0': submitting }">Add Menu Item</span>
+                    <x-heroicon-o-arrow-path x-show="submitting" x-cloak class="absolute h-5 w-5 animate-spin" />
                 </button>
             </form>
         </div>
@@ -1198,15 +1203,16 @@
                 </div>
             </div>
             
-            <form method="POST" :action="`{{ route('owner.category.update', 'ID') }}`.replace('ID', editingCategory.id)" class="p-6 space-y-4">
+            <form method="POST" :action="`{{ route('owner.category.update', 'ID') }}`.replace('ID', editingCategory.id)" class="p-6 space-y-4" x-data="{ submitting: false }" @submit="submitting = true">
                 @csrf
                 @method('PUT')
                 <div>
                     <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Category Name</label>
                     <input type="text" name="name" x-model="editingCategory.name" required class="block w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border-2 border-gray-200 dark:border-gray-700 rounded-2xl font-medium placeholder-gray-400 dark:text-white focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="e.g. Main Dishes, Drinks, Desserts">
                 </div>
-                <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98]">
-                    Save Changes
+                <button type="submit" :disabled="submitting" class="relative flex w-full items-center justify-center py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] disabled:cursor-wait disabled:opacity-80 disabled:hover:-translate-y-0">
+                    <span :class="{ 'opacity-0': submitting }">Save Changes</span>
+                    <x-heroicon-o-arrow-path x-show="submitting" x-cloak class="absolute h-5 w-5 animate-spin" />
                 </button>
             </form>
         </div>
@@ -1227,6 +1233,7 @@
             </div>
             
             <form method="POST" :action="`{{ route('owner.menu-item.update', 'ID') }}`.replace('ID', editingMenuItem.id)" enctype="multipart/form-data" class="p-6 space-y-4" x-data="{
+                submitting: false,
                 newImagePreview: null,
                 editHasVariants: false,
                 editIsOnSale: false,
@@ -1300,7 +1307,7 @@
                         this.editVariants = [{ name: '', price: '' }];
                     }
                 }
-            }">
+            }" @submit="submitting = true">
                 @csrf
                 @method('PUT')
                 <div>
@@ -1463,8 +1470,9 @@
                     <input type="file" name="image" accept="image/*" x-ref="editImageInput" @change="handleFileSelect($event)" class="hidden">
                 </div>
 
-                <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98]">
-                    Save Changes
+                <button type="submit" :disabled="submitting" class="relative flex w-full items-center justify-center py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] disabled:cursor-wait disabled:opacity-80 disabled:hover:-translate-y-0">
+                    <span :class="{ 'opacity-0': submitting }">Save Changes</span>
+                    <x-heroicon-o-arrow-path x-show="submitting" x-cloak class="absolute h-5 w-5 animate-spin" />
                 </button>
             </form>
         </div>

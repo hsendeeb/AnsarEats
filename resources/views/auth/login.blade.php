@@ -72,7 +72,7 @@
                 <div class="h-px flex-1 bg-gray-200 dark:bg-gray-800"></div>
             </div>
 
-            <form method="POST" action="{{ route('login') }}" class="space-y-6">
+            <form method="POST" action="{{ route('login') }}" class="space-y-6" x-data="{ submitting: false }" @submit="submitting = true">
                 @csrf
 
                 <div class="relative">
@@ -103,8 +103,12 @@
                     </a>
                 </div>
 
-                <button type="submit" class="h-12 w-full rounded-2xl bg-emerald-500 text-base font-black text-white transition hover:bg-emerald-400">
-                    Sign In
+                <button type="submit" :disabled="submitting" class="relative flex h-12 w-full items-center justify-center rounded-2xl bg-emerald-500 text-base font-black text-white transition hover:bg-emerald-400 disabled:cursor-wait disabled:opacity-80">
+                    <span :class="{ 'opacity-0': submitting }">Sign In</span>
+                    <svg x-show="submitting" x-cloak class="absolute h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle class="opacity-25" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"></circle>
+                        <path class="opacity-90" stroke="currentColor" stroke-linecap="round" stroke-width="3" d="M21 12a9 9 0 0 0-9-9"></path>
+                    </svg>
                 </button>
             </form>
 

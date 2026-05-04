@@ -60,6 +60,13 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
+    public function setPhoneAttribute($value): void
+    {
+        $this->attributes['phone'] = $value === null
+            ? null
+            : preg_replace('/\s+/', '', (string) $value);
+    }
+
     public function restaurant()
     {
         return $this->hasOne(Restaurant::class);

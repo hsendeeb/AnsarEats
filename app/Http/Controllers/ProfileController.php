@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Order;
+use App\Models\User;
 use App\Support\PerformanceCache;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
@@ -46,7 +47,7 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         $request->merge([
-            'phone' => trim((string) $request->input('phone')),
+            'phone' => preg_replace('/\s+/', '', (string) $request->input('phone')),
         ]);
 
         $request->validate([
@@ -57,6 +58,17 @@ class ProfileController extends Controller
                 'string',
                 'max:50',
                 Rule::unique('users', 'phone')->ignore($user->id),
+                function (string $attribute, mixed $value, \Closure $fail) use ($user) {
+                    $exists = User::query()
+                        ->where('id', '!=', $user->id)
+                        ->whereNotNull('phone')
+                        ->whereRaw("REPLACE(phone, ' ', '') = ?", [$value])
+                        ->exists();
+
+                    if ($exists) {
+                        $fail('This phone number is already used by another customer.');
+                    }
+                },
             ],
             'delivery_address' => 'nullable|string|max:255',
             'delivery_latitude' => 'nullable|numeric',

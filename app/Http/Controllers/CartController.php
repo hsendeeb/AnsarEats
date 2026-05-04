@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\RestaurantCustomerBlock;
 use App\Models\Restaurant;
 use App\Models\Promotion;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -399,7 +400,7 @@ class CartController extends Controller
     public function placeOrder(Request $request, PlaceOrderFromCart $placeOrderFromCart)
     {
         $request->merge([
-            'phone' => trim((string) $request->input('phone')),
+            'phone' => preg_replace('/\s+/', '', (string) $request->input('phone')),
         ]);
 
         $request->validate([
@@ -409,6 +410,17 @@ class CartController extends Controller
                 'string',
                 'max:50',
                 Rule::unique('users', 'phone')->ignore(Auth::id()),
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    $exists = User::query()
+                        ->where('id', '!=', Auth::id())
+                        ->whereNotNull('phone')
+                        ->whereRaw("REPLACE(phone, ' ', '') = ?", [$value])
+                        ->exists();
+
+                    if ($exists) {
+                        $fail('This phone number is already used by another customer.');
+                    }
+                },
             ],
             'delivery_latitude' => 'nullable|numeric',
             'delivery_longitude' => 'nullable|numeric',

@@ -408,7 +408,33 @@
                         <div x-show="open" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-4">
                             <div class="p-6 pt-0">
                                 @forelse($category->menuItems as $item)
-                                    <div class="flex items-center gap-4 py-4 {{ !$loop->last ? 'border-b border-gray-100' : '' }} group">
+                                    <div class="flex items-center gap-4 py-4 {{ !$loop->last ? 'border-b border-gray-100' : '' }} group"
+                                         x-data="{
+                                            isAvailable: {{ $item->is_available ? 'true' : 'false' }},
+                                            availabilityLoading: false,
+                                            async toggleAvailability() {
+                                                if (this.availabilityLoading) return;
+                                                this.availabilityLoading = true;
+                                                try {
+                                                    const res = await fetch('{{ route('owner.menu-item.toggle', $item) }}', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'X-Requested-With': 'XMLHttpRequest',
+                                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                                        }
+                                                    });
+                                                    const data = await res.json();
+                                                    if (data.success) {
+                                                        this.isAvailable = data.is_available;
+                                                        window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: data.message } }));
+                                                    }
+                                                } catch (e) {
+                                                    console.error('Availability toggle failed', e);
+                                                } finally {
+                                                    this.availabilityLoading = false;
+                                                }
+                                            }
+                                         }">
                                         <div class="w-16 h-16 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden">
                                             @if($item->image)
                                                 <img src="{{ Storage::url($item->image) }}" class="w-full h-full object-cover">
@@ -457,16 +483,10 @@
                                                 <x-heroicon-o-pencil-square class="w-5 h-5" />
                                             </button>
 
-                                            <form method="POST" action="{{ route('owner.menu-item.toggle', $item) }}">
-                                                @csrf
-                                                <button type="submit" title="{{ $item->is_available ? 'Mark unavailable' : 'Mark available' }}" class="w-10 h-10 rounded-xl flex items-center justify-center transition-colors {{ $item->is_available ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-500/30' : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700' }}">
-                                                    @if($item->is_available)
-                                                        <x-heroicon-o-check-circle class="w-5 h-5" />
-                                                    @else
-                                                        <x-heroicon-o-no-symbol class="w-5 h-5" />
-                                                    @endif
-                                                </button>
-                                            </form>
+                                            <button type="button" @click="toggleAvailability()" :disabled="availabilityLoading" :title="isAvailable ? 'Mark unavailable' : 'Mark available'" class="w-10 h-10 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50" :class="isAvailable ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-500/30' : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'">
+                                                <x-heroicon-o-check-circle x-show="isAvailable" x-cloak class="w-5 h-5" />
+                                                <x-heroicon-o-no-symbol x-show="!isAvailable" x-cloak class="w-5 h-5" />
+                                            </button>
                                             
                                             <div x-data="{ 
                                                 isFeatured: {{ $item->is_featured ? 'true' : 'false' }},
@@ -533,18 +553,11 @@
                                                     Edit Item
                                                 </button>
 
-                                                <form method="POST" action="{{ route('owner.menu-item.toggle', $item) }}" class="w-full">
-                                                    @csrf
-                                                    <button type="submit" @click="open = false" class="w-full px-4 py-3 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors flex items-center gap-2">
-                                                        @if($item->is_available)
-                                                            <x-heroicon-o-check-circle class="w-4 h-4" />
-                                                            Mark Unavailable
-                                                        @else
-                                                            <x-heroicon-o-no-symbol class="w-4 h-4" />
-                                                            Mark Available
-                                                        @endif
-                                                    </button>
-                                                </form>
+                                                <button type="button" @click="toggleAvailability(); open = false" :disabled="availabilityLoading" class="w-full px-4 py-3 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors flex items-center gap-2 disabled:opacity-50">
+                                                    <x-heroicon-o-check-circle x-show="isAvailable" x-cloak class="w-4 h-4" />
+                                                    <x-heroicon-o-no-symbol x-show="!isAvailable" x-cloak class="w-4 h-4" />
+                                                    <span x-text="isAvailable ? 'Mark Unavailable' : 'Mark Available'"></span>
+                                                </button>
 
                                                 <div class="px-4 py-3 text-left text-sm font-bold text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors flex items-center gap-2 cursor-pointer"
                                                      x-data="{ 

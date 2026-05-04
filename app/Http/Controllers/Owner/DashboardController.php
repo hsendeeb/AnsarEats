@@ -934,6 +934,15 @@ class DashboardController extends Controller
         if ($item->menuCategory->restaurant->user_id != Auth::id()) abort(403);
 
         $item->update(['is_available' => !$item->is_available]);
+
+        if (request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'is_available' => $item->is_available,
+                'message' => 'Menu item is now ' . ($item->is_available ? 'Available' : 'Out of Stock') . '!'
+            ]);
+        }
+
         return back()->with('success', 'Menu item is now ' . ($item->is_available ? 'Available' : 'Out of Stock') . '!');
     }
 

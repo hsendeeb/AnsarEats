@@ -64,12 +64,15 @@ class Order extends Model
         try {
             broadcast(new OrderUpdated($order, $type, $previousStatus));
         } catch (Throwable $e) {
-            // Realtime broadcasting is best-effort; push notifications still run below.
+            \Illuminate\Support\Facades\Log::error('Broadcast failed: ' . $e->getMessage());
         }
 
         try {
+            $pushService = app(\App\Services\PushNotificationService::class);
+
             if ($type === 'status_updated' && $order->user) {
-                app(\App\Services\PushNotificationService::class)->sendToUser($order->user, [
+                \Illuminate\Support\Facades\Log::info('Sending push to customer #' . $order->user->id . ' for order #' . $order->id);
+                $pushService->sendToUser($order->user, [
                     'title' => 'Order #' . $order->id . ' Update',
                     'body' => 'Your order status changed to ' . $order->statusLabel(),
                     'url' => route('profile.orders', [], false),
@@ -78,7 +81,8 @@ class Order extends Model
             }
 
             if ($type === 'created' && $order->restaurant?->user) {
-                app(\App\Services\PushNotificationService::class)->sendToUser($order->restaurant->user, [
+                \Illuminate\Support\Facades\Log::info('Sending push to owner #' . $order->restaurant->user->id . ' for new order #' . $order->id);
+                $pushService->sendToUser($order->restaurant->user, [
                     'title' => 'New Order #' . $order->id,
                     'body' => ($order->user?->name ?? 'A customer') . ' placed a new order.',
                     'url' => route('owner.orders', ['status' => 'pending'], false),
@@ -87,7 +91,9 @@ class Order extends Model
                 ]);
             }
         } catch (Throwable $e) {
-            // Push notification delivery is best-effort.
+            \Illuminate\Support\Facades\Log::error('Push notification failed: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
     }
 }

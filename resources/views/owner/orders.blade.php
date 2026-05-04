@@ -91,6 +91,7 @@
                         <form method="GET"
                               action="{{ route('owner.orders') }}"
                               @submit.prevent="applySearch(searchTerm)"
+                              data-no-page-loader
                               class="w-full lg:w-[30rem]">
                             @if(request('status'))
                                 <input type="hidden" name="status" value="{{ request('status') }}">
@@ -256,22 +257,22 @@
                                  x-cloak
                                  class="absolute left-0 right-0 mt-2 bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 py-2 z-50 overflow-hidden">
                                 <p class="px-4 pt-2 pb-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Order Status</p>
-                                <a href="{{ route('owner.orders', ['status' => 'pending']) }}" @click.prevent="applyFilter($el.href); open = false"
+                                <a href="{{ route('owner.orders', ['status' => 'pending']) }}" @click.prevent="applyFilter($el.href); open = false" data-no-page-loader
                                    class="order-filter-link flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ request('status') === 'pending' ? 'bg-amber-50 text-amber-600' : 'text-gray-600 hover:bg-gray-50' }}">
                                     <span>Pending</span>
                                     <span class="ml-auto inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'pending' ? 'bg-amber-100 text-amber-600' : 'bg-amber-50 text-amber-600' }}">{{ $statusCounts['pending'] ?? 0 }}</span>
                                 </a>
-                                <a href="{{ route('owner.orders', ['status' => 'accepted']) }}" @click.prevent="applyFilter($el.href); open = false"
+                                <a href="{{ route('owner.orders', ['status' => 'accepted']) }}" @click.prevent="applyFilter($el.href); open = false" data-no-page-loader
                                    class="order-filter-link flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ request('status') === 'accepted' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-600 hover:bg-gray-50' }}">
                                     <span>Accepted</span>
                                     <span class="ml-auto inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'accepted' ? 'bg-emerald-100 text-emerald-600' : 'bg-emerald-50 text-emerald-600' }}">{{ $statusCounts['accepted'] ?? 0 }}</span>
                                 </a>
-                                <a href="{{ route('owner.orders', ['status' => 'preparing']) }}" @click.prevent="applyFilter($el.href); open = false"
+                                <a href="{{ route('owner.orders', ['status' => 'preparing']) }}" @click.prevent="applyFilter($el.href); open = false" data-no-page-loader
                                    class="order-filter-link flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ request('status') === 'preparing' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50' }}">
                                     <span>Preparing</span>
                                     <span class="ml-auto inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'preparing' ? 'bg-indigo-100 text-indigo-600' : 'bg-indigo-50 text-indigo-600' }}">{{ $statusCounts['preparing'] ?? 0 }}</span>
                                 </a>
-                                <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" @click.prevent="applyFilter($el.href); open = false"
+                                <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" @click.prevent="applyFilter($el.href); open = false" data-no-page-loader
                                    class="order-filter-link flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ request('status') === 'delivered' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }}">
                                     <span>Delivered</span>
                                     <span class="ml-auto inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'delivered' ? 'bg-blue-100 text-blue-600' : 'bg-blue-50 text-blue-600' }}">{{ $statusCounts['delivered'] ?? 0 }}</span>
@@ -281,19 +282,19 @@
 
                         {{-- Desktop status pills --}}
                         <div class="hidden md:flex md:flex-wrap md:items-center md:gap-2">
-                            <a href="{{ route('owner.orders', ['status' => 'pending']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                            <a href="{{ route('owner.orders', ['status' => 'pending']) }}" @click.prevent="applyFilter($el.href)" data-no-page-loader class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
                                 <span>Pending</span>
                                 <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-50 text-amber-600' }}">{{ $statusCounts['pending'] ?? 0 }}</span>
                             </a>
-                            <a href="{{ route('owner.orders', ['status' => 'accepted']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'accepted' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                            <a href="{{ route('owner.orders', ['status' => 'accepted']) }}" @click.prevent="applyFilter($el.href)" data-no-page-loader class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'accepted' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
                                 <span>Accepted</span>
                                 <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'accepted' ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-600' }}">{{ $statusCounts['accepted'] ?? 0 }}</span>
                             </a>
-                            <a href="{{ route('owner.orders', ['status' => 'preparing']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'preparing' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                            <a href="{{ route('owner.orders', ['status' => 'preparing']) }}" @click.prevent="applyFilter($el.href)" data-no-page-loader class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'preparing' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
                                 <span>Preparing</span>
                                 <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'preparing' ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-600' }}">{{ $statusCounts['preparing'] ?? 0 }}</span>
                             </a>
-                            <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'delivered' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
+                            <a href="{{ route('owner.orders', ['status' => 'delivered']) }}" @click.prevent="applyFilter($el.href)" data-no-page-loader class="order-filter-link inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all {{ request('status') === 'delivered' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100' }}">
                                 <span>Delivered</span>
                                 <span class="inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black {{ request('status') === 'delivered' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600' }}">{{ $statusCounts['delivered'] ?? 0 }}</span>
                             </a>
@@ -329,7 +330,7 @@
                                  class="absolute left-0 md:left-auto md:right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 py-2 z-50 overflow-hidden">
 
                                 <p class="px-4 pt-2 pb-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date Range</p>
-                                <a href="{{ route('owner.orders', ['filter' => 'day']) }}" @click.prevent="applyFilter($el.href); open = false"
+                                <a href="{{ route('owner.orders', ['filter' => 'day']) }}" @click.prevent="applyFilter($el.href); open = false" data-no-page-loader
                                    class="order-filter-link flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ request('filter') === 'day' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-600 hover:bg-gray-50' }}">
                                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     Today
@@ -337,7 +338,7 @@
                                         <svg class="w-4 h-4 ml-auto text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
                                     @endif
                                 </a>
-                                <a href="{{ route('owner.orders', ['filter' => 'week']) }}" @click.prevent="applyFilter($el.href); open = false"
+                                <a href="{{ route('owner.orders', ['filter' => 'week']) }}" @click.prevent="applyFilter($el.href); open = false" data-no-page-loader
                                    class="order-filter-link flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ request('filter') === 'week' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-600 hover:bg-gray-50' }}">
                                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                     This Week
@@ -349,7 +350,7 @@
                                 <div class="my-1.5 mx-3 border-t border-gray-100"></div>
 
                                 <p class="px-4 pt-1 pb-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Sort By</p>
-                                <a href="{{ route('owner.orders', ['sort' => 'total']) }}" @click.prevent="applyFilter($el.href); open = false"
+                                <a href="{{ route('owner.orders', ['sort' => 'total']) }}" @click.prevent="applyFilter($el.href); open = false" data-no-page-loader
                                    class="order-filter-link flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ request('sort') === 'total' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-600 hover:bg-gray-50' }}">
                                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path></svg>
                                     Highest Amount
@@ -362,7 +363,7 @@
 
                         {{-- Clear Filters (only visible when any filter is active) --}}
                         @if(request('filter') || request('sort') || request('status') || request('q'))
-                            <a href="{{ route('owner.orders') }}" @click.prevent="applyFilter($el.href, true, { preserveSearch: false })" class="order-filter-link px-5 py-2.5 rounded-2xl text-sm font-bold transition-all bg-white text-gray-500 hover:bg-red-50 hover:text-red-500 border border-gray-100 flex items-center gap-1.5">
+                            <a href="{{ route('owner.orders') }}" @click.prevent="applyFilter($el.href, true, { preserveSearch: false })" data-no-page-loader class="order-filter-link px-5 py-2.5 rounded-2xl text-sm font-bold transition-all bg-white text-gray-500 hover:bg-red-50 hover:text-red-500 border border-gray-100 flex items-center gap-1.5">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 Clear
                             </a>
@@ -653,7 +654,7 @@
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
                                     </span>
                                 @else
-                                    <a href="{{ $orders->previousPageUrl() }}" @click.prevent="applyFilter($el.href)" class="order-filter-link w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-100 text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all shadow-sm">
+                                    <a href="{{ $orders->previousPageUrl() }}" @click.prevent="applyFilter($el.href)" data-no-page-loader class="order-filter-link w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-100 text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all shadow-sm">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
                                     </a>
                                 @endif
@@ -683,13 +684,13 @@
                                     @elseif($page == $currentPage)
                                         <span class="w-9 h-9 flex items-center justify-center rounded-xl bg-emerald-500 text-white text-sm font-black shadow-lg shadow-emerald-500/30">{{ $page }}</span>
                                     @else
-                                        <a href="{{ $orders->url($page) }}" @click.prevent="applyFilter($el.href)" class="order-filter-link w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-100 text-gray-500 hover:bg-gray-50 hover:text-gray-800 text-sm font-bold transition-all shadow-sm">{{ $page }}</a>
+                                        <a href="{{ $orders->url($page) }}" @click.prevent="applyFilter($el.href)" data-no-page-loader class="order-filter-link w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-100 text-gray-500 hover:bg-gray-50 hover:text-gray-800 text-sm font-bold transition-all shadow-sm">{{ $page }}</a>
                                     @endif
                                 @endforeach
 
                                 {{-- Next --}}
                                 @if($orders->hasMorePages())
-                                    <a href="{{ $orders->nextPageUrl() }}" @click.prevent="applyFilter($el.href)" class="order-filter-link w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-100 text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all shadow-sm">
+                                    <a href="{{ $orders->nextPageUrl() }}" @click.prevent="applyFilter($el.href)" data-no-page-loader class="order-filter-link w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-100 text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all shadow-sm">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                                     </a>
                                 @else

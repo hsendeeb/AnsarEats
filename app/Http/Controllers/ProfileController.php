@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Order;
 use App\Support\PerformanceCache;
 use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
@@ -44,14 +45,25 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
+        $request->merge([
+            'phone' => trim((string) $request->input('phone')),
+        ]);
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string|max:50',
+            'phone' => [
+                'nullable',
+                'string',
+                'max:50',
+                Rule::unique('users', 'phone')->ignore($user->id),
+            ],
             'delivery_address' => 'nullable|string|max:255',
             'delivery_latitude' => 'nullable|numeric',
             'delivery_longitude' => 'nullable|numeric',
             'password' => 'nullable|string|min:8|confirmed',
+        ], [
+            'phone.unique' => 'This phone number is already used by another customer.',
         ]);
 
         $user->name = $request->name;

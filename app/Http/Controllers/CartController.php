@@ -10,6 +10,7 @@ use App\Models\Restaurant;
 use App\Models\Promotion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class CartController extends Controller
 {
@@ -397,12 +398,23 @@ class CartController extends Controller
      */
     public function placeOrder(Request $request, PlaceOrderFromCart $placeOrderFromCart)
     {
+        $request->merge([
+            'phone' => trim((string) $request->input('phone')),
+        ]);
+
         $request->validate([
             'delivery_address' => 'required|string|max:255',
-            'phone' => 'required|string|max:50',
+            'phone' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('users', 'phone')->ignore(Auth::id()),
+            ],
             'delivery_latitude' => 'nullable|numeric',
             'delivery_longitude' => 'nullable|numeric',
             'notes' => 'nullable|string|max:500',
+        ], [
+            'phone.unique' => 'This phone number is already used by another customer.',
         ]);
 
         $cart = session('cart', ['restaurant_id' => null, 'restaurant_name' => null, 'items' => []]);

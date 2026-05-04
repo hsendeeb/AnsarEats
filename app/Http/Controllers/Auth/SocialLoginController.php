@@ -46,8 +46,9 @@ class SocialLoginController extends Controller
                 ]);
         }
 
-        Auth::login($user, true);
         $request->session()->regenerate();
+        Auth::login($user, true);
+        $request->session()->save();
 
         return redirect()->intended($this->redirectPathFor($user));
     }

@@ -1,6 +1,5 @@
-const CACHE_NAME = 'ansareats-shell-v2';
+const CACHE_NAME = 'ansareats-shell-v3';
 const APP_SHELL = [
-  '/',
   '/manifest.webmanifest',
   '/images/brand/ansareats-app-icon.svg',
   '/images/brand/ansareats-app-icon-maskable.svg',
@@ -33,7 +32,7 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).catch(() => caches.match('/'))
+      fetch(request, { cache: 'no-store' }).catch(() => Response.error())
     );
     return;
   }

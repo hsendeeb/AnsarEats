@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Mail\WelcomeUserMail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Socialite\Contracts\User as SocialiteUserContract;
 use Laravel\Socialite\Facades\Socialite;
@@ -25,9 +26,9 @@ class SocialLoginTest extends TestCase
             avatar: 'https://example.com/google-avatar.jpg',
         ));
 
-        $response = $this->get(route('social.callback', 'google'));
+        $response = $this->get('/auth/google/callback');
 
-        $response->assertRedirect('owner/dashboard');
+        $response->assertRedirect('/');
         $this->assertAuthenticated();
         $this->assertDatabaseHas('users', [
             'email' => 'google@example.com',
@@ -60,9 +61,9 @@ class SocialLoginTest extends TestCase
             avatar: 'https://example.com/facebook-avatar.jpg',
         ));
 
-        $response = $this->get(route('social.callback', 'facebook'));
+        $response = $this->get('/auth/facebook/callback');
 
-        $response->assertRedirect('owner/dashboard');
+        $response->assertRedirect('/');
         $this->assertAuthenticatedAs($existingUser->fresh());
         $this->assertDatabaseHas('users', [
             'id' => $existingUser->id,
@@ -74,9 +75,25 @@ class SocialLoginTest extends TestCase
         Mail::assertNothingSent();
     }
 
+    public function test_google_callback_sets_a_persistent_remember_cookie(): void
+    {
+        Mail::fake();
+        $this->mockSocialiteUser('google', new FakeSocialiteUser(
+            id: 'google-remembered',
+            name: 'Remembered Customer',
+            email: 'remembered@example.com',
+        ));
+
+        $response = $this->get('/auth/google/callback');
+
+        $response->assertRedirect('/');
+        $response->assertCookie(Auth::guard('web')->getRecallerName());
+    }
+
     protected function mockSocialiteUser(string $provider, SocialiteUserContract $socialUser): void
     {
         $providerMock = Mockery::mock();
+        $providerMock->shouldReceive('stateless')->once()->andReturnSelf();
         $providerMock->shouldReceive('user')->once()->andReturn($socialUser);
 
         Socialite::shouldReceive('driver')

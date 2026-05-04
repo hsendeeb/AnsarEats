@@ -86,6 +86,63 @@
     </script>
 
     <script>
+        (() => {
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                || window.navigator.standalone === true;
+
+            if (!isStandalone) {
+                return;
+            }
+
+            const pendingKey = 'ansareats.social_login_pending';
+            const reloadKey = 'ansareats.social_login_reload_at';
+
+            @auth
+                localStorage.removeItem(pendingKey);
+                localStorage.removeItem(reloadKey);
+            @endauth
+
+            document.addEventListener('click', (event) => {
+                const link = event.target.closest('[data-social-login]');
+
+                if (!link) {
+                    return;
+                }
+
+                localStorage.setItem(pendingKey, String(Date.now()));
+                localStorage.removeItem(reloadKey);
+            });
+
+            const reloadAfterOAuthReturn = () => {
+                if (!localStorage.getItem(pendingKey)) {
+                    return;
+                }
+
+                if (window.location.pathname.startsWith('/auth/')) {
+                    return;
+                }
+
+                const lastReloadAt = Number(localStorage.getItem(reloadKey) || 0);
+
+                if (Date.now() - lastReloadAt < 3000) {
+                    return;
+                }
+
+                localStorage.setItem(reloadKey, String(Date.now()));
+                window.location.replace('/?source=pwa-auth-return');
+            };
+
+            window.addEventListener('pageshow', reloadAfterOAuthReturn);
+            window.addEventListener('focus', reloadAfterOAuthReturn);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    reloadAfterOAuthReturn();
+                }
+            });
+        })();
+    </script>
+
+    <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('{{ asset('sw.js') }}').then((reg) => {

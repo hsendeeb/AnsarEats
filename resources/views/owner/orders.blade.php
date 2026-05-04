@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 py-10 px-4" x-data="ordersFilter()" x-init="init()">
+<div class="min-h-screen bg-gray-50 py-10 px-4" x-data="ordersFilter()" x-init="init()" @submit.capture="interceptStatusSubmit($event)">
     <div x-show="toast.open"
          x-cloak
          x-transition:enter="transition ease-out duration-200"
@@ -540,7 +540,7 @@
                                             
                                             @if($order->status === 'pending')
                                                 <div class="flex w-full flex-col gap-2 sm:w-auto">
-                                                    <form method="POST" action="{{ route('owner.order.accept', $order) }}" class="order-status-form flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
+                                                    <form method="POST" action="{{ route('owner.order.accept', $order) }}" class="order-status-form flex w-full flex-col gap-2 sm:flex-row sm:justify-end" data-no-page-loader>
                                                         @csrf
                                                         <select name="estimated_prep_time" class="w-full text-sm border-0 bg-gray-50 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 text-gray-700 font-bold py-2 px-3 sm:w-auto">
                                                             <option value="15">15 min prep</option>
@@ -556,7 +556,7 @@
                                                         </button>
                                                     </form>
                                                     
-                                                    <form method="POST" action="{{ route('owner.order.reject', $order) }}" class="order-status-form flex w-full flex-col gap-2 sm:flex-row sm:justify-end" x-data="{ showReason: false }">
+                                                    <form method="POST" action="{{ route('owner.order.reject', $order) }}" class="order-status-form flex w-full flex-col gap-2 sm:flex-row sm:justify-end" x-data="{ showReason: false }" data-no-page-loader>
                                                         @csrf
                                                         <input x-show="showReason" x-transition type="text" name="rejection_reason" placeholder="Reason (Optional)" class="w-full text-sm border-0 bg-red-50 text-red-600 placeholder-red-300 rounded-xl focus:ring-red-500 focus:border-red-500 py-2 px-3 sm:w-40">
                                                         <button type="button" x-show="!showReason" @click="showReason = true" class="w-full bg-white hover:bg-red-50 text-red-500 font-bold py-2 px-6 rounded-xl border border-red-100 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 text-sm sm:w-auto">
@@ -572,7 +572,7 @@
                                                 </div>
                                             @elseif($order->status === 'accepted')
                                                 <div class="flex items-center gap-2">
-                                                    <form method="POST" action="{{ route('owner.order.prepare', $order) }}" class="order-status-form">
+                                                    <form method="POST" action="{{ route('owner.order.prepare', $order) }}" class="order-status-form" data-no-page-loader>
                                                         @csrf
                                                         <button type="submit" data-loading-key="prepare-{{ $order->id }}" :disabled="loadingOrderId === {{ $order->id }}" class="bg-indigo-500 hover:bg-indigo-400 disabled:hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-xl shadow-lg shadow-indigo-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:transform-none disabled:opacity-80 flex items-center gap-2 text-sm">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
@@ -585,7 +585,7 @@
                                                 </div>
                                             @elseif(in_array($order->status, ['preparing', 'out_for_delivery']))
                                                 <div class="flex items-center gap-2">
-                                                    <form method="POST" action="{{ route('owner.order.deliver', $order) }}" class="order-status-form">
+                                                    <form method="POST" action="{{ route('owner.order.deliver', $order) }}" class="order-status-form" data-no-page-loader>
                                                         @csrf
                                                         <button type="submit" data-loading-key="deliver-{{ $order->id }}" :disabled="loadingOrderId === {{ $order->id }}" class="bg-emerald-500 hover:bg-emerald-600 disabled:hover:bg-emerald-500 text-white font-black py-2.5 px-6 rounded-xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:transform-none disabled:opacity-80 flex items-center gap-2 text-sm">
                                                             <div class="w-5 h-5 bg-white/20 rounded-lg flex items-center justify-center">
@@ -1456,15 +1456,23 @@
                                 .forEach((section) => window.Alpine.initTree(section));
                         },
 
+                        interceptStatusSubmit(event) {
+                            const form = event.target?.closest?.('.order-status-form');
+
+                            if (!form) {
+                                return;
+                            }
+
+                            event.preventDefault();
+                            event.stopPropagation();
+                            this.submitStatusUpdate(form, event.submitter || document.activeElement);
+                        },
+
                         bindStatusForms() {
                             const container = document.getElementById('orders');
                             if (!container) return;
                             container.querySelectorAll('.order-status-form').forEach(form => {
                                 if (form.dataset.bound) return;
-                                form.addEventListener('submit', (e) => {
-                                    e.preventDefault();
-                                    this.submitStatusUpdate(form, e.submitter);
-                                });
                                 form.dataset.bound = "true";
                             });
                         },

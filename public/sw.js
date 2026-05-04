@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ansareats-shell-v3';
+const CACHE_NAME = 'ansareats-shell-v4';
 const APP_SHELL = [
   '/manifest.webmanifest',
   '/images/brand/ansareats-app-icon.svg',
@@ -57,7 +57,6 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-// Handle messages from the main thread to show notifications
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
     const { title, body, icon, tag, url } = event.data;
@@ -75,37 +74,57 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Handle Web Push notifications from the server
-self.addEventListener('push', function (event) {
-    if (!(self.Notification && self.Notification.permission === 'granted')) {
-        return;
+self.addEventListener('push', (event) => {
+  if (!(self.Notification && self.Notification.permission === 'granted')) {
+    return;
+  }
+
+  let data = {};
+
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (error) {
+      data = {};
     }
+  }
 
-    let data = {};
-    if (event.data) {
-        data = event.data.json();
-    }
-
-    const title = data.title || 'AnsarEats Update';
-    const body = data.body || 'You have a new update.';
-    const url = data.url || '/orders';
-    const tag = data.tag || 'general-update';
-
-    event.waitUntil(
-        self.registration.showNotification(title, {
-            body: body,
-            icon: '/images/brand/ansareats-app-icon.svg',
-            badge: '/images/brand/ansareats-app-icon.svg',
-            tag: tag,
-            renotify: true,
-            requireInteraction: false,
-            data: { url: url },
-            vibrate: [200, 100, 200],
-        })
-    );
+  event.waitUntil(showPushNotification(data));
 });
 
-// Handle notification click — focus or open the relevant page
+async function showPushNotification(data) {
+  if (data.audience === 'owner') {
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const hasVisibleOrdersPage = clients.some((client) => {
+      const url = new URL(client.url);
+
+      return url.origin === self.location.origin
+        && url.pathname === '/owner/orders'
+        && client.visibilityState === 'visible';
+    });
+
+    if (hasVisibleOrdersPage) {
+      return;
+    }
+  }
+
+  const title = data.title || 'AnsarEats Update';
+  const body = data.body || 'You have a new update.';
+  const url = data.url || '/orders';
+  const tag = data.tag || 'general-update';
+
+  return self.registration.showNotification(title, {
+    body: body,
+    icon: '/images/brand/ansareats-app-icon.svg',
+    badge: '/images/brand/ansareats-app-icon.svg',
+    tag: tag,
+    renotify: true,
+    requireInteraction: false,
+    data: { url: url },
+    vibrate: [200, 100, 200],
+  });
+}
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
@@ -113,14 +132,12 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      // Try to focus an existing tab
       for (const client of clients) {
         if (client.url.includes(targetUrl) && 'focus' in client) {
           return client.focus();
         }
       }
 
-      // Otherwise open a new tab
       if (self.clients.openWindow) {
         return self.clients.openWindow(targetUrl);
       }

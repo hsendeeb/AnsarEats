@@ -58,22 +58,36 @@ class Order extends Model
 
     public function broadcastRealtimeUpdate(string $type = 'status_updated', ?string $previousStatus = null): void
     {
-        $order = $this->fresh(['restaurant', 'user', 'orderItems.menuItem']) ?? $this->loadMissing(['restaurant', 'user', 'orderItems.menuItem']);
+        $order = $this->fresh(['restaurant.user', 'user', 'orderItems.menuItem'])
+            ?? $this->loadMissing(['restaurant.user', 'user', 'orderItems.menuItem']);
 
         try {
             broadcast(new OrderUpdated($order, $type, $previousStatus));
+        } catch (Throwable $e) {
+            // Realtime broadcasting is best-effort; push notifications still run below.
+        }
 
-            // Send actual Web Push Background Notification
-            if ($type === 'status_updated' && $this->user) {
-                app(\App\Services\PushNotificationService::class)->sendToUser($this->user, [
-                    'title' => 'Order #' . $this->id . ' Update',
-                    'body' => 'Your order status changed to ' . $this->statusLabel(),
+        try {
+            if ($type === 'status_updated' && $order->user) {
+                app(\App\Services\PushNotificationService::class)->sendToUser($order->user, [
+                    'title' => 'Order #' . $order->id . ' Update',
+                    'body' => 'Your order status changed to ' . $order->statusLabel(),
                     'url' => route('profile.orders', [], false),
-                    'tag' => 'order-' . $this->id,
+                    'tag' => 'order-' . $order->id,
+                ]);
+            }
+
+            if ($type === 'created' && $order->restaurant?->user) {
+                app(\App\Services\PushNotificationService::class)->sendToUser($order->restaurant->user, [
+                    'title' => 'New Order #' . $order->id,
+                    'body' => ($order->user?->name ?? 'A customer') . ' placed a new order.',
+                    'url' => route('owner.orders', ['status' => 'pending'], false),
+                    'tag' => 'owner-order-' . $order->id,
+                    'audience' => 'owner',
                 ]);
             }
         } catch (Throwable $e) {
-            // Silently fail if broadcasting isn't available
+            // Push notification delivery is best-effort.
         }
     }
 }

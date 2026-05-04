@@ -4,11 +4,31 @@
     x-data="{ 
         show: false,
         isDenied: 'Notification' in window && Notification.permission === 'denied',
+        async enableNotifications() {
+            if (!('Notification' in window)) {
+                this.show = false;
+                return;
+            }
+
+            const permission = Notification.permission === 'default'
+                ? await Notification.requestPermission()
+                : Notification.permission;
+
+            this.isDenied = permission === 'denied';
+
+            if (permission === 'granted') {
+                await window.subscribeToPush?.();
+                this.show = false;
+            }
+        },
         init() {
             const path = window.location.pathname;
             const isCheckoutPage = path.includes('checkout');
+            const isOwnerDashboard = path === '/owner/dashboard';
+            const shouldPromptOwner = @js(auth()->user()?->role === 'owner') && isOwnerDashboard;
+            const shouldPromptCustomer = @js(auth()->user()?->role !== 'owner') && isCheckoutPage;
             
-            if (isCheckoutPage && 'Notification' in window && Notification.permission !== 'granted') {
+            if ((shouldPromptOwner || shouldPromptCustomer) && 'Notification' in window && Notification.permission !== 'granted') {
                 setTimeout(() => { this.show = true; }, 2500);
             }
 
@@ -41,7 +61,7 @@
                 <template x-if="!isDenied">
                     <div>
                         <h4 class="font-bold text-sm tracking-tight mb-0.5">Enable Order Alerts</h4>
-                        <p class="text-[11px] text-gray-500 dark:text-gray-400">Get notified about your order status.</p>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400">Get notified about order updates and new restaurant orders.</p>
                     </div>
                 </template>
                 <template x-if="isDenied">
@@ -54,7 +74,7 @@
 
             <!-- Single "OK" Button -->
             <div class="flex items-center">
-                <button @click="show = false" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black rounded-lg transition-all shadow-sm active:scale-95 cursor-pointer min-w-[60px]">
+                <button @click="enableNotifications()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black rounded-lg transition-all shadow-sm active:scale-95 cursor-pointer min-w-[60px]">
                     OK
                 </button>
             </div>

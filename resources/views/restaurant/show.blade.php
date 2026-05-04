@@ -509,8 +509,9 @@
                             });
                             const data = await res.json();
                             if (res.ok) {
-                                this.cart = this.normalizeCart(data.cart);
-                                window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+                                const cartDetail = { ...data.cart, suppressToast: true };
+                                this.cart = this.normalizeCart(cartDetail);
+                                window.dispatchEvent(new CustomEvent('cart-updated', { detail: cartDetail }));
                             } else {
                                 window.showAppToast({
                                     message: data.message || 'Could not add item.',
@@ -537,8 +538,9 @@
                             });
                             const data = await res.json();
                             if (res.ok) {
-                                this.cart = this.normalizeCart(data.cart);
-                                window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+                                const cartDetail = { ...data.cart, suppressToast: true };
+                                this.cart = this.normalizeCart(cartDetail);
+                                window.dispatchEvent(new CustomEvent('cart-updated', { detail: cartDetail }));
                             }
                         } catch(e) {}
                     }

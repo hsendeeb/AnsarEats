@@ -13,6 +13,7 @@ use App\Support\PerformanceCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -811,6 +812,8 @@ class DashboardController extends Controller
             'is_open' => 'sometimes|boolean',
             'logo' => 'nullable|image|max:2048',
             'cover_image' => 'nullable|image|max:4096',
+            'remove_logo' => 'sometimes|boolean',
+            'remove_cover_image' => 'sometimes|boolean',
             'operating_hours' => 'nullable|array'
         ]);
 
@@ -826,14 +829,33 @@ class DashboardController extends Controller
             ->where('status', 'pending')
             ->latest()
             ->first();
+        $imageTarget = $restaurant ?: $pendingRequest;
 
-        if ($request->hasFile('logo')) {
+        if ($request->boolean('remove_logo') && ! $request->hasFile('logo')) {
+            if ($imageTarget?->logo) {
+                Storage::disk('public')->delete($imageTarget->logo);
+            }
+            $data['logo'] = null;
+        } elseif ($request->hasFile('logo')) {
+            if ($imageTarget?->logo) {
+                Storage::disk('public')->delete($imageTarget->logo);
+            }
             $data['logo'] = $request->file('logo')->store('restaurants', 'public');
         }
 
-        if ($request->hasFile('cover_image')) {
+        if ($request->boolean('remove_cover_image') && ! $request->hasFile('cover_image')) {
+            if ($imageTarget?->cover_image) {
+                Storage::disk('public')->delete($imageTarget->cover_image);
+            }
+            $data['cover_image'] = null;
+        } elseif ($request->hasFile('cover_image')) {
+            if ($imageTarget?->cover_image) {
+                Storage::disk('public')->delete($imageTarget->cover_image);
+            }
             $data['cover_image'] = $request->file('cover_image')->store('restaurants', 'public');
         }
+
+        unset($data['remove_logo'], $data['remove_cover_image']);
 
         $requestPayload = $data;
         $requestPayload['restaurant_name'] = $data['name'];

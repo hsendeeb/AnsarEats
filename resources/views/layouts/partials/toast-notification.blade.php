@@ -1,4 +1,4 @@
-<div x-data @cart-updated.window="$store.appToast.show($event.detail)" @show-toast.window="$store.appToast.show($event.detail)" class="fixed top-24 right-4 z-[80]" x-cloak>
+<div x-data @cart-updated.window="!$event.detail?.suppressToast && $store.appToast.show($event.detail)" @show-toast.window="$store.appToast.show($event.detail)" class="fixed top-24 right-4 z-[80]" x-cloak>
     <template x-if="$store.appToast.visible">
         <div x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0 opacity-100" x-transition:leave-end="translate-x-full opacity-0" class="rounded-2xl shadow-2xl p-4 flex items-center gap-3 min-w-[280px] border" :class="$store.appToast.toastClasses.container">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" :class="$store.appToast.toastClasses.iconWrap">

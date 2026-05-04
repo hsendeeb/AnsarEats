@@ -707,10 +707,13 @@
                 submitting: false,
                 logoPreview: '{{ $restaurantDraft && $restaurantDraft->logo ? Storage::url($restaurantDraft->logo) : '' }}',
                 coverPreview: '{{ $restaurantDraft && $restaurantDraft->cover_image ? Storage::url($restaurantDraft->cover_image) : '' }}',
+                removeLogo: false,
+                removeCoverImage: false,
                 deliveryFeeEnabled: {{ old('free_delivery', $restaurantDraft ? (((float) (optional($restaurantDraft)->delivery_fee ?? 0) <= 0) ? 1 : 0) : 0) ? 'false' : 'true' }},
                 handleLogoSelect(event) {
                     const file = event.target.files[0];
                     if (file) {
+                        this.removeLogo = false;
                         const reader = new FileReader();
                         reader.onload = (e) => this.logoPreview = e.target.result;
                         reader.readAsDataURL(file);
@@ -719,10 +722,21 @@
                 handleCoverSelect(event) {
                     const file = event.target.files[0];
                     if (file) {
+                        this.removeCoverImage = false;
                         const reader = new FileReader();
                         reader.onload = (e) => this.coverPreview = e.target.result;
                         reader.readAsDataURL(file);
                     }
+                },
+                removeLogoImage() {
+                    this.logoPreview = '';
+                    this.removeLogo = true;
+                    this.$refs.logoInput.value = '';
+                },
+                removeCoverImagePreview() {
+                    this.coverPreview = '';
+                    this.removeCoverImage = true;
+                    this.$refs.coverInput.value = '';
                 }
             }" @submit="submitting = true">
                 @csrf
@@ -730,40 +744,52 @@
                     <!-- Logo Upload -->
                     <div>
                         <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Restaurant Logo</label>
-                        <div @click="$refs.logoInput.click()" class="relative h-32 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-center cursor-pointer overflow-hidden group hover:border-indigo-500 transition-all">
-                            <template x-if="logoPreview">
-                                <img :src="logoPreview" class="w-full h-full object-cover">
-                            </template>
-                            <template x-if="!logoPreview">
-                                <div class="text-center">
-                                    <x-heroicon-o-photo class="w-8 h-8 text-gray-400 mx-auto" />
-                                    <p class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">Logo</p>
+                        <div class="relative">
+                            <div @click="$refs.logoInput.click()" class="relative h-32 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-center cursor-pointer overflow-hidden group hover:border-indigo-500 transition-all">
+                                <template x-if="logoPreview">
+                                    <img :src="logoPreview" class="w-full h-full object-cover">
+                                </template>
+                                <template x-if="!logoPreview">
+                                    <div class="text-center">
+                                        <x-heroicon-o-photo class="w-8 h-8 text-gray-400 mx-auto" />
+                                        <p class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">Logo</p>
+                                    </div>
+                                </template>
+                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                    <p class="text-white text-xs font-bold">Change</p>
                                 </div>
-                            </template>
-                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                <p class="text-white text-xs font-bold">Change</p>
                             </div>
+                            <button type="button" x-show="logoPreview" x-cloak @click.stop="removeLogoImage()" class="absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 text-gray-600 shadow-lg border border-gray-100 flex items-center justify-center hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors" title="Remove logo" aria-label="Remove logo">
+                                <x-heroicon-o-x-mark class="w-4 h-4" />
+                            </button>
                         </div>
+                        <input type="hidden" name="remove_logo" :value="removeLogo ? 1 : 0">
                         <input type="file" name="logo" x-ref="logoInput" @change="handleLogoSelect($event)" accept="image/*" class="hidden">
                     </div>
 
                     <!-- Cover Upload -->
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Banner Image</label>
-                        <div @click="$refs.coverInput.click()" class="relative h-32 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center cursor-pointer overflow-hidden group hover:border-indigo-500 transition-all">
-                            <template x-if="coverPreview">
-                                <img :src="coverPreview" class="w-full h-full object-cover">
-                            </template>
-                            <template x-if="!coverPreview">
-                                <div class="text-center">
-                                    <x-heroicon-o-photo class="w-8 h-8 text-gray-400 mx-auto" />
-                                    <p class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">Banner</p>
+                        <div class="relative">
+                            <div @click="$refs.coverInput.click()" class="relative h-32 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center cursor-pointer overflow-hidden group hover:border-indigo-500 transition-all">
+                                <template x-if="coverPreview">
+                                    <img :src="coverPreview" class="w-full h-full object-cover">
+                                </template>
+                                <template x-if="!coverPreview">
+                                    <div class="text-center">
+                                        <x-heroicon-o-photo class="w-8 h-8 text-gray-400 mx-auto" />
+                                        <p class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">Banner</p>
+                                    </div>
+                                </template>
+                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                    <p class="text-white text-xs font-bold">Change</p>
                                 </div>
-                            </template>
-                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                <p class="text-white text-xs font-bold">Change</p>
                             </div>
+                            <button type="button" x-show="coverPreview" x-cloak @click.stop="removeCoverImagePreview()" class="absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 text-gray-600 shadow-lg border border-gray-100 flex items-center justify-center hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors" title="Remove banner" aria-label="Remove banner">
+                                <x-heroicon-o-x-mark class="w-4 h-4" />
+                            </button>
                         </div>
+                        <input type="hidden" name="remove_cover_image" :value="removeCoverImage ? 1 : 0">
                         <input type="file" name="cover_image" x-ref="coverInput" @change="handleCoverSelect($event)" accept="image/*" class="hidden">
                     </div>
                 </div>

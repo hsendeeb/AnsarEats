@@ -511,7 +511,6 @@
                             if (res.ok) {
                                 this.cart = this.normalizeCart(data.cart);
                                 window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
-                                window.showAppToast({ message: data.message || 'Added to cart!', type: 'success' });
                             } else {
                                 window.showAppToast({
                                     message: data.message || 'Could not add item.',

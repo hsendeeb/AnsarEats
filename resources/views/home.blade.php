@@ -606,6 +606,18 @@
                                             <span class="text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-red-900/80 rounded border border-red-700">Closed</span>
                                         </div>
                                     @endif
+                                    
+                                    <!-- Restaurant Mini Badge Overlay -->
+                                    <div class="absolute bottom-1 left-1 flex items-center gap-1 bg-white/90 backdrop-blur-md pl-1 pr-1.5 py-0.5 rounded-full shadow-md z-10 pointer-events-none">
+                                        <div class="w-4 h-4 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-white">
+                                            @if($meal->menuCategory->restaurant->logo)
+                                                <img src="{{ Storage::url($meal->menuCategory->restaurant->logo) }}" class="w-full h-full object-cover">
+                                            @else
+                                                <div class="w-full h-full flex items-center justify-center bg-emerald-100 text-emerald-600 text-[8px] font-bold">{{ substr($meal->menuCategory->restaurant->name,0,1) }}</div>
+                                            @endif
+                                        </div>
+                                        <span class="text-[8px] font-bold text-gray-900 truncate max-w-[50px]">{{ $meal->menuCategory->restaurant->name }}</span>
+                                    </div>
                                 </div>
                             </a>
                             
@@ -623,15 +635,6 @@
                                                 </div>
                                             @endif
                                             <div class="hidden sm:flex items-center gap-1.5 mt-1">
-                                                <div class="w-4 h-4 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
-                                                    @if($meal->menuCategory->restaurant->logo)
-                                                        <img src="{{ Storage::url($meal->menuCategory->restaurant->logo) }}" class="w-full h-full object-cover">
-                                                    @else
-                                                        <div class="w-full h-full flex items-center justify-center bg-emerald-100 text-emerald-600 text-[8px] font-bold">{{ substr($meal->menuCategory->restaurant->name,0,1) }}</div>
-                                                    @endif
-                                                </div>
-                                                <span class="text-[10px] font-bold text-gray-500 truncate">{{ $meal->menuCategory->restaurant->name }}</span>
-                                                <span class="text-gray-300 mx-1">&bull;</span>
                                                 <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ $meal->menuCategory->name }}</span>
                                             </div>
                                         </a>

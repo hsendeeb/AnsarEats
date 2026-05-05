@@ -76,22 +76,29 @@
                     </p>
                 </div>
                 
-                <div class="flex flex-col lg:flex-row lg:items-center gap-4 w-full lg:w-auto">
-                    @if($restaurant)
-                    <div class="flex-shrink-0">
-                        <button type="button" @click="toggleRestaurantStatus()" :disabled="togglingStatus" class="group w-full lg:w-auto flex items-center gap-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 px-5 rounded-2xl transition-all shadow-lg backdrop-blur-sm disabled:opacity-50">
-                            <div class="relative w-12 h-6 rounded-full transition-colors" :class="isRestaurantOpen ? 'bg-emerald-500' : 'bg-gray-400 dark:bg-gray-600'">
-                                <div class="absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform" :class="isRestaurantOpen ? 'translate-x-6' : ''"></div>
-                            </div>
-                            <span x-text="isRestaurantOpen ? 'Accepting Orders' : 'Closed'"></span>
+                <div class="flex flex-col lg:items-end gap-2 w-full lg:w-auto">
+                    <div class="flex flex-col lg:flex-row lg:items-center gap-4 w-full lg:w-auto">
+                        @if($restaurant)
+                        <div class="flex-shrink-0">
+                            <button type="button" @click="toggleRestaurantStatus()" :disabled="togglingStatus" class="group w-full lg:w-auto flex items-center gap-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 px-5 rounded-2xl transition-all shadow-lg backdrop-blur-sm disabled:opacity-50">
+                                <div class="relative w-12 h-6 rounded-full transition-colors" :class="isRestaurantOpen ? 'bg-emerald-500' : 'bg-gray-400 dark:bg-gray-600'">
+                                    <div class="absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform" :class="isRestaurantOpen ? 'translate-x-6' : ''"></div>
+                                </div>
+                                <span x-text="isRestaurantOpen ? 'Accepting Orders' : 'Closed'"></span>
+                            </button>
+                        </div>
+                        @endif
+
+                        <button @click="showRestaurantModal = true" class="flex-shrink-0 w-full lg:w-auto bg-white/20 backdrop-blur-sm hover:bg-white/30 border border-white/30 text-white font-bold py-3 px-6 rounded-2xl transition-all transform hover:-translate-y-0.5 active:scale-95 shadow-lg flex items-center justify-center gap-2">
+                            <x-heroicon-o-cog-6-tooth class="w-5 h-5" />
+                            {{ $restaurant ? 'Edit Restaurant' : ($pendingRequest ? 'Edit Request' : 'Create Restaurant') }}
                         </button>
                     </div>
+                    @if($restaurant && $restaurant->subscription_ends_at)
+                        <p class="text-xs font-bold text-white/80 tracking-wide px-2">
+                            Subscription ends: <span class="{{ $restaurant->subscriptionExpiresWithinDays(2) ? 'text-amber-300' : ($restaurant->isSubscriptionExpired() ? 'text-red-300' : 'text-emerald-300') }}">{{ $restaurant->subscription_ends_at->format('M d, Y') }}</span>
+                        </p>
                     @endif
-
-                    <button @click="showRestaurantModal = true" class="flex-shrink-0 w-full lg:w-auto bg-white/20 backdrop-blur-sm hover:bg-white/30 border border-white/30 text-white font-bold py-3 px-6 rounded-2xl transition-all transform hover:-translate-y-0.5 active:scale-95 shadow-lg flex items-center justify-center gap-2">
-                        <x-heroicon-o-cog-6-tooth class="w-5 h-5" />
-                        {{ $restaurant ? 'Edit Restaurant' : ($pendingRequest ? 'Edit Request' : 'Create Restaurant') }}
-                    </button>
                 </div>
             </div>
         </div>

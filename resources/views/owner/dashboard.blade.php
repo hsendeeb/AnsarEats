@@ -10,6 +10,18 @@
     showEditCategoryModal: false,
     showMenuItemModal: false,
     showEditMenuItemModal: false,
+    deleteModalOpen: false,
+    deleteModalTitle: '',
+    deleteModalText: '',
+    deleteFormAction: '',
+    isDeleting: false,
+    confirmDelete(title, text, action) {
+        this.deleteModalTitle = title;
+        this.deleteModalText = text;
+        this.deleteFormAction = action;
+        this.deleteModalOpen = true;
+        this.isDeleting = false;
+    },
     selectedCategoryId: null,
     editingCategory: { id: null, name: '' },
     editingMenuItem: { id: null, name: '', description: '', price: '', category_id: null, image_url: '', variants: null, variant_type: '', is_on_sale: false, sale_price: '', discount_percentage: '' },
@@ -42,7 +54,8 @@
             || this.showCategoryModal
             || this.showEditCategoryModal
             || this.showMenuItemModal
-            || this.showEditMenuItemModal;
+            || this.showEditMenuItemModal
+            || this.deleteModalOpen;
     }
 }" x-effect="document.documentElement.classList.toggle('modal-open', hasOpenModal()); document.body.classList.toggle('modal-open', hasOpenModal());">
 
@@ -388,14 +401,10 @@
                                             Edit Category
                                         </button>
 
-                                        <form method="POST" action="{{ route('owner.category.destroy', $category) }}" class="w-full">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" onclick="return confirm('Delete this category and all its items?')" @click="actionsOpen = false" class="w-full px-4 py-3 text-left text-sm font-bold text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2">
-                                                <x-heroicon-o-trash class="w-4 h-4" />
-                                                Delete Category
-                                            </button>
-                                        </form>
+                                        <button type="button" @click="confirmDelete('Delete Category', 'Are you sure you want to delete this category? All menu items within it will also be deleted. This action cannot be undone.', '{{ route('owner.category.destroy', $category) }}'); actionsOpen = false" class="w-full px-4 py-3 text-left text-sm font-bold text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2">
+                                            <x-heroicon-o-trash class="w-4 h-4" />
+                                            Delete Category
+                                        </button>
                                     </div>
                                 </div>
 
@@ -520,13 +529,9 @@
                                                 </button>
                                             </div>
                                             
-                                            <form method="POST" action="{{ route('owner.menu-item.destroy', $item) }}">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" onclick="return confirm('Delete this item?')" title="Delete item" class="w-10 h-10 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition-colors">
-                                                    <x-heroicon-o-trash class="w-5 h-5" />
-                                                </button>
-                                            </form>
+                                            <button type="button" @click="confirmDelete('Delete Menu Item', 'Are you sure you want to delete this menu item? This action cannot be undone.', '{{ route('owner.menu-item.destroy', $item) }}')" title="Delete item" class="w-10 h-10 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition-colors">
+                                                <x-heroicon-o-trash class="w-5 h-5" />
+                                            </button>
                                         </div>
 
                                         <!-- Mobile Actions Dropdown -->
@@ -593,14 +598,10 @@
                                                     <span x-text="isFeatured ? 'Remove Featured' : 'Mark Featured'"></span>
                                                 </div>
 
-                                                <form method="POST" action="{{ route('owner.menu-item.destroy', $item) }}" class="w-full">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" onclick="return confirm('Delete this item?')" @click="open = false" class="w-full px-4 py-3 text-left text-sm font-bold text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2">
-                                                        <x-heroicon-o-trash class="w-4 h-4" />
-                                                        Delete Item
-                                                    </button>
-                                                </form>
+                                                <button type="button" @click="confirmDelete('Delete Menu Item', 'Are you sure you want to delete this menu item? This action cannot be undone.', '{{ route('owner.menu-item.destroy', $item) }}'); open = false" class="w-full px-4 py-3 text-left text-sm font-bold text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2">
+                                                    <x-heroicon-o-trash class="w-4 h-4" />
+                                                    Delete Item
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -669,13 +670,9 @@
                                         </p>
                                     </div>
                                 </div>
-                                <form method="POST" action="{{ route('owner.promotion.destroy', $promo) }}">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors" title="Delete Promo">
-                                        <x-heroicon-o-trash class="w-5 h-5" />
-                                    </button>
-                                </form>
+                                <button type="button" @click="confirmDelete('Delete Promotion', 'Are you sure you want to delete this promotion? This action cannot be undone.', '{{ route('owner.promotion.destroy', $promo) }}')" class="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors" title="Delete Promo">
+                                    <x-heroicon-o-trash class="w-5 h-5" />
+                                </button>
                             </div>
                         @empty
                             <div class="text-center py-10 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
@@ -1514,6 +1511,52 @@
                     <x-heroicon-o-arrow-path x-show="submitting" x-cloak class="absolute h-5 w-5 animate-spin" />
                 </button>
             </form>
+        </div>
+    </div>
+
+    {{-- ============================= --}}
+    {{-- MODAL: Delete Confirmation    --}}
+    {{-- ============================= --}}
+    <div x-show="deleteModalOpen" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-gray-950/50 backdrop-blur-sm">
+        <div @click.outside="deleteModalOpen = false"
+             x-show="deleteModalOpen"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center">
+            
+            <div class="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-900 mb-2" x-text="deleteModalTitle"></h3>
+            <p class="text-gray-500 mb-8 text-sm" x-text="deleteModalText"></p>
+
+            <div class="flex items-center justify-center gap-3">
+                <button @click="deleteModalOpen = false" type="button" :disabled="isDeleting" class="flex-1 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all text-sm disabled:opacity-50">
+                    Cancel
+                </button>
+                <form method="POST" :action="deleteFormAction" class="flex-1" @submit="isDeleting = true">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" :disabled="isDeleting" class="w-full px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-500 transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50">
+                        <span>Delete</span>
+                        <span x-show="isDeleting" x-cloak class="inline-flex">
+                            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                        </span>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
     <script>

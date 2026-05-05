@@ -1,7 +1,35 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 py-10 px-4 dark:bg-gray-900">
+<div class="min-h-screen bg-gray-50 py-10 px-4 dark:bg-gray-900" x-data="{
+    modalOpen: false,
+    modalTitle: '',
+    modalText: '',
+    formAction: '',
+    formMethod: '',
+    isBlock: true,
+    isSubmitting: false,
+    
+    openBlockModal(name, action) {
+        this.isBlock = true;
+        this.modalTitle = 'Block Customer';
+        this.modalText = `Are you sure you want to block ${name} from ordering from your restaurant?`;
+        this.formAction = action;
+        this.formMethod = 'POST';
+        this.modalOpen = true;
+        this.isSubmitting = false;
+    },
+    
+    openUnblockModal(name, action) {
+        this.isBlock = false;
+        this.modalTitle = 'Unblock Customer';
+        this.modalText = `Are you sure you want to unblock ${name} and allow them to order from your restaurant again?`;
+        this.formAction = action;
+        this.formMethod = 'DELETE';
+        this.modalOpen = true;
+        this.isSubmitting = false;
+    }
+}">
     <div class="max-w-7xl mx-auto">
         <div class="mb-6">
             <a href="{{ route('owner.dashboard') }}" class="inline-flex items-center gap-2 text-gray-500 hover:text-emerald-600 font-bold transition-colors bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
@@ -126,30 +154,14 @@
                                     </td>
                                     <td class="px-6 py-5 text-right">
                                         @if($isBlocked)
-                                            <form method="POST"
-                                                  action="{{ route('owner.customers.unblock', $customer) }}"
-                                                  class="inline-block"
-                                                  data-no-page-loader
-                                                  onsubmit="if (!confirm('Unblock {{ addslashes($customer->name) }} and allow them to order from your restaurant again?')) return false; window.showPageLoader?.();">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-black text-white  transition-all hover:bg-emerald-400">
-                                                    <x-heroicon-o-check-circle class="w-4 h-4" />
-                                                    Unblock Customer
-                                                </button>
-                                            </form>
+                                            <button type="button" @click="openUnblockModal('{{ addslashes($customer->name) }}', '{{ route('owner.customers.unblock', $customer) }}')" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-black text-white transition-all hover:bg-emerald-400">
+                                                <x-heroicon-o-check-circle class="w-4 h-4" />
+                                                Unblock Customer
+                                            </button>
                                         @else
-                                            <form method="POST"
-                                                  action="{{ route('owner.customers.block', $customer) }}"
-                                                  class="inline-block"
-                                                  data-no-page-loader
-                                                  onsubmit="if (!confirm('Block {{ addslashes($customer->name) }} from ordering from your restaurant?')) return false; window.showPageLoader?.();">
-                                                @csrf
-                                                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-2xl  px-4 py-2 cursor-pointer text-2xl font-black text-red-500 0 transition-all hover:text-red-900">
-                                                    <x-heroicon-o-x-circle class="w-4 h-4" />
-                                                  
-                                                </button>
-                                            </form>
+                                            <button type="button" @click="openBlockModal('{{ addslashes($customer->name) }}', '{{ route('owner.customers.block', $customer) }}')" class="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2 cursor-pointer text-2xl font-black text-red-500 transition-all hover:text-red-900">
+                                                <x-heroicon-o-x-circle class="w-4 h-4" />
+                                            </button>
                                         @endif
                                     </td>
                                 </tr>
@@ -170,6 +182,53 @@
                     <p class="mt-2 text-sm font-medium text-gray-500">Once someone orders from your restaurant, they will appear here automatically.</p>
                 </div>
             @endif
+        </div>
+    </div>
+
+    <!-- The Block/Unblock Modal -->
+    <div x-show="modalOpen" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-gray-950/50 backdrop-blur-sm">
+        <div @click.outside="modalOpen = false"
+             x-show="modalOpen"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center">
+            
+            <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4" :class="isBlock ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'">
+                <svg x-show="isBlock" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <svg x-show="!isBlock" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-900 mb-2" x-text="modalTitle"></h3>
+            <p class="text-gray-500 mb-8 text-sm" x-text="modalText"></p>
+
+            <div class="flex items-center justify-center gap-3">
+                <button @click="modalOpen = false" type="button" :disabled="isSubmitting" class="flex-1 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all text-sm disabled:opacity-50">
+                    Cancel
+                </button>
+                <form method="POST" :action="formAction" class="flex-1" @submit="isSubmitting = true; window.showPageLoader?.()">
+                    @csrf
+                    <input type="hidden" name="_method" :value="formMethod">
+                    <button type="submit" :disabled="isSubmitting" class="w-full px-4 py-2.5 text-white font-bold rounded-xl transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50" :class="isBlock ? 'bg-red-600 hover:bg-red-500' : 'bg-emerald-600 hover:bg-emerald-500'">
+                        <span x-text="isBlock ? 'Confirm Block' : 'Confirm Unblock'"></span>
+                        <span x-show="isSubmitting" x-cloak class="inline-flex">
+                            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                        </span>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>

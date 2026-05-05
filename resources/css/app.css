@@ -67,7 +67,7 @@ html.dark .hover\:bg-gray-100:hover { background-color: #262c40 !important; }
 html.dark .hover\:bg-emerald-50:hover { background-color: rgba(16, 185, 129, 0.1) !important; }
 html.dark .shadow-sm { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2); }
 html.dark input::placeholder { color: #64748b !important; }
-html.dark input { background-color: #262c40 !important; color: #ffffff !important; }
+html.dark input { color: #ffffff !important; }
 html.dark nav { background-color: rgba(22, 29, 49, 0.8) !important; border-color: #1e293b !important; }
 html.dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.05) !important; }
 html.dark .bg-indigo-50 { background-color: rgba(79, 70, 229, 0.05) !important; }

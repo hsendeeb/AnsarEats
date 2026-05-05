@@ -27,7 +27,7 @@ class SearchController extends Controller
             function () use ($query) {
                 $restaurants = Restaurant::where('name', 'like', "%{$query}%")
                     ->limit(5)
-                    ->get(['id', 'name', 'logo']);
+                    ->get(['id', 'name', 'logo', 'slug']);
 
                 $meals = MenuItem::where('name', 'like', "%{$query}%")
                     ->with('menuCategory.restaurant')

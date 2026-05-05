@@ -31,7 +31,7 @@
         <div class="mb-6 flex justify-between">
             <a href="{{ route('owner.dashboard') }}" class="inline-flex items-center gap-2 text-gray-500 hover:text-emerald-600 font-bold transition-colors bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                Back to Dashboard
+                Back
             </a>
             <button type="button"
                                 @click="openDeleteDialog({
@@ -104,8 +104,6 @@
                             @endif
 
                             <label for="owner-orders-search" class="mb-2 flex items-center justify-between gap-3 text-[11px] font-black uppercase tracking-[0.18em] text-gray-400">
-                                <span>Find Orders</span>
-                                <span class="rounded-full bg-white px-3 py-1 text-[10px] text-emerald-600 shadow-sm shadow-emerald-100/60">Live search</span>
                             </label>
 
                             <div class="relative" @click.outside="showSearchSuggestions = false">

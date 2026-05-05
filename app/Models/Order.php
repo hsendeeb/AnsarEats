@@ -75,7 +75,7 @@ class Order extends Model
                 $pushService->sendToUser($order->user, [
                     'title' => 'Order #' . $order->id . ' Update',
                     'body' => 'Your order status changed to ' . $order->statusLabel(),
-                    'url' => route('profile.orders', [], false),
+                    'url' => route('order.confirmation', ['order' => $order->id], false),
                     'tag' => 'order-' . $order->id,
                 ]);
             }

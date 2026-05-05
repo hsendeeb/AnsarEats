@@ -121,7 +121,7 @@
                                    @focus="if(query.length >= 2) show = true"
                                    @keydown.enter.prevent="search()"
                                    placeholder="What are you eating today?" 
-                                   class="w-full pl-12 pr-12 py-5 bg-gray-100 dark:bg-gray-800 border-none focus:ring-4 focus:ring-emerald-500/20 rounded-3xl font-bold text-gray-900 dark:text-white placeholder-gray-400 shadow-inner transition-all">
+                                   class="w-full pl-12 pr-12 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-emerald-500/20 rounded-lg font-bold text-gray-900 dark:text-white placeholder-gray-400 shadow-sm transition-all">
                             
                             <button type="button"
                                     @click="search()"
@@ -215,7 +215,7 @@
     
 </div>
 
-<section class="mt-4 md:mt-8 pt-4 md:pt-8 pb-4 bg-white dark:bg-gray-900 relative z-20 transition-colors duration-300">
+<section class="pt-4 md:pt-8 pb-4 bg-white dark:bg-gray-900 relative z-20 transition-colors duration-300">
     <div class="container mx-auto px-4">
         <!-- Browse By Category Section -->
         <div class="mb-4 md:mb-6 scroll-reveal"

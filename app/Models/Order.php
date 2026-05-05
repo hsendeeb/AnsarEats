@@ -56,6 +56,19 @@ class Order extends Model
         return in_array($this->status, ['delivered', 'cancelled'], true);
     }
 
+    public function friendlyStatusMessage(): string
+    {
+        return match ($this->status) {
+            'pending' => "We've received your order and are reviewing it!",
+            'accepted' => "Your order has been accepted.",
+            'preparing' => "The restaurant is now preparing your order.",
+            'out_for_delivery' => "Your order is on its way to you.",
+            'delivered' => "Your order has been delivered.",
+            'cancelled' => "Unfortunately, your order has been cancelled.",
+            default => 'Your order status is now ' . $this->statusLabel(),
+        };
+    }
+
     public function broadcastRealtimeUpdate(string $type = 'status_updated', ?string $previousStatus = null): void
     {
         $order = $this->fresh(['restaurant.user', 'user', 'orderItems.menuItem'])
@@ -74,7 +87,7 @@ class Order extends Model
                 \Illuminate\Support\Facades\Log::info('Sending push to customer #' . $order->user->id . ' for order #' . $order->id);
                 $pushService->sendToUser($order->user, [
                     'title' => 'Order #' . $order->id . ' Update',
-                    'body' => 'Your order status changed to ' . $order->statusLabel(),
+                    'body' => $order->friendlyStatusMessage(),
                     'url' => route('order.confirmation', ['order' => $order->id], false),
                     'tag' => 'order-' . $order->id,
                 ]);

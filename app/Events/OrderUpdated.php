@@ -51,7 +51,7 @@ class OrderUpdated implements ShouldBroadcast
             ],
             'message' => $this->type === 'created'
                 ? 'A new order has been placed.'
-                : 'Order status updated to ' . $this->order->statusLabel() . '.',
+                : $this->order->friendlyStatusMessage(),
         ];
     }
 }

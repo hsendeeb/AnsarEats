@@ -15,6 +15,8 @@ class Restaurant extends Model
         'operating_hours' => 'array',
         'is_open' => 'boolean',
         'delivery_fee' => 'decimal:2',
+        'subscription_ends_at' => 'datetime',
+        'subscription_reminder_sent_at' => 'datetime',
     ];
 
     public function user()
@@ -52,11 +54,84 @@ class Restaurant extends Model
         return $this->hasMany(Promotion::class);
     }
 
+    // ── Subscription helpers ──────────────────────────────────
+
+    /**
+     * Whether the restaurant has an active (non-expired) subscription.
+     */
+    public function hasActiveSubscription(): bool
+    {
+        return $this->subscription_ends_at && $this->subscription_ends_at->isFuture();
+    }
+
+    /**
+     * Whether the subscription has expired.
+     */
+    public function isSubscriptionExpired(): bool
+    {
+        return $this->subscription_ends_at && $this->subscription_ends_at->isPast();
+    }
+
+    /**
+     * Whether the subscription expires within the given number of days.
+     */
+    public function subscriptionExpiresWithinDays(int $days): bool
+    {
+        if (! $this->subscription_ends_at) {
+            return false;
+        }
+
+        return $this->subscription_ends_at->isFuture()
+            && $this->subscription_ends_at->diffInDays(now()) <= $days;
+    }
+
+    /**
+     * Extend subscription by the given number of months from now (or from current end date if still active).
+     */
+    public function extendSubscription(int $months = 1): void
+    {
+        $base = $this->hasActiveSubscription()
+            ? $this->subscription_ends_at
+            : now();
+
+        $this->update([
+            'subscription_ends_at' => $base->copy()->addMonths($months),
+            'subscription_reminder_sent_at' => null,
+        ]);
+    }
+
+    /**
+     * Human-readable subscription status label.
+     */
+    public function subscriptionStatusLabel(): string
+    {
+        if (! $this->subscription_ends_at) {
+            return 'No subscription';
+        }
+
+        if ($this->subscription_ends_at->isPast()) {
+            return 'Expired';
+        }
+
+        if ($this->subscriptionExpiresWithinDays(2)) {
+            return 'Expiring soon';
+        }
+
+        return 'Active';
+    }
+
+    // ── End subscription helpers ──────────────────────────────
+
     protected static function booted()
     {
         static::creating(function ($restaurant) {
             if (!$restaurant->slug) {
                 $restaurant->slug = static::generateUniqueSlug($restaurant->name);
+            }
+
+            // Grant a free 1-month subscription to new restaurants
+            if (! $restaurant->subscription_ends_at) {
+                $restaurant->subscription_ends_at = now()->addMonth();
             }
         });
 

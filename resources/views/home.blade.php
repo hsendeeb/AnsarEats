@@ -177,7 +177,7 @@
                                 </div>
 
                                 <button type="button" @click="search()" aria-label="Search restaurants"
-                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-2xl text-gray-900 dark:text-white hover:text-emerald-500 transition-colors duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-2xl text-emerald-500 dark:text-emerald-300 hover:text-emerald-500 transition-colors duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                     :disabled="!query.trim().length">
                                     <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"

@@ -227,7 +227,7 @@
     </div>
     
     <!-- Navigation -->
-    <nav x-data="{ mobileMenuOpen: false }" x-effect="document.documentElement.classList.toggle('overflow-hidden', mobileMenuOpen); document.body.classList.toggle('overflow-hidden', mobileMenuOpen);" class="bg-white/80 dark:bg-gray-900/95 backdrop-blur-xl sticky top-0 z-50 shadow-sm border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
+    <nav x-data="{ mobileMenuOpen: false }" x-effect="document.documentElement.classList.toggle('overflow-hidden', mobileMenuOpen); document.body.classList.toggle('overflow-hidden', mobileMenuOpen);" class="hidden md:block bg-white/80 dark:bg-gray-900/95 backdrop-blur-xl sticky top-0 z-50 shadow-sm border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20">
                 <div class="flex items-center">
@@ -478,6 +478,17 @@
             </div>
         </div>
     </nav>
+
+    @unless(View::hasSection('hideCart'))
+        <div class="md:hidden sticky top-0 z-[120] bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-100 dark:border-gray-800 px-3 py-1.5 flex justify-end">
+            <div x-data="navCart" @cart-updated.window="updateFromEvent($event)">
+                <button @click="$dispatch('toggle-cart')" class="relative h-9 w-9 flex items-center justify-center text-gray-700 dark:text-gray-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <span x-show="count > 0" x-transition class="absolute -top-1 -right-1 bg-emerald-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center" x-text="count"></span>
+                </button>
+            </div>
+        </div>
+    @endunless
 
     <!-- Bottom Navigation (Mobile) -->
     <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 z-[100] pb-3 pt-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-black/20">

@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('hideFooter', '1')
+@section('hideCart', '1')
 
 @section('skeleton')
 <div class="min-h-[100svh] bg-white dark:bg-gray-950 mt-5">

@@ -648,7 +648,7 @@
 
             <div class="flex flex-col lg:flex-row gap-10" x-data="{ isStuck: false }" @scroll.window="isStuck = window.pageYOffset > 400">
                 <!-- Sidebar / Mobile Tabs Navigation -->
-                <div class="w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] lg:w-1/4 sticky top-20 lg:top-28 z-[45] bg-white dark:bg-[#0b0f1a] backdrop-blur-md lg:bg-transparent lg:dark:bg-transparent lg:backdrop-blur-none transition-all duration-300 -mx-4 sm:-mx-6 lg:mx-0 px-4 sm:px-6 lg:px-0 border-b border-gray-100 dark:border-gray-800 lg:border-none"
+                <div class="w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] lg:w-1/4 sticky top-16 lg:top-20 z-[45] bg-white dark:bg-[#0b0f1a] backdrop-blur-md lg:bg-transparent lg:dark:bg-transparent lg:backdrop-blur-none transition-all duration-300 -mx-4 sm:-mx-6 lg:mx-0 px-4 sm:px-6 lg:px-0 border-b border-gray-100 dark:border-gray-800 lg:border-none"
                      :class="isStuck ? 'shadow-md shadow-gray-900/5 dark:shadow-black/20' : 'shadow-none'">
                     <div class="lg:bg-white lg:dark:bg-gray-800/50 lg:border border-gray-100 dark:border-gray-800 lg:rounded-3xl p-0 lg:p-6 shadow-none transition-all duration-300">
                         <h3 class="hidden lg:block font-black text-2xl outfit text-gray-900 dark:text-white mb-6">Menu</h3>
@@ -716,7 +716,7 @@
                 <div class="w-full lg:w-3/4 space-y-10">
                     <!-- Menu Sections -->
                     @forelse($restaurant->menuCategories as $category)
-                        <div id="category-{{ $category->id }}" class="mb-16 scroll-mt-36 lg:scroll-mt-28">
+                        <div id="category-{{ $category->id }}" class="mb-16 scroll-mt-32 lg:scroll-mt-24">
                             <h2 class="text-3xl font-black outfit text-gray-900 dark:text-white mb-8 pb-4 border-b-2 border-dashed border-gray-200 dark:border-gray-800">
                                 {{ $category->name }}
                             </h2>

@@ -52,10 +52,10 @@ Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showRese
 Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 
 Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])
-    ->whereIn('provider', ['google', 'facebook'])
+    ->whereIn('provider', ['google'])
     ->name('social.redirect');
 Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback'])
-    ->whereIn('provider', ['google', 'facebook'])
+    ->whereIn('provider', ['google'])
     ->name('social.callback');
 
 // Cart routes (public — guests can use the cart)

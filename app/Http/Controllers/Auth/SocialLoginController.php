@@ -30,6 +30,8 @@ class SocialLoginController extends Controller
 
     public function callback(Request $request, string $provider): RedirectResponse
     {
+        $guestCart = $request->session()->get('cart');
+
         try {
             $socialUser = Socialite::driver($provider)->stateless()->user();
             $user = $this->resolveUser($provider, $socialUser);
@@ -46,8 +48,13 @@ class SocialLoginController extends Controller
                 ]);
         }
 
-        $request->session()->regenerate();
         Auth::login($user, true);
+        $request->session()->regenerate();
+
+        if (! empty($guestCart)) {
+            $request->session()->put('cart', $guestCart);
+        }
+
         $request->session()->save();
 
         return redirect()->intended($this->redirectPathFor($user));
@@ -129,7 +136,6 @@ class SocialLoginController extends Controller
     {
         return match ($provider) {
             'google' => 'google_id',
-            'facebook' => 'facebook_id',
             default => throw new \InvalidArgumentException('Unsupported provider.'),
         };
     }

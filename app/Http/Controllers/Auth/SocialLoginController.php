@@ -147,7 +147,7 @@ class SocialLoginController extends Controller
         }
 
         if ($user->role === 'owner') {
-            return 'owner/dashboard';
+            return route('owner.dashboard');
         }
 
         return '/';

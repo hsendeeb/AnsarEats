@@ -32,7 +32,7 @@ class LoginController extends Controller
             }
 
             if ($user?->role === 'owner') {
-                return redirect()->intended('owner/dashboard');
+                return redirect()->intended(route('owner.dashboard'));
             }
 
             return redirect()->intended('/');

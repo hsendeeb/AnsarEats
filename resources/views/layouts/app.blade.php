@@ -518,7 +518,13 @@
 
             <!-- Account -->
             <a href="{{ auth()->check() ? route('profile.account') : route('login') }}" class="flex-1 flex flex-col items-center justify-center p-2 {{ request()->routeIs('profile.account') || request()->routeIs('profile.show') || request()->routeIs('login') ? 'text-emerald-500' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-colors' }}">
-                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                @auth
+                    <div class="w-6 h-6 mb-1 rounded-full bg-emerald-500 text-white text-[11px] font-black flex items-center justify-center uppercase">
+                        {{ mb_substr(auth()->user()->name, 0, 1) }}
+                    </div>
+                @else
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                @endauth
                 <span class="text-[10px] font-bold">Account</span>
             </a>
         </div>

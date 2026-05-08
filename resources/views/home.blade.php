@@ -71,6 +71,33 @@
                 transition: none;
             }
         }
+
+        .placeholder-ticker-container {
+            position: absolute;
+            left: 3rem;
+            right: 3rem;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 1.5rem;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .placeholder-slide-up-enter-active,
+        .placeholder-slide-up-leave-active {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .placeholder-slide-up-enter-from {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+
+        .placeholder-slide-up-leave-to {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
     </style>
     <div class="relative bg-white dark:bg-gray-900 transition-colors pt-6 md:pt-8 pb-0 overflow-x-clip z-[30]">
         <div class="container mx-auto px-4 relative z-10">
@@ -107,19 +134,50 @@
                                 } finally {
                                     this.loading = false;
                                 }
+                            },
+                            ticker: [
+                                'Search &quot;Burgers&quot;',
+                                'Search &quot;Desserts&quot;',
+                                'Search &quot;Pizza&quot;',
+                                'Search &quot;Sushi&quot;',
+                                'Search &quot;Tacos&quot;',
+                                'Search &quot;Pasta&quot;',
+                                'Search &quot;Ice Cream&quot;'
+                            ],
+                            tickerIndex: 0,
+                            init() {
+                                setInterval(() => {
+                                    this.tickerIndex = (this.tickerIndex + 1) % this.ticker.length;
+                                }, 3000);
                             }
                          }" @click.away="show = false">
 
                         <div class="relative w-full group">
                             <!-- Search Input -->
-                            <div class="relative">
+                             <div class="relative flex items-center">
                                 <input type="text" x-model="query" name="q" @input.debounce.300ms="fetchSuggestions()"
                                     @focus="if(query.length >= 2) show = true" @keydown.enter.prevent="search()"
-                                    placeholder="What are you eating today?"
-                                    class="w-full pl-12 pr-12 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-emerald-500/20 rounded-lg font-bold text-gray-900 dark:text-white placeholder-gray-400 shadow-sm transition-all">
+                                    placeholder=""
+                                    class="w-full pl-12 pr-12 py-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-emerald-500/20 rounded-2xl font-bold text-gray-900 dark:text-white placeholder-transparent shadow-sm transition-all text-lg">
+
+                                <!-- Animated Placeholder -->
+                                <div class="placeholder-ticker-container" x-show="!query.length">
+                                    <template x-for="(text, index) in ticker" :key="index">
+                                        <div x-show="tickerIndex === index"
+                                            x-transition:enter="placeholder-slide-up-enter-active"
+                                            x-transition:enter-start="placeholder-slide-up-enter-from"
+                                            x-transition:enter-end="opacity-100 translate-y-0"
+                                            x-transition:leave="placeholder-slide-up-leave-active"
+                                            x-transition:leave-start="opacity-100 translate-y-0"
+                                            x-transition:leave-end="placeholder-slide-up-leave-to"
+                                            class="absolute inset-0 flex items-center text-gray-400 font-bold text-lg whitespace-nowrap">
+                                            <span x-text="text"></span>
+                                        </div>
+                                    </template>
+                                </div>
 
                                 <button type="button" @click="search()" aria-label="Search restaurants"
-                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-2xl text-gray-400 hover:text-emerald-500 transition-colors duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-2xl text-gray-900 dark:text-white hover:text-emerald-500 transition-colors duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                     :disabled="!query.trim().length">
                                     <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"

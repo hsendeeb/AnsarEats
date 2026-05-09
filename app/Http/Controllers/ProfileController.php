@@ -169,7 +169,7 @@ class ProfileController extends Controller
 
     public function destroyLocation(UserLocation $location)
     {
-        if ($location->user_id !== Auth::id()) {
+        if ($location->user_id != Auth::id()) {
             abort(403);
         }
 
@@ -194,7 +194,7 @@ class ProfileController extends Controller
 
     public function setDefaultLocation(UserLocation $location)
     {
-        if ($location->user_id !== Auth::id()) {
+        if ($location->user_id != Auth::id()) {
             abort(403);
         }
 

@@ -542,7 +542,7 @@
                      :class="{ 'is-visible': shown }">
 
                     <div class="max-w-7xl mx-auto px-4 mb-10 text-left ">
-                        <h2 class="text-3xl md:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">Most Ordered</h2>
+                        <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">Most Ordered</h2>
                     </div>
 
                     <div x-data="{

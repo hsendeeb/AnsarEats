@@ -1,30 +1,14 @@
 @extends('layouts.app')
 
 @section('skeleton')
-<!-- Header Area -->
-<div class="bg-white py-12 border-b border-gray-50">
-    <div class="container mx-auto px-4">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 h-[66px]">
-            <div></div> <!-- Spacer -->
-            <div class="bg-gray-100 p-2 rounded-[2.5rem] border border-gray-200 animate-pulse flex items-center min-w-[300px] h-16">
-                <!-- Status icon placeholder -->
-                <div class="w-12 h-12 bg-gray-200 rounded-2xl flex-shrink-0 animate-pulse"></div>
-                <!-- Status text placeholder -->
-                <div class="flex-1 px-4 space-y-2">
-                    <div class="w-16 h-2 bg-gray-200 rounded animate-pulse"></div>
-                    <div class="w-24 h-3 bg-gray-200 rounded animate-pulse"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <!-- Main Area -->
-<div class="py-12 bg-gray-50 min-h-screen">
+<div class="pt-6 pb-12 bg-gray-50 min-h-screen">
     <div class="container mx-auto px-4">
         <!-- Top Filters Bar -->
-        <div class="mb-12 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 overflow-visible h-5">
-            <div></div> <!-- Spacer -->
+        <div class="mb-8 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 overflow-visible h-5">
+            <div class="w-32 h-4 bg-gray-200 rounded animate-pulse"></div> <!-- Count Skeleton -->
             <div class="flex w-full md:w-auto items-center justify-end gap-4 md:gap-6 overflow-visible relative">
                 <!-- Sort fake button -->
                 <div class="flex items-center gap-2">
@@ -58,26 +42,7 @@
 @endsection
 
 @section('content')
-<div class="bg-white py-12 border-b border-gray-50">
-    <div class="container mx-auto px-4">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-8">
-
-           
-            
-            <div class="bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center min-w-[300px]">
-                <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-500 shadow-sm">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                </div>
-                <div class="flex-1 px-4">
-                    <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Status</p>
-                    <p class="text-sm font-bold text-gray-900">{{ $restaurants->total() }} places found</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="py-12 bg-gray-50 min-h-screen">
+<div class="pt-6 pb-12 bg-gray-50 min-h-screen">
     <div class="container mx-auto px-4">
         @php
             $activeSort = in_array($currentSort ?? request('sort'), ['rating_desc', 'rating_asc'], true)
@@ -94,7 +59,10 @@
         @endphp
 
         <!-- Top Filters Bar -->
-        <div class="mb-12 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 overflow-visible">
+        <div class="mb-8 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 overflow-visible">
+            <div class="text-sm font-bold text-gray-400">
+                {{ $restaurants->total() }} {{ $restaurants->total() === 1 ? 'place' : 'places' }} found
+            </div>
             <div class="flex w-full md:w-auto items-center justify-end gap-4 md:gap-6 overflow-visible relative z-20">
                 <div class="relative" x-data="{ open: false }" @click.outside="open = false">
                     <button @click="open = !open"

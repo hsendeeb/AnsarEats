@@ -75,8 +75,63 @@
                         Delivery Details
                     </h2>
 
-                    <form method="POST" action="{{ route('checkout.place') }}" class="space-y-5" id="checkoutForm">
+                    <form method="POST" action="{{ route('checkout.place') }}" class="space-y-5" id="checkoutForm"
+                        x-data="{
+                            selectedLocationId: {{ $savedLocations->where('is_default', true)->first()?->id ?? 'null' }},
+                            selectLocation(loc) {
+                                this.selectedLocationId = loc.id;
+                                document.getElementById('delivery_address').value = loc.address || '';
+                                document.getElementById('delivery_latitude').value = loc.latitude || '';
+                                document.getElementById('delivery_longitude').value = loc.longitude || '';
+                            },
+                            clearSelection() {
+                                this.selectedLocationId = null;
+                            }
+                        }">
                         @csrf
+
+                        {{-- Saved Locations Picker --}}
+                        @if($savedLocations->count())
+                        <div class="mb-1">
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-sm font-bold text-gray-700">Saved Addresses</label>
+                                <a href="{{ route('profile.locations') }}" class="text-xs font-bold text-gray-400 hover:text-emerald-500 transition-colors">Manage</a>
+                            </div>
+                            <div class="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+                                @foreach($savedLocations as $loc)
+                                <button type="button"
+                                    x-on:click='selectLocation({!! json_encode(["id" => $loc->id, "address" => $loc->address, "latitude" => $loc->latitude, "longitude" => $loc->longitude]) !!})'
+                                    :class="selectedLocationId === {{ $loc->id }}
+                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
+                                        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50 text-gray-700'"
+                                    class="flex-shrink-0 flex items-center gap-2.5 px-4 py-3 rounded-2xl border transition-all cursor-pointer group">
+                                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors"
+                                        :class="selectedLocationId === {{ $loc->id }}
+                                            ? 'bg-emerald-100 text-emerald-600'
+                                            : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200 group-hover:text-gray-500'">
+                                        @if(str_contains(strtolower($loc->alias), 'home'))
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                                        @elseif(str_contains(strtolower($loc->alias), 'work') || str_contains(strtolower($loc->alias), 'office'))
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                        @else
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                        @endif
+                                    </div>
+                                    <div class="text-left min-w-0">
+                                        <p class="text-sm font-extrabold truncate">{{ $loc->alias }}</p>
+                                        <p class="text-[11px] font-medium truncate max-w-[140px]"
+                                            :class="selectedLocationId === {{ $loc->id }} ? 'text-emerald-500' : 'text-gray-400'">
+                                            {{ Str::limit($loc->address ?: ($loc->latitude . ', ' . $loc->longitude), 28) }}
+                                        </p>
+                                    </div>
+                                    @if($loc->is_default)
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" title="Default"></span>
+                                    @endif
+                                </button>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
 
                         <div class="group">
                             <div class="flex items-center justify-between gap-3 mb-2">
@@ -93,12 +148,13 @@
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                                 </div>
                                 <input id="delivery_address" name="delivery_address" type="text" required value="{{ old('delivery_address', $checkoutDefaults['delivery_address']) }}"
+                                    @input="clearSelection()"
                                     class="block w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
                                     placeholder="Hamra Street, Building 42, 3rd Floor">
                                 <input id="delivery_latitude" name="delivery_latitude" type="hidden" value="{{ old('delivery_latitude', $checkoutDefaults['delivery_latitude']) }}">
                                 <input id="delivery_longitude" name="delivery_longitude" type="hidden" value="{{ old('delivery_longitude', $checkoutDefaults['delivery_longitude']) }}">
                             </div>
-                            <p id="locationHelp" class="text-[11px] font-medium text-gray-400 mt-2">Tip: Using current location will fill coordinates; you can edit to add details.</p>
+                            <p id="locationHelp" class="text-[11px] font-medium text-gray-400 mt-2">Tip: Pick a saved address above or use GPS to auto-fill.</p>
                             @error('delivery_address')
                                 <p class="text-red-500 text-sm mt-2 font-bold">{{ $message }}</p>
                             @enderror
@@ -245,7 +301,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" form="checkoutForm" class="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] text-lg flex items-center justify-center gap-2">
+                    <button type="submit" form="checkoutForm" class="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-2xl  hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] text-lg flex items-center justify-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Place Order
                     </button>

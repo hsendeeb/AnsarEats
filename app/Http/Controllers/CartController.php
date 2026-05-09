@@ -390,8 +390,9 @@ class CartController extends Controller
         }
 
         $checkoutDefaults = $this->checkoutDefaults();
+        $savedLocations = Auth::user()->locations()->orderByDesc('is_default')->orderBy('alias')->get();
 
-        return view('checkout', compact('cart', 'checkoutDefaults'));
+        return view('checkout', compact('cart', 'checkoutDefaults', 'savedLocations'));
     }
 
     /**

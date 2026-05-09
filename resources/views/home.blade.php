@@ -355,9 +355,9 @@
                 <div>
                     <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">Trending Spots</h2>
                 </div>
-                <a href="{{ route('restaurants.index') }}" class="inline-flex font-bold text-emerald-600 hover:text-emerald-500 items-center gap-1.5 group transition-all text-sm md:text-base">
-                    <span>View all</span>
-                    <svg class="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                <a href="{{ route('restaurants.index') }}" class="inline-flex items-center transition-all text-sm md:text-base">
+                    
+                    <svg class="w-7 h-7 md:w-7 md:h-7 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                 </a>
             </div>
 

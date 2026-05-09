@@ -1,6 +1,6 @@
 <div x-data="cartDrawer" @toggle-cart.window="open = !open" @cart-updated.window="updateFromEvent($event)">
     <!-- Floating Cart Button (Mobile) -->
-    <div x-show="cart.count > 0 && !open && !window.location.pathname.includes('/checkout') && !window.location.pathname.includes('/order-confirmation')"
+    <div x-show="cart.count > 0 && !open && !window.location.pathname.includes('/checkout') && !window.location.pathname.includes('/order-confirmation') && !window.location.pathname.includes('/profile') && !window.location.pathname.includes('/account') && !window.location.pathname.includes('/locations')"
         x-transition:enter="transition ease-out duration-300 transform"
         x-transition:enter-start="translate-y-20 opacity-0" x-transition:enter-end="translate-y-0 opacity-100"
         x-transition:leave="transition ease-in duration-200 transform"
@@ -140,7 +140,7 @@
                             x-text="cart.total.toFixed(2)"></span></span>
                 </div>
                 <a href="{{ route('checkout') }}" @click="open = false"
-                    class="block w-full text-center py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] text-lg">
+                    class="block w-full text-center py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-2xl hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] text-lg">
                     Checkout →
                 </a>
             </div>

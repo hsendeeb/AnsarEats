@@ -17,7 +17,7 @@
 
     <!-- Preferences -->
     <div class="w-24 h-3 bg-gray-200 dark:bg-gray-800 rounded mb-4 ml-2 animate-pulse"></div>
-    <div class="w-full h-[90px] bg-gray-100 dark:bg-gray-800 rounded-3xl mb-8 animate-pulse border border-gray-200 dark:border-gray-700"></div>
+    <div class="w-full h-[170px] bg-gray-100 dark:bg-gray-800 rounded-3xl mb-8 animate-pulse border border-gray-200 dark:border-gray-700"></div>
 
     <!-- Legal -->
     <div class="w-28 h-3 bg-gray-200 dark:bg-gray-800 rounded mb-4 ml-2 animate-pulse"></div>
@@ -115,6 +115,32 @@
                         :class="$store.darkMode.on ? 'translate-x-5' : 'translate-x-0'"></span>
                 </button>
             </div>
+
+            {{-- Saved Locations --}}
+            <a href="{{ route('profile.locations') }}"
+                class="flex items-center justify-between p-5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer group">
+                <div class="flex items-center gap-4">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-500/10 text-teal-500 dark:text-teal-400 flex items-center justify-center group-hover:scale-105 transition-transform border border-teal-100/50 dark:border-teal-500/20">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 dark:text-white text-lg">My Locations</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">Manage saved delivery addresses</p>
+                    </div>
+                </div>
+                <div
+                    class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-700 text-gray-400 dark:text-gray-500 flex items-center justify-center group-hover:bg-teal-50 dark:group-hover:bg-teal-500/20 group-hover:text-teal-500 transition-colors border border-gray-100 dark:border-gray-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            </a>
         </div>
 
         <!-- Legal Section -->

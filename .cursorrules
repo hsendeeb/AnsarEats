@@ -1,0 +1,3 @@
+# Design and Styling Rules
+
+- **Buttons**: Never use shadows (e.g., `shadow-sm`, `shadow-md`, `shadow-lg`, etc.) for buttons. Buttons should have a flat design without drop shadows.

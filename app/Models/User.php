@@ -92,6 +92,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(RestaurantCustomerBlock::class);
     }
 
+    public function locations()
+    {
+        return $this->hasMany(UserLocation::class);
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         return $this->role === 'super_admin';

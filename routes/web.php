@@ -126,4 +126,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/orders', [ProfileController::class, 'orders'])->name('profile.orders');
     Route::post('/orders/clear', [ProfileController::class, 'clearHistory'])->name('profile.clear');
+
+    // Saved Locations
+    Route::get('/locations', [ProfileController::class, 'locations'])->name('profile.locations');
+    Route::post('/locations', [ProfileController::class, 'storeLocation'])->name('profile.locations.store');
+    Route::put('/locations/{location}', [ProfileController::class, 'updateLocation'])->name('profile.locations.update');
+    Route::delete('/locations/{location}', [ProfileController::class, 'destroyLocation'])->name('profile.locations.destroy');
+    Route::post('/locations/{location}/default', [ProfileController::class, 'setDefaultLocation'])->name('profile.locations.default');
 });

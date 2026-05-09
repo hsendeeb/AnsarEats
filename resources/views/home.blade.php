@@ -23,20 +23,38 @@
         </div>
 
         <!-- Trending Spots Grid Skeleton -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 px-4">
-            @for ($i = 0; $i < 3; $i++)
-                <div
-                    class="bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-50 dark:border-gray-800 overflow-hidden animate-pulse shadow-sm">
-                    <div class="h-48 bg-gray-100 dark:bg-gray-700 w-full"></div>
-                    <div class="p-6 space-y-4">
-                        <div class="h-6 bg-gray-100 dark:bg-gray-700 rounded-xl w-3/4"></div>
-                        <div class="space-y-2">
-                            <div class="h-3 bg-gray-100 dark:bg-gray-700 rounded-lg w-full"></div>
-                            <div class="h-3 bg-gray-100 dark:bg-gray-700 rounded-lg w-5/6"></div>
+        <div class="mb-16 px-4">
+            <!-- Mobile Skeleton (Matches Swiper layout) -->
+            <div class="flex md:hidden gap-3 overflow-hidden">
+                @for ($i = 0; $i < 2; $i++)
+                    <div class="flex-1 bg-white dark:bg-gray-800 rounded-3xl border border-gray-50 dark:border-gray-800 overflow-hidden animate-pulse shadow-sm">
+                        <div class="h-32 bg-gray-100 dark:bg-gray-700 w-full"></div>
+                        <div class="p-4 space-y-3">
+                            <div class="h-5 bg-gray-100 dark:bg-gray-700 rounded-lg w-3/4"></div>
+                            <div class="space-y-2 mt-2">
+                                <div class="h-2 bg-gray-100 dark:bg-gray-700 rounded-lg w-full"></div>
+                                <div class="h-2 bg-gray-100 dark:bg-gray-700 rounded-lg w-5/6"></div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            @endfor
+                @endfor
+            </div>
+
+            <!-- Desktop Skeleton (Matches Grid layout) -->
+            <div class="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                @for ($i = 0; $i < 3; $i++)
+                    <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-50 dark:border-gray-800 overflow-hidden animate-pulse shadow-md">
+                        <div class="h-48 bg-gray-100 dark:bg-gray-700 w-full"></div>
+                        <div class="p-6 space-y-4">
+                            <div class="h-6 bg-gray-100 dark:bg-gray-700 rounded-xl w-3/4"></div>
+                            <div class="space-y-2">
+                                <div class="h-3 bg-gray-100 dark:bg-gray-700 rounded-lg w-full"></div>
+                                <div class="h-3 bg-gray-100 dark:bg-gray-700 rounded-lg w-5/6"></div>
+                            </div>
+                        </div>
+                    </div>
+                @endfor
+            </div>
         </div>
     </div>
 @endsection

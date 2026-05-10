@@ -1,13 +1,15 @@
-<div x-data="cartDrawer" @toggle-cart.window="open = !open" @cart-updated.window="updateFromEvent($event)">
+<div x-data="cartDrawer" @toggle-cart.window="open = !open" @cart-updated.window="updateFromEvent($event)"
+    @scroll.window.throttle.50ms="handleScroll()">
     <!-- Floating Cart Button (Mobile) -->
-    <div x-show="cart.count > 0 && !open && !window.location.pathname.includes('/checkout') && !window.location.pathname.includes('/order-confirmation') && !window.location.pathname.includes('/profile') && !window.location.pathname.includes('/account') && !window.location.pathname.includes('/locations')"
+    <div x-show="cart.count > 0 && !open && isVisible && !window.location.pathname.includes('/checkout') && !window.location.pathname.includes('/order-confirmation') && !window.location.pathname.includes('/profile') && !window.location.pathname.includes('/account') && !window.location.pathname.includes('/locations')"
         x-transition:enter="transition ease-out duration-300 transform"
         x-transition:enter-start="translate-y-20 opacity-0" x-transition:enter-end="translate-y-0 opacity-100"
         x-transition:leave="transition ease-in duration-200 transform"
         x-transition:leave-start="translate-y-0 opacity-100" x-transition:leave-end="translate-y-20 opacity-0"
         class="fixed bottom-24 inset-x-4 z-[1000] md:hidden" x-cloak>
         <button @click="open = true"
-            class="w-full bg-emerald-500 text-white px-6 h-14 flex items-center justify-between rounded-xl font-black outfit tracking-widest text-sm cursor-pointer hover:bg-emerald-600 transition-colors duration-200">
+            :class="{ 'animate-cart-pulse shadow-[0_20px_50px_rgba(16,185,129,0.4)] bg-emerald-400': pulsing }"
+            class="w-full bg-emerald-500 text-white px-6 h-14 flex items-center justify-between rounded-xl font-black outfit tracking-widest text-sm cursor-pointer hover:bg-emerald-600 transition-all duration-300 transform active:scale-95">
             <div class="w-10"></div> <!-- Left spacer -->
             <div class="flex-1 text-center">VIEW CART</div>
             <div class="text-base" x-text="'$' + (cart.total || 0).toFixed(2)"></div>

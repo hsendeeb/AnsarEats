@@ -104,7 +104,7 @@
                                     :class="selectedLocationId === {{ $loc->id }}
                                         ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
                                         : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50 text-gray-700'"
-                                    class="flex-shrink-0 flex items-center gap-2.5 px-4 py-3 rounded-2xl border transition-all cursor-pointer group">
+                                    class="flex-shrink-0 flex items-center gap-4 px-4 py-3 rounded-2xl border transition-all cursor-pointer group">
                                     <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors"
                                         :class="selectedLocationId === {{ $loc->id }}
                                             ? 'bg-emerald-100 text-emerald-600'

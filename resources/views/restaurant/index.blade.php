@@ -93,7 +93,7 @@
                         </a>
                         <a href="{{ route('restaurants.index', array_filter($sortBaseParams + ['sort' => 'rating_asc'])) }}"
                            class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ $activeSort === 'rating_asc' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-600 hover:bg-gray-50' }}">
-                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7l5 3-1 5.5 4 4.5-5.6.8L12 20l-2.4-5.2L4 14l4-4.5L7 4l5 3z"></path></svg>
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>
                             Lowest Rated
                             @if($activeSort === 'rating_asc')
                                 <svg class="w-4 h-4 ml-auto text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>

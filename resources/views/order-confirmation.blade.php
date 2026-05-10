@@ -57,7 +57,7 @@
                 class="bg-white rounded-[2rem] border border-gray-100 overflow-hidden">
                 <!-- Header -->
                 <div class="bg-white p-10 text-center relative overflow-hidden border-b border-gray-100">
-                    <div class="w-48 h-48 mx-auto flex items-center justify-center mb-6">
+                    <div class="w-48 h-48 mx-auto flex items-center justify-center mb-6 rounded-full border-4 border-gray-50 bg-white overflow-hidden">
                         <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script>
                         
                         <template x-if="status === 'delivered'">

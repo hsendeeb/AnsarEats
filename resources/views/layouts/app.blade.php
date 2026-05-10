@@ -31,18 +31,14 @@
             overflow: hidden;
         }
 
-        @keyframes cartZoom {
-            0% {
-                transform: scale(1);
-            }
-
-            100% {
-                transform: scale(1.06);
-            }
+        @keyframes cartPulseSmooth {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
-        .animate-cart-zoom {
-            animation: cartZoom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        .animate-cart-pulse-smooth {
+            animation: cartPulseSmooth 0.8s ease-in-out;
         }
     </style>
 

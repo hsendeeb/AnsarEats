@@ -124,6 +124,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/account', [ProfileController::class, 'account'])->name('profile.account');
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/password', [ProfileController::class, 'password'])->name('profile.password');
+    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     Route::get('/orders', [ProfileController::class, 'orders'])->name('profile.orders');
     Route::post('/orders/clear', [ProfileController::class, 'clearHistory'])->name('profile.clear');
 

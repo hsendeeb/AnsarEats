@@ -56,8 +56,8 @@
                         Send Reset Link
                     </button>
                     
-                    <a href="{{ route('login') }}" class="flex h-12 w-full items-center justify-center rounded-2xl border border-gray-200 text-sm font-bold text-gray-500 transition hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50">
-                        Back to Login
+                    <a href="{{ auth()->check() ? route('profile.account') : route('login') }}" class="flex h-12 w-full items-center justify-center rounded-2xl border border-gray-200 text-sm font-bold text-gray-500 transition hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50">
+                        {{ auth()->check() ? 'Back to Account' : 'Back to Login' }}
                     </a>
                 </div>
             </form>

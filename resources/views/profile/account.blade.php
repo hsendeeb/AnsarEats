@@ -57,7 +57,7 @@
                 class="flex items-center justify-between p-5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer group">
                 <div class="flex items-center gap-4">
                     <div
-                        class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 flex items-center justify-center group-hover:scale-105 transition-transform border border-indigo-100/50 dark:border-indigo-500/20">
+                        class="flex h-12 w-12 items-center justify-center text-gray-500 dark:text-gray-400">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
@@ -65,12 +65,33 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-gray-900 dark:text-white text-lg">My Profile</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">Edit personal info,
-                            change password</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">Edit personal info and contact details</p>
                     </div>
                 </div>
                 <div
-                    class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-700 text-gray-400 dark:text-gray-500 flex items-center justify-center group-hover:bg-indigo-50 dark:group-hover:bg-indigo-500/20 group-hover:text-indigo-500 transition-colors border border-gray-100 dark:border-gray-600">
+                    class="flex h-8 w-8 items-center justify-center text-gray-300 dark:text-gray-500 transition-colors group-hover:text-gray-500 dark:group-hover:text-gray-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            </a>
+
+            <a href="{{ route('profile.password') }}"
+                class="flex items-center justify-between p-5 border-t border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer group">
+                <div class="flex items-center gap-4">
+                    <div
+                        class="flex h-12 w-12 items-center justify-center text-gray-500 dark:text-gray-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1V9a5 5 0 00-10 0v2H6a2 2 0 00-2 2v6a2 2 0 002 2zm3-10V9a3 3 0 016 0v2H9z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 dark:text-white text-lg">Change Password</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">Update your account security in a separate screen</p>
+                    </div>
+                </div>
+                <div
+                    class="flex h-8 w-8 items-center justify-center text-gray-300 dark:text-gray-500 transition-colors group-hover:text-gray-500 dark:group-hover:text-gray-300">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
                     </svg>
@@ -87,7 +108,7 @@
             <div class="flex items-center justify-between p-5 border-b border-gray-50 dark:border-gray-700/50">
                 <div class="flex items-center gap-4">
                     <div
-                        class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/10 text-amber-500 dark:text-amber-400 flex items-center justify-center border border-amber-100/50 dark:border-amber-500/20">
+                        class="flex h-12 w-12 items-center justify-center text-gray-500 dark:text-gray-400">
                         <svg x-show="!$store.darkMode.on" class="w-6 h-6" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -111,7 +132,7 @@
                     class="relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
                     :class="$store.darkMode.on ? 'bg-emerald-500' : 'bg-gray-200'">
                     <span
-                        class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                        class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white ring-0 transition duration-200 ease-in-out"
                         :class="$store.darkMode.on ? 'translate-x-5' : 'translate-x-0'"></span>
                 </button>
             </div>
@@ -121,7 +142,7 @@
                 class="flex items-center justify-between p-5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer group">
                 <div class="flex items-center gap-4">
                     <div
-                        class="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-500/10 text-teal-500 dark:text-teal-400 flex items-center justify-center group-hover:scale-105 transition-transform border border-teal-100/50 dark:border-teal-500/20">
+                        class="flex h-12 w-12 items-center justify-center text-gray-500 dark:text-gray-400">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
@@ -135,7 +156,7 @@
                     </div>
                 </div>
                 <div
-                    class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-700 text-gray-400 dark:text-gray-500 flex items-center justify-center group-hover:bg-teal-50 dark:group-hover:bg-teal-500/20 group-hover:text-teal-500 transition-colors border border-gray-100 dark:border-gray-600">
+                    class="flex h-8 w-8 items-center justify-center text-gray-300 dark:text-gray-500 transition-colors group-hover:text-gray-500 dark:group-hover:text-gray-300">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
                     </svg>

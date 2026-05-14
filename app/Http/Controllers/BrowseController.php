@@ -57,6 +57,7 @@ class BrowseController extends Controller
                             ? asset('storage/' . $meal->menuCategory->restaurant->logo)
                             : null,
                         'restaurant_initial' => strtoupper(substr($meal->menuCategory->restaurant->name ?? 'R', 0, 1)),
+                        'restaurant_is_open_now' => (bool) ($meal->menuCategory->restaurant?->isOpenNow()),
                         'url'             => route('restaurant.show', $meal->menuCategory->restaurant),
                         'is_featured'     => $meal->is_featured,
                         'variants'        => $meal->variants ?? [],

@@ -43,6 +43,13 @@ class ProfileController extends Controller
         ]);
     }
 
+    public function password()
+    {
+        return view('profile.password', [
+            'user' => Auth::user(),
+        ]);
+    }
+
     public function update(Request $request)
     {
         $user = Auth::user();
@@ -68,10 +75,9 @@ class ProfileController extends Controller
 
                     if ($exists) {
                         $fail('This phone number is already used by another customer.');
-                    }
+                }
                 },
             ],
-            'password' => 'nullable|string|min:8|confirmed',
         ], [
             'phone.unique' => 'This phone number is already used by another customer.',
         ]);
@@ -80,13 +86,23 @@ class ProfileController extends Controller
         $user->email = $request->email;
         $user->phone = $request->input('phone');
 
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
-        }
-
         $user->save();
 
         return back()->with('success', 'Profile updated successfully!');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return back()->with('success', 'Password updated successfully!');
     }
 
     // ── Location Management ─────────────────────────────────────────
@@ -269,4 +285,3 @@ class ProfileController extends Controller
         return back()->with('success', 'Order history cleared!');
     }
 }
-

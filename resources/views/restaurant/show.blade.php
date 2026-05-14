@@ -591,6 +591,18 @@
             @endif
             <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/50 to-transparent"></div>
 
+            <div class="absolute top-4 left-4 sm:top-6 sm:left-6 lg:left-8 z-30">
+                <button
+                    type="button"
+                    aria-label="Go back"
+                    onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '{{ route('restaurants.index') }}'; }"
+                    class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/70 text-gray-900 backdrop-blur-md shadow-lg shadow-black/20 transition-all duration-300 hover:bg-white/85">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+            </div>
+
             <div class="absolute bottom-0 left-0 w-full px-4 sm:px-6 lg:px-8 pb-6 md:pb-8 max-w-7xl mx-auto flex flex-row items-center gap-4 md:gap-6">
                 <div class="flex-shrink-0 relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-40 lg:h-40 bg-white dark:bg-gray-800 rounded-2xl md:rounded-3xl p-1.5 md:p-2 shadow-2xl z-20 border-2 md:border-4 border-white dark:border-gray-800">
                     @if($restaurant->logo)

@@ -688,82 +688,148 @@
     </nav>
 
     <!-- Bottom Navigation (Mobile) -->
-    <div
-        class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 z-[100] pb-3 pt-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-black/20">
-        <div class="flex w-full px-2">
+    @php
+        $mobileBottomNavActive = '';
+
+        if (request()->is('/')) {
+            $mobileBottomNavActive = 'home';
+        } elseif (request()->routeIs('restaurants.index') || request()->routeIs('restaurant.show')) {
+            $mobileBottomNavActive = 'explore';
+        } elseif (request()->routeIs('profile.orders')) {
+            $mobileBottomNavActive = 'orders';
+        } elseif (auth()->check() && auth()->user()->role !== 'super_admin' && auth()->user()->restaurant && request()->routeIs('owner.dashboard')) {
+            $mobileBottomNavActive = 'dashboard';
+        } elseif (request()->routeIs('partner.with.us')) {
+            $mobileBottomNavActive = 'partner';
+        } elseif (request()->routeIs('profile.account') || request()->routeIs('profile.show') || request()->routeIs('login')) {
+            $mobileBottomNavActive = 'account';
+        }
+    @endphp
+    <div x-data="mobileBottomNav('{{ $mobileBottomNavActive }}')"
+        class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 z-[100] pb-3 pt-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-black/20">
+        <div x-ref="nav" class="relative flex w-full px-2.5">
+            <div aria-hidden="true"
+                class="pointer-events-none absolute left-0 top-0 z-0 rounded-full bg-emerald-100 shadow-[0_10px_24px_rgba(16,185,129,0.14)] ease-out dark:bg-emerald-500/18"
+                :class="indicatorReady ? 'transition-all duration-300' : 'transition-none'"
+                :style="indicatorStyle"></div>
             <!-- Home -->
             <a href="{{ url('/') }}"
-                class="flex-1 flex flex-col items-center justify-center p-2 {{ request()->is('/') ? 'text-emerald-500' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-colors' }}">
-                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
-                    </path>
-                </svg>
-                <span class="text-[10px] font-bold">Home</span>
+                data-nav-item="home"
+                @pointerdown="setPendingTab('home')"
+                @focus="setPendingTab('home')"
+                class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
+                :class="activeTab === 'home' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
+                <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
+                    :class="!indicatorReady && activeTab === 'home' ? 'bg-emerald-100 dark:bg-emerald-500/18 shadow-[0_10px_24px_rgba(16,185,129,0.14)]' : ''">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                        </path>
+                    </svg>
+                </span>
+                <span class="text-[10px] font-bold transition-transform duration-300" :class="activeTab === 'home' ? 'scale-100' : 'scale-[0.98]'">Home</span>
             </a>
 
             <!-- Explore -->
             <a href="{{ route('restaurants.index') }}"
-                class="flex-1 flex flex-col items-center justify-center p-2 {{ request()->routeIs('restaurants.index') || request()->routeIs('restaurant.show') ? 'text-emerald-500' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-colors' }}">
-                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z">
-                    </path>
-                </svg>
-                <span class="text-[10px] font-bold">Explore</span>
+                data-nav-item="explore"
+                @pointerdown="setPendingTab('explore')"
+                @focus="setPendingTab('explore')"
+                class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
+                :class="activeTab === 'explore' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
+                <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
+                    :class="!indicatorReady && activeTab === 'explore' ? 'bg-emerald-100 dark:bg-emerald-500/18 shadow-[0_10px_24px_rgba(16,185,129,0.14)]' : ''">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z">
+                        </path>
+                    </svg>
+                </span>
+                <span class="text-[10px] font-bold transition-transform duration-300" :class="activeTab === 'explore' ? 'scale-100' : 'scale-[0.98]'">Explore</span>
             </a>
 
             <!-- Orders -->
             <a href="{{ auth()->check() ? route('profile.orders') : route('login') }}"
-                class="flex-1 flex flex-col items-center justify-center p-2 relative {{ request()->routeIs('profile.orders') ? 'text-emerald-500' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-colors' }}">
-                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
-                    </path>
-                </svg>
+                data-nav-item="orders"
+                @pointerdown="setPendingTab('orders')"
+                @focus="setPendingTab('orders')"
+                class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
+                :class="activeTab === 'orders' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
+                <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
+                    :class="!indicatorReady && activeTab === 'orders' ? 'bg-emerald-100 dark:bg-emerald-500/18 shadow-[0_10px_24px_rgba(16,185,129,0.14)]' : ''">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                        </path>
+                    </svg>
+                </span>
                 @if($hasActiveOrders)
                     <span
                         class="absolute top-2 right-[calc(50%-12px)] w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white"></span>
                 @endif
-                <span class="text-[10px] font-bold">Orders</span>
+                <span class="text-[10px] font-bold transition-transform duration-300" :class="activeTab === 'orders' ? 'scale-100' : 'scale-[0.98]'">Orders</span>
             </a>
 
             <!-- Dashboard / Partner -->
             @if(auth()->check() && auth()->user()->role !== 'super_admin' && auth()->user()->restaurant)
                 <a href="{{ route('owner.dashboard') }}"
-                    class="flex-1 flex flex-col items-center justify-center p-2 {{ request()->routeIs('owner.dashboard') ? 'text-indigo-500' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-colors' }}">
-                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
-                        </path>
-                    </svg>
-                    <span class="text-[10px] font-bold">Dashboard</span>
+                    data-nav-item="dashboard"
+                    @pointerdown="setPendingTab('dashboard')"
+                    @focus="setPendingTab('dashboard')"
+                    class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
+                    :class="activeTab === 'dashboard' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
+                    <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
+                        :class="!indicatorReady && activeTab === 'dashboard' ? 'bg-emerald-100 dark:bg-emerald-500/18 shadow-[0_10px_24px_rgba(16,185,129,0.14)]' : ''">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                            </path>
+                        </svg>
+                    </span>
+                    <span class="text-[10px] font-bold transition-transform duration-300" :class="activeTab === 'dashboard' ? 'scale-100' : 'scale-[0.98]'">Dashboard</span>
                 </a>
             @else
                 <a href="{{ route('partner.with.us') }}"
-                    class="flex-1 flex flex-col items-center justify-center p-2 {{ request()->routeIs('partner.with.us') ? 'text-emerald-500' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-colors' }}">
-                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    <span class="text-[10px] font-bold">Partner</span>
+                    data-nav-item="partner"
+                    @pointerdown="setPendingTab('partner')"
+                    @focus="setPendingTab('partner')"
+                    class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
+                    :class="activeTab === 'partner' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
+                    <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
+                        :class="!indicatorReady && activeTab === 'partner' ? 'bg-emerald-100 dark:bg-emerald-500/18 shadow-[0_10px_24px_rgba(16,185,129,0.14)]' : ''">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                    </span>
+                    <span class="text-[10px] font-bold transition-transform duration-300" :class="activeTab === 'partner' ? 'scale-100' : 'scale-[0.98]'">Partner</span>
                 </a>
             @endif
 
             <!-- Account -->
             <a href="{{ auth()->check() ? route('profile.account') : route('login') }}"
-                class="flex-1 flex flex-col items-center justify-center p-2 {{ request()->routeIs('profile.account') || request()->routeIs('profile.show') || request()->routeIs('login') ? 'text-emerald-500' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-colors' }}">
+                data-nav-item="account"
+                @pointerdown="setPendingTab('account')"
+                @focus="setPendingTab('account')"
+                class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
+                :class="activeTab === 'account' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
                 @auth
-                    <div
-                        class="w-6 h-6 mb-1 rounded-full bg-emerald-500 text-white text-[11px] font-black flex items-center justify-center uppercase">
-                        {{ mb_substr(auth()->user()->name, 0, 1) }}
-                    </div>
+                    <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
+                        :class="!indicatorReady && activeTab === 'account' ? 'bg-emerald-100 dark:bg-emerald-500/18 shadow-[0_10px_24px_rgba(16,185,129,0.14)]' : ''">
+                        <div
+                            class="w-6 h-6 rounded-full bg-emerald-500 text-white text-[11px] font-black flex items-center justify-center uppercase">
+                            {{ mb_substr(auth()->user()->name, 0, 1) }}
+                        </div>
+                    </span>
                 @else
-                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
+                    <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
+                        :class="!indicatorReady && activeTab === 'account' ? 'bg-emerald-100 dark:bg-emerald-500/18 shadow-[0_10px_24px_rgba(16,185,129,0.14)]' : ''">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </span>
                 @endauth
-                <span class="text-[10px] font-bold">Account</span>
+                <span class="text-[10px] font-bold transition-transform duration-300" :class="activeTab === 'account' ? 'scale-100' : 'scale-[0.98]'">Account</span>
             </a>
         </div>
     </div>
@@ -897,6 +963,64 @@
                                 window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
                             }
                         } catch (e) { }
+                    }
+                }));
+            }
+
+            if (!Alpine.data('mobileBottomNav')) {
+                Alpine.data('mobileBottomNav', (initialTab) => ({
+                    activeTab: initialTab,
+                    indicatorStyle: 'opacity: 0;',
+                    indicatorReady: false,
+                    resizeHandler: null,
+                    init() {
+                        this.$nextTick(() => {
+                            this.updateIndicator();
+                            requestAnimationFrame(() => {
+                                this.indicatorReady = true;
+                            });
+                        });
+
+                        this.resizeHandler = () => {
+                            this.updateIndicator();
+                        };
+                        window.addEventListener('resize', this.resizeHandler, { passive: true });
+                    },
+                    setPendingTab(tab) {
+                        if (this.activeTab === tab) return;
+                        this.activeTab = tab;
+                        this.$nextTick(() => {
+                            this.updateIndicator();
+                        });
+                    },
+                    updateIndicator() {
+                        const nav = this.$refs.nav;
+                        if (!nav) {
+                            this.indicatorStyle = 'opacity: 0;';
+                            return;
+                        }
+
+                        const activeItem = nav.querySelector(`[data-nav-item="${this.activeTab}"]`);
+                        if (!activeItem) {
+                            this.indicatorStyle = 'opacity: 0;';
+                            return;
+                        }
+
+                        const activeIcon = activeItem.querySelector('[data-nav-icon]');
+                        if (!activeIcon) {
+                            this.indicatorStyle = 'opacity: 0;';
+                            return;
+                        }
+
+                        const horizontalInset = 2;
+                        const verticalInset = 2;
+
+                        this.indicatorStyle = `opacity: 1; left: ${activeItem.offsetLeft + activeIcon.offsetLeft + horizontalInset}px; top: ${activeItem.offsetTop + activeIcon.offsetTop + verticalInset}px; width: ${Math.max(activeIcon.offsetWidth - (horizontalInset * 2), 0)}px; height: ${Math.max(activeIcon.offsetHeight - (verticalInset * 2), 0)}px;`;
+                    },
+                    destroy() {
+                        if (this.resizeHandler) {
+                            window.removeEventListener('resize', this.resizeHandler);
+                        }
                     }
                 }));
             }

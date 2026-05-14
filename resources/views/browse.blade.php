@@ -34,11 +34,11 @@
                     <button
                         onclick="selectCategory('{{ $cat['slug'] }}')"
                         id="pill-{{ $cat['slug'] }}"
-                        class="category-pill flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-200 border whitespace-nowrap
+                        class="category-pill flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-300 border whitespace-nowrap
                                {{ $category === $cat['slug']
-                                  ? 'bg-emerald-500/10 text-white border-emerald-500'
-                                  : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-400 hover:text-emerald-600 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700' }}">
-                        <span>{{ $cat['emoji'] }}</span>
+                                  ? 'bg-emerald-500 text-white border-emerald-500'
+                                  : 'bg-white/95 text-gray-600 border-gray-200 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50/80 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:border-emerald-500/40 dark:hover:bg-emerald-500/10' }}">
+                        <span class="text-base transition-transform duration-300 {{ $category === $cat['slug'] ? 'scale-110' : '' }}">{{ $cat['emoji'] }}</span>
                         <span>{{ $cat['label'] }}</span>
                     </button>
                     
@@ -199,6 +199,8 @@
                         <div class="flex justify-end mt-3">
                             @if(Auth::id() === ($meal->menuCategory->restaurant->user_id ?? null))
                                 <span class="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 flex-shrink-0 self-end">Own Restaurant</span>
+                            @elseif(!$meal->menuCategory->restaurant->isOpenNow())
+                                <span class="text-xs font-bold text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100 flex-shrink-0 self-end">Closed Now</span>
                             @else
                                 <button @click="browseAddToCart({{ $meal->id }}, currentPrice, $event, currentLabel)"
                                         class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 shadow-sm hover:shadow-lg hover:shadow-emerald-500/30">
@@ -246,12 +248,15 @@
             @endfor
         </div>
 
-        <!-- Load More Button -->
-        <div id="load-more-container" class="mt-12 text-center {{ $items->hasMorePages() ? '' : 'hidden' }}">
-            <button id="load-more-btn" onclick="loadMoreItems()" class="inline-flex items-center gap-2 px-8 py-4 bg-emerald-50 text-emerald-600 font-black rounded-full hover:bg-emerald-500 hover:text-white transition-all shadow-sm hover:shadow-xl hover:shadow-emerald-500/30 group">
-                <span>Load More</span>
-                <svg class="w-5 h-5 group-hover:translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
+        <!-- Infinite Scroll Trigger -->
+        <div id="infinite-scroll-container" class="mt-8 {{ $items->hasMorePages() ? '' : 'hidden' }}">
+            <div id="infinite-scroll-spinner" class="hidden items-center justify-center py-8" aria-live="polite" aria-label="Loading more items">
+                <svg class="h-8 w-8 animate-spin text-emerald-500" viewBox="0 0 24 24" fill="none">
+                    <circle class="opacity-20" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"></circle>
+                    <path class="opacity-90" stroke="currentColor" stroke-linecap="round" stroke-width="3" d="M21 12a9 9 0 0 0-9-9"></path>
+                </svg>
+            </div>
+            <div id="infinite-scroll-trigger" class="h-6 w-full" aria-hidden="true"></div>
         </div>
     </div>
 </div>
@@ -566,6 +571,60 @@
     var NEXT_PAGE_URL = '{{ $items->nextPageUrl() }}';
     var HAS_MORE = {{ $items->hasMorePages() ? 'true' : 'false' }};
     var TOTAL_ITEMS = {{ $items->total() }};
+    var IS_LOADING_MORE = false;
+    var loadMoreObserver = null;
+
+    function setInfiniteScrollLoading(isLoading) {
+        var spinner = document.getElementById('infinite-scroll-spinner');
+        if (!spinner) return;
+
+        spinner.classList.toggle('hidden', !isLoading);
+        spinner.classList.toggle('flex', isLoading);
+    }
+
+    function setInfiniteScrollVisibility() {
+        var container = document.getElementById('infinite-scroll-container');
+        if (!container) return;
+
+        container.classList.toggle('hidden', !HAS_MORE);
+    }
+
+    function maybeLoadMoreOnShortPage() {
+        if (!HAS_MORE || IS_LOADING_MORE) return;
+
+        var trigger = document.getElementById('infinite-scroll-trigger');
+        if (!trigger) return;
+
+        var rect = trigger.getBoundingClientRect();
+        if (rect.top <= window.innerHeight + 120) {
+            loadMoreItems();
+        }
+    }
+
+    function initInfiniteScrollObserver() {
+        var trigger = document.getElementById('infinite-scroll-trigger');
+        if (!trigger || !('IntersectionObserver' in window)) {
+            return;
+        }
+
+        if (loadMoreObserver) {
+            loadMoreObserver.disconnect();
+        }
+
+        loadMoreObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    loadMoreItems();
+                }
+            });
+        }, {
+            root: null,
+            rootMargin: '220px 0px 220px 0px',
+            threshold: 0
+        });
+
+        loadMoreObserver.observe(trigger);
+    }
     
     function selectCategory(slug) {
         if (slug === activeCategory) return;
@@ -573,13 +632,21 @@
 
         // Update pill styles
         document.querySelectorAll('.category-pill').forEach(function(pill) {
-            pill.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-500', 'shadow-lg', 'shadow-emerald-500/25');
-            pill.classList.add('bg-white', 'text-gray-600', 'border-gray-200', 'hover:border-emerald-400', 'hover:text-emerald-600');
+            pill.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-500');
+            pill.classList.add('bg-white/95', 'text-gray-600', 'border-gray-200', 'hover:border-emerald-300', 'hover:text-emerald-600', 'hover:bg-emerald-50/80');
+            var emoji = pill.querySelector('span');
+            if (emoji) {
+                emoji.classList.remove('scale-110');
+            }
         });
         var activePill = document.getElementById('pill-' + slug);
         if (activePill) {
-            activePill.classList.remove('bg-white', 'text-gray-600', 'border-gray-200', 'hover:border-emerald-400', 'hover:text-emerald-600');
-            activePill.classList.add('bg-emerald-500', 'text-white', 'border-emerald-500', 'shadow-lg', 'shadow-emerald-500/25');
+            activePill.classList.remove('bg-white/95', 'text-gray-600', 'border-gray-200', 'hover:border-emerald-300', 'hover:text-emerald-600', 'hover:bg-emerald-50/80');
+            activePill.classList.add('bg-emerald-500', 'text-white', 'border-emerald-500');
+            var activeEmoji = activePill.querySelector('span');
+            if (activeEmoji) {
+                activeEmoji.classList.add('scale-110');
+            }
             activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
 
@@ -591,14 +658,16 @@
         // Show skeleton in place of the grid while the new category loads
         var grid     = document.getElementById('items-grid');
         var skeleton = document.getElementById('loading-skeleton');
-        var loadMoreContainer = document.getElementById('load-more-container');
+        var infiniteScrollContainer = document.getElementById('infinite-scroll-container');
         grid.classList.add('hidden');
         grid.style.opacity = '0';
         grid.style.pointerEvents = 'none';
         skeleton.classList.remove('hidden');
         skeleton.classList.add('grid');
-        if (loadMoreContainer) {
-            loadMoreContainer.classList.add('hidden');
+        IS_LOADING_MORE = false;
+        setInfiniteScrollLoading(false);
+        if (infiniteScrollContainer) {
+            infiniteScrollContainer.classList.add('hidden');
         }
 
         // Fetch items via AJAX
@@ -618,45 +687,42 @@
             grid.classList.remove('hidden');
             grid.style.opacity = '1';
             grid.style.pointerEvents = '';
-            if (loadMoreContainer) {
-                loadMoreContainer.classList.toggle('hidden', !HAS_MORE);
-            }
+            setInfiniteScrollVisibility();
         });
     }
 
     function loadMoreItems() {
-            if (!NEXT_PAGE_URL) return;
+        if (!NEXT_PAGE_URL || IS_LOADING_MORE || !HAS_MORE) return;
 
-            var btn = document.getElementById('load-more-btn');
-            var originalText = btn.innerHTML;
-            btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> <span>Loading...</span>';
-            btn.disabled = true;
+        IS_LOADING_MORE = true;
+        setInfiniteScrollLoading(true);
 
-            fetch(NEXT_PAGE_URL, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-            })
-            .then(function(res) { return res.json(); })
-            .then(function(data) {
-                NEXT_PAGE_URL = data.next_page_url;
-                HAS_MORE = data.has_more;
-                TOTAL_ITEMS = data.total;
-                
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                
-                renderItems(data.items, true);
-            })
-            .catch(function() {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            });
+        fetch(NEXT_PAGE_URL, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            NEXT_PAGE_URL = data.next_page_url;
+            HAS_MORE = data.has_more;
+            TOTAL_ITEMS = data.total;
+            renderItems(data.items, true);
+        })
+        .catch(function() {
+            setInfiniteScrollVisibility();
+        })
+        .finally(function() {
+            IS_LOADING_MORE = false;
+            setInfiniteScrollLoading(false);
+            if (HAS_MORE) {
+                maybeLoadMoreOnShortPage();
+            }
+        });
     }
 
     function renderItems(items, append) {
         var grid     = document.getElementById('items-grid');
         var skeleton = document.getElementById('loading-skeleton');
         var countEl  = document.getElementById('results-count');
-        var loadMoreContainer = document.getElementById('load-more-container');
 
         skeleton.classList.add('hidden');
         skeleton.classList.remove('grid');
@@ -687,14 +753,15 @@
              countEl.textContent = TOTAL_ITEMS;
         }
 
-        if (loadMoreContainer) {
-             loadMoreContainer.classList.toggle('hidden', !HAS_MORE);
-        }
+        setInfiniteScrollVisibility();
+        setInfiniteScrollLoading(false);
+        initInfiniteScrollObserver();
 
         requestAnimationFrame(function() {
             grid.style.transition = 'opacity 0.3s ease';
             grid.style.opacity    = '1';
             grid.style.pointerEvents = '';
+            maybeLoadMoreOnShortPage();
         });
     }
 
@@ -720,6 +787,8 @@
         var actionHtml = '';
         if (CURRENT_USER_ID !== null && CURRENT_USER_ID === meal.restaurant_user_id) {
             actionHtml = '<span class="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 flex-shrink-0 self-end">Own Restaurant</span>';
+        } else if (!meal.restaurant_is_open_now) {
+            actionHtml = '<span class="text-xs font-bold text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100 flex-shrink-0 self-end">Closed Now</span>';
         } else {
             actionHtml = '<button @click="browseAddToCart(' + meal.id + ', currentPrice, $event, currentLabel)" class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 shadow-sm hover:shadow-lg hover:shadow-emerald-500/30"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg></button>';
         }
@@ -815,6 +884,13 @@
     window.addEventListener('popstate', function() {
         var params = new URL(window.location).searchParams;
         selectCategory(params.get('category') || 'all');
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setInfiniteScrollVisibility();
+        setInfiniteScrollLoading(false);
+        initInfiniteScrollObserver();
+        maybeLoadMoreOnShortPage();
     });
 </script>
 

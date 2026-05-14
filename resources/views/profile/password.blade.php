@@ -34,9 +34,10 @@
                 <div class="space-y-4">
                     <div>
                         <label for="current_password" class="block text-xs font-bold text-gray-700 mb-2">Current Password</label>
-                        <input type="password" name="current_password" id="current_password"
+                        <input type="password" name="current_password" id="current_password" autocomplete="current-password"
+                            aria-describedby="current_password_error"
                             class="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none font-bold text-gray-900">
-                        @error('current_password') <p class="mt-1 text-sm text-red-500 font-bold">{{ $message }}</p> @enderror
+                        @error('current_password') <p id="current_password_error" class="mt-1 text-sm text-red-500 font-bold">{{ $message }}</p> @enderror
                     </div>
 
                     <div>

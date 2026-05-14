@@ -787,7 +787,7 @@
         var actionHtml = '';
         if (CURRENT_USER_ID !== null && CURRENT_USER_ID === meal.restaurant_user_id) {
             actionHtml = '<span class="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 flex-shrink-0 self-end">Own Restaurant</span>';
-        } else if (!meal.restaurant_is_open_now) {
+        } else if (meal.restaurant_is_open_now === false) {
             actionHtml = '<span class="text-xs font-bold text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100 flex-shrink-0 self-end">Closed Now</span>';
         } else {
             actionHtml = '<button @click="browseAddToCart(' + meal.id + ', currentPrice, $event, currentLabel)" class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 shadow-sm hover:shadow-lg hover:shadow-emerald-500/30"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg></button>';

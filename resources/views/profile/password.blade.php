@@ -33,6 +33,13 @@
               
                 <div class="space-y-4">
                     <div>
+                        <label for="current_password" class="block text-xs font-bold text-gray-700 mb-2">Current Password</label>
+                        <input type="password" name="current_password" id="current_password"
+                            class="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none font-bold text-gray-900">
+                        @error('current_password') <p class="mt-1 text-sm text-red-500 font-bold">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
                         <label for="password" class="block text-xs font-bold text-gray-700 mb-2">New Password</label>
                         <input type="password" name="password" id="password"
                             class="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none font-bold text-gray-900">
@@ -55,13 +62,10 @@
                     </a>
                 </div>
 
-                <div class="pt-4 flex flex-col gap-3 md:flex-row md:items-center">
+                <div class="pt-4">
                     <button type="submit" class="w-full md:w-auto px-10 py-4 bg-emerald-500 text-white font-extrabold rounded-2xl  hover:bg-emerald-400 hover:-translate-y-1 transition-all active:scale-95">
                         Save Password
                     </button>
-                    <a href="{{ route('profile.show') }}" class="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl border border-gray-200 bg-gray-50 text-gray-700 font-bold hover:border-gray-300 hover:bg-white transition-all">
-                        <span>Back to Profile</span>
-                    </a>
                 </div>
             </form>
         </div>

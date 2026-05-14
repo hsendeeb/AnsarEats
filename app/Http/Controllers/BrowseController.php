@@ -37,6 +37,8 @@ class BrowseController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'items' => collect($items->items())->map(function ($meal) {
+                    $restaurant = $meal->menuCategory->restaurant;
+
                     return [
                         'id'              => $meal->id,
                         'menu_item_id'    => $meal->id,
@@ -50,15 +52,17 @@ class BrowseController extends Controller
                         'discount_percentage' => $meal->saleDiscountPercentage(),
                         'image'           => $meal->image ? asset('storage/' . $meal->image) : null,
                         'category_name'   => $meal->menuCategory->name ?? '',
-                        'restaurant_id'   => $meal->menuCategory->restaurant->id ?? null,
-                        'restaurant_user_id'=> $meal->menuCategory->restaurant->user_id ?? null,
-                        'restaurant_name' => $meal->menuCategory->restaurant->name ?? '',
-                        'restaurant_logo' => $meal->menuCategory->restaurant->logo
-                            ? asset('storage/' . $meal->menuCategory->restaurant->logo)
+                        'restaurant_id'   => $restaurant?->id,
+                        'restaurant_user_id'=> $restaurant?->user_id,
+                        'restaurant_name' => $restaurant?->name ?? '',
+                        'restaurant_logo' => $restaurant?->logo
+                            ? asset('storage/' . $restaurant->logo)
                             : null,
-                        'restaurant_initial' => strtoupper(substr($meal->menuCategory->restaurant->name ?? 'R', 0, 1)),
-                        'restaurant_is_open_now' => (bool) ($meal->menuCategory->restaurant?->isOpenNow()),
-                        'url'             => route('restaurant.show', $meal->menuCategory->restaurant),
+                        'restaurant_initial' => strtoupper(substr($restaurant?->name ?? 'R', 0, 1)),
+                        'restaurant_is_open_now' => $restaurant ? (bool) $restaurant->isOpenNow() : null,
+                        'url'             => $restaurant
+                            ? route('restaurant.show', $restaurant)
+                            : null,
                         'is_featured'     => $meal->is_featured,
                         'variants'        => $meal->variants ?? [],
                     ];

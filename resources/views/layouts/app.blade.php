@@ -715,8 +715,6 @@
             <!-- Home -->
             <a href="{{ url('/') }}"
                 data-nav-item="home"
-                @pointerdown="setPendingTab('home')"
-                @focus="setPendingTab('home')"
                 class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
                 :class="activeTab === 'home' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
                 <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
@@ -733,8 +731,6 @@
             <!-- Explore -->
             <a href="{{ route('restaurants.index') }}"
                 data-nav-item="explore"
-                @pointerdown="setPendingTab('explore')"
-                @focus="setPendingTab('explore')"
                 class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
                 :class="activeTab === 'explore' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
                 <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
@@ -751,8 +747,6 @@
             <!-- Orders -->
             <a href="{{ auth()->check() ? route('profile.orders') : route('login') }}"
                 data-nav-item="orders"
-                @pointerdown="setPendingTab('orders')"
-                @focus="setPendingTab('orders')"
                 class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
                 :class="activeTab === 'orders' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
                 <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
@@ -774,8 +768,6 @@
             @if(auth()->check() && auth()->user()->role !== 'super_admin' && auth()->user()->restaurant)
                 <a href="{{ route('owner.dashboard') }}"
                     data-nav-item="dashboard"
-                    @pointerdown="setPendingTab('dashboard')"
-                    @focus="setPendingTab('dashboard')"
                     class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
                     :class="activeTab === 'dashboard' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
                     <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
@@ -791,8 +783,6 @@
             @else
                 <a href="{{ route('partner.with.us') }}"
                     data-nav-item="partner"
-                    @pointerdown="setPendingTab('partner')"
-                    @focus="setPendingTab('partner')"
                     class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
                     :class="activeTab === 'partner' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
                     <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
@@ -808,8 +798,6 @@
             <!-- Account -->
             <a href="{{ auth()->check() ? route('profile.account') : route('login') }}"
                 data-nav-item="account"
-                @pointerdown="setPendingTab('account')"
-                @focus="setPendingTab('account')"
                 class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
                 :class="activeTab === 'account' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
                 @auth

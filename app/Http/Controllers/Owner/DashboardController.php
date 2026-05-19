@@ -715,7 +715,7 @@ class DashboardController extends Controller
         }
 
         $orderId = $order->id;
-        $order->update(['archived_at' => now()]);
+        $order->delete();
 
         if ($request->ajax()) {
             return response()->json([
@@ -742,7 +742,7 @@ class DashboardController extends Controller
         $this->applyOwnerOrderStatusFilter($ordersQuery, $request);
         $this->applyOwnerOrderSearchFilter($ordersQuery, $request);
 
-        $deletedCount = $ordersQuery->update(['archived_at' => now()]);
+        $deletedCount = $ordersQuery->delete();
         $scopeLabel = $this->ownerOrderClearScopeLabel($request);
 
         if ($deletedCount === 0) {
@@ -784,7 +784,7 @@ class DashboardController extends Controller
         $deletedCount = Order::where('restaurant_id', $restaurant->id)
             ->unarchived()
             ->whereIn('id', $orderIds)
-            ->update(['archived_at' => now()]);
+            ->delete();
 
         if ($deletedCount === 0) {
             $message = 'No selected orders could be deleted.';

@@ -128,18 +128,73 @@
                     <div class="w-full" x-data="{ 
                             query: '', 
                             results: { restaurants: [], meals: [] }, 
+                            recentSearches: [],
                             show: false,
                             loading: false,
+                            recentSearchKey: 'ansareats-recent-searches',
                             search() {
                                 const normalized = this.query ? this.query.trim() : '';
                                 if (normalized.length) {
+                                    const fallbackRecent = this.results.restaurants.find((restaurant) =>
+                                        restaurant.name.toLowerCase() === normalized.toLowerCase()
+                                    ) ?? this.results.meals.find((meal) =>
+                                        meal.name.toLowerCase() === normalized.toLowerCase()
+                                    );
+
+                                    if (fallbackRecent) {
+                                        this.saveRecentSearch(fallbackRecent);
+                                    }
+
                                     window.location.href = '{{ route('restaurants.index') }}?q=' + encodeURIComponent(normalized);
                                 }
+                            },
+                            loadRecentSearches() {
+                                try {
+                                    const stored = window.localStorage.getItem(this.recentSearchKey);
+                                    this.recentSearches = stored ? JSON.parse(stored) : [];
+                                } catch (e) {
+                                    this.recentSearches = [];
+                                }
+                            },
+                            saveRecentSearch(item) {
+                                if (!item || !item.url || !item.name) {
+                                    return;
+                                }
+
+                                const normalizedItem = {
+                                    id: item.id,
+                                    type: item.type,
+                                    name: item.name,
+                                    image: item.logo ?? item.image ?? null,
+                                    url: item.url,
+                                    subtitle: item.type === 'restaurant' ? 'Restaurant' : item.restaurant_name,
+                                };
+
+                                const filtered = this.recentSearches.filter((entry) => entry.url !== normalizedItem.url);
+                                this.recentSearches = [normalizedItem, ...filtered].slice(0, 10);
+
+                                try {
+                                    window.localStorage.setItem(this.recentSearchKey, JSON.stringify(this.recentSearches));
+                                } catch (e) {
+                                    console.error('Unable to store recent searches:', e);
+                                }
+                            },
+                            useRecentSearch(item) {
+                                this.saveRecentSearch(item);
+                                window.location.href = item.url;
+                            },
+                            handleFocus() {
+                                if (this.query.length >= 2) {
+                                    this.show = true;
+                                    return;
+                                }
+
+                                this.show = this.recentSearches.length > 0;
                             },
                             async fetchSuggestions() {
                                 if (this.query.length < 2) {
                                     this.results = { restaurants: [], meals: [] };
-                                    this.show = false;
+                                    this.show = this.recentSearches.length > 0;
                                     return;
                                 }
                                 this.loading = true;
@@ -164,6 +219,7 @@
                             ],
                             tickerIndex: 0,
                             init() {
+                                this.loadRecentSearches();
                                 setInterval(() => {
                                     this.tickerIndex = (this.tickerIndex + 1) % this.ticker.length;
                                 }, 3000);
@@ -174,7 +230,7 @@
                             <!-- Search Input -->
                              <div class="relative flex items-center">
                                 <input type="text" x-model="query" name="q" @input.debounce.300ms="fetchSuggestions()"
-                                    @focus="if(query.length >= 2) show = true" @keydown.enter.prevent="search()"
+                                    @focus="handleFocus()" @keydown.enter.prevent="search()"
                                     placeholder=""
                                     class="w-full pl-12 pr-12 py-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-emerald-500/20 rounded-2xl font-bold text-gray-900 dark:text-white placeholder-transparent shadow-sm transition-all text-lg">
 
@@ -217,7 +273,7 @@
                             </div>
 
                             <!-- Suggestions Dropdown -->
-                            <div x-show="show && (results.restaurants.length > 0 || results.meals.length > 0)"
+                            <div x-show="show && (recentSearches.length > 0 || results.restaurants.length > 0 || results.meals.length > 0)"
                                 x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
@@ -229,6 +285,42 @@
 
                                 <div class="h-80 md:h-96 overflow-y-scroll overscroll-contain no-scrollbar pb-4"
                                     style="-webkit-overflow-scrolling: touch; touch-action: pan-y;">
+                                    <template x-if="recentSearches.length > 0 && query.length < 2">
+                                        <div>
+                                            <div
+                                                class="px-5 py-3 bg-gray-50/50 dark:bg-gray-900/50 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-50 dark:border-gray-700">
+                                                Recent Searches</div>
+                                            <div class="py-2">
+                                                <template x-for="recent in recentSearches" :key="recent.url">
+                                                    <button type="button" @click="useRecentSearch(recent)"
+                                                        class="flex w-full items-center gap-4 px-5 py-3 text-left hover:bg-emerald-50 transition-colors group">
+                                                        <div
+                                                            class="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                                            <template x-if="recent.image">
+                                                                <img :src="recent.image" class="w-full h-full object-cover">
+                                                            </template>
+                                                            <template x-if="!recent.image">
+                                                                <span class="text-lg font-black text-gray-400"
+                                                                    x-text="recent.name.charAt(0)"></span>
+                                                            </template>
+                                                        </div>
+                                                        <div class="min-w-0 flex-1">
+                                                            <div class="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors truncate"
+                                                                x-text="recent.name"></div>
+                                                            <div class="text-xs text-gray-500 font-medium truncate"
+                                                                x-text="recent.subtitle"></div>
+                                                        </div>
+                                                        <svg class="w-4 h-4 text-gray-300 group-hover:text-emerald-500 transition-colors" fill="none"
+                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4"
+                                                                d="M5 12h14m-6-6 6 6-6 6"></path>
+                                                        </svg>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+
                                     <!-- Restaurants Section -->
                                     <template x-if="results.restaurants.length > 0">
                                         <div>
@@ -237,7 +329,7 @@
                                                 Restaurants</div>
                                             <div class="py-2">
                                                 <template x-for="r in results.restaurants" :key="r.id">
-                                                    <a :href="r.url"
+                                                    <a :href="r.url" @click="saveRecentSearch(r)"
                                                         class="flex items-center gap-4 px-5 py-3 hover:bg-emerald-50 transition-colors group">
                                                         <div
                                                             class="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
@@ -268,7 +360,7 @@
                                                 Popular Meals</div>
                                             <div class="py-2">
                                                 <template x-for="m in results.meals" :key="m.id">
-                                                    <a :href="m.url"
+                                                    <a :href="m.url" @click="saveRecentSearch(m)"
                                                         class="flex items-center gap-4 px-5 py-3 hover:bg-emerald-50 transition-colors group">
                                                         <div
                                                             class="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">

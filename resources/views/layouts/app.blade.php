@@ -796,7 +796,7 @@
                         </svg>
                         @if($ownerPendingOrdersCount > 0 && !request()->routeIs('owner.dashboard'))
                             <span
-                                class="absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-red-500  text-[9px] leading-none font-black text-white flex items-center justify-center shadow-sm">
+                                class="absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-2 py-1 rounded-full bg-red-500  text-[9px] leading-none font-black text-white flex items-center justify-center shadow-sm">
                                 {{ $ownerPendingOrdersCount > 9 ? '9+' : $ownerPendingOrdersCount }}
                             </span>
                         @endif

@@ -93,6 +93,34 @@ class SocialLoginTest extends TestCase
         $this->assertSame($guestCart, session('cart'));
     }
 
+    public function test_facebook_callback_creates_a_new_user_and_logs_them_in(): void
+    {
+        Mail::fake();
+        $this->mockSocialiteUser('facebook', new FakeSocialiteUser(
+            id: 'facebook-123',
+            name: 'Facebook Customer',
+            email: 'facebook@example.com',
+            avatar: 'https://example.com/facebook-avatar.jpg',
+        ));
+
+        $response = $this->get('/auth/facebook/callback');
+
+        $response->assertRedirect('/');
+        $this->assertAuthenticated();
+        $this->assertDatabaseHas('users', [
+            'email' => 'facebook@example.com',
+            'facebook_id' => 'facebook-123',
+            'role' => 'customer',
+        ]);
+
+        $user = User::where('email', 'facebook@example.com')->firstOrFail();
+
+        $this->assertSame('Facebook Customer', $user->name);
+        $this->assertNotNull($user->email_verified_at);
+        $this->assertNotNull($user->password);
+        Mail::assertQueued(WelcomeUserMail::class);
+    }
+
     protected function mockSocialiteUser(string $provider, SocialiteUserContract $socialUser): void
     {
         $providerMock = Mockery::mock();
@@ -114,8 +142,7 @@ class FakeSocialiteUser implements SocialiteUserContract
         protected ?string $email,
         protected ?string $avatar = null,
         protected ?string $nickname = null,
-    ) {
-    }
+    ) {}
 
     public function getId()
     {

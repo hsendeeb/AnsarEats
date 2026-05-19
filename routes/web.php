@@ -1,18 +1,17 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\RestaurantController;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\Owner\DashboardController;
-use App\Http\Controllers\Owner\MenuItemController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SocialLoginController;
-use App\Http\Controllers\SearchController;
+use App\Http\Controllers\BrowseController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Owner\DashboardController;
+use App\Http\Controllers\Owner\MenuItemController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RatingController;
-
-use App\Http\Controllers\BrowseController;
+use App\Http\Controllers\RestaurantController;
+use App\Http\Controllers\SearchController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/home/stores', [HomeController::class, 'stores'])->name('home.stores');
@@ -52,10 +51,10 @@ Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showRese
 Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 
 Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])
-    ->whereIn('provider', ['google'])
+    ->whereIn('provider', ['google', 'facebook'])
     ->name('social.redirect');
 Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback'])
-    ->whereIn('provider', ['google'])
+    ->whereIn('provider', ['google', 'facebook'])
     ->name('social.callback');
 
 // Cart routes (public — guests can use the cart)
@@ -94,18 +93,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard/poll-new-orders', [DashboardController::class, 'pollNewOrders'])->name('dashboard.poll-new-orders');
         Route::post('/restaurant', [DashboardController::class, 'storeOrUpdate'])->name('restaurant.store');
         Route::post('/restaurant/toggle-status', [DashboardController::class, 'toggleRestaurantStatus'])->name('restaurant.toggle-status');
-        
+
         Route::post('/category', [DashboardController::class, 'storeCategory'])->name('category.store');
         Route::put('/category/{category}', [DashboardController::class, 'updateCategory'])->name('category.update');
         Route::post('/category/{category}/toggle-visibility', [DashboardController::class, 'toggleCategoryVisibility'])->name('category.toggle-visibility');
         Route::delete('/category/{category}', [DashboardController::class, 'destroyCategory'])->name('category.destroy');
-        
+
         Route::post('/menu-item', [MenuItemController::class, 'store'])->name('menu-item.store');
         Route::put('/menu-item/{menuItem}', [MenuItemController::class, 'update'])->name('menu-item.update');
         Route::post('/menu-item/{item}/toggle-availability', [DashboardController::class, 'toggleItemAvailability'])->name('menu-item.toggle');
         Route::post('/menu-item/{item}/toggle-featured', [DashboardController::class, 'toggleItemFeatured'])->name('menu-item.toggle-featured');
         Route::delete('/menu-item/{menuItem}', [MenuItemController::class, 'destroy'])->name('menu-item.destroy');
-        
+
         Route::post('/order/{order}/accept', [DashboardController::class, 'acceptOrder'])->name('order.accept');
         Route::post('/order/{order}/prepare', [DashboardController::class, 'prepareOrder'])->name('order.prepare');
         Route::post('/order/{order}/out-for-delivery', [DashboardController::class, 'outForDeliveryOrder'])->name('order.out-for-delivery');

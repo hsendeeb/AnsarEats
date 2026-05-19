@@ -706,7 +706,7 @@
         }
     @endphp
     <div x-data="mobileBottomNav('{{ $mobileBottomNavActive }}')"
-        class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 z-[100] pb-3 pt-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-black/20">
+        class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 z-[100] pb-2 pt-1.5 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-black/20">
         <div x-ref="nav" class="relative flex w-full px-2.5">
             <div aria-hidden="true"
                 class="pointer-events-none absolute left-0 top-0 z-0 rounded-full bg-emerald-100 shadow-[0_10px_24px_rgba(16,185,129,0.14)] transition-all duration-200 ease-out dark:bg-emerald-500/18"
@@ -717,7 +717,7 @@
                 data-no-page-loader
                 @pointerdown="setPendingTab('home')"
                 @click.prevent="navigateWithGlide($event, 'home')"
-                class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
+                class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-1.5 transition-[color,transform] duration-300"
                 :class="activeTab === 'home' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
                 <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
                     :class="!indicatorReady && activeTab === 'home' ? 'bg-emerald-100 dark:bg-emerald-500/18 shadow-[0_10px_24px_rgba(16,185,129,0.14)]' : ''">
@@ -736,7 +736,7 @@
                 data-no-page-loader
                 @pointerdown="setPendingTab('explore')"
                 @click.prevent="navigateWithGlide($event, 'explore')"
-                class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
+                class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-1.5 transition-[color,transform] duration-300"
                 :class="activeTab === 'explore' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
                 <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
                     :class="!indicatorReady && activeTab === 'explore' ? 'bg-emerald-100 dark:bg-emerald-500/18 shadow-[0_10px_24px_rgba(16,185,129,0.14)]' : ''">
@@ -755,7 +755,7 @@
                 data-no-page-loader
                 @pointerdown="setPendingTab('orders')"
                 @click.prevent="navigateWithGlide($event, 'orders')"
-                class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
+                class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-1.5 transition-[color,transform] duration-300"
                 :class="activeTab === 'orders' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
                 <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
                     :class="!indicatorReady && activeTab === 'orders' ? 'bg-emerald-100 dark:bg-emerald-500/18 shadow-[0_10px_24px_rgba(16,185,129,0.14)]' : ''">
@@ -779,7 +779,7 @@
                     data-no-page-loader
                     @pointerdown="setPendingTab('dashboard')"
                     @click.prevent="navigateWithGlide($event, 'dashboard')"
-                    class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
+                    class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-1.5 transition-[color,transform] duration-300"
                     :class="activeTab === 'dashboard' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
                     <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
                         :class="!indicatorReady && activeTab === 'dashboard' ? 'bg-emerald-100 dark:bg-emerald-500/18 shadow-[0_10px_24px_rgba(16,185,129,0.14)]' : ''">
@@ -797,7 +797,7 @@
                     data-no-page-loader
                     @pointerdown="setPendingTab('partner')"
                     @click.prevent="navigateWithGlide($event, 'partner')"
-                    class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
+                    class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-1.5 transition-[color,transform] duration-300"
                     :class="activeTab === 'partner' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
                     <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"
                         :class="!indicatorReady && activeTab === 'partner' ? 'bg-emerald-100 dark:bg-emerald-500/18 shadow-[0_10px_24px_rgba(16,185,129,0.14)]' : ''">
@@ -815,7 +815,7 @@
                 data-no-page-loader
                 @pointerdown="setPendingTab('account')"
                 @click.prevent="navigateWithGlide($event, 'account')"
-                class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-2 transition-[color,transform] duration-300"
+                class="relative z-10 flex-1 flex flex-col items-center justify-center rounded-full px-3 py-1.5 transition-[color,transform] duration-300"
                 :class="activeTab === 'account' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'">
                 @auth
                     <span data-nav-icon class="relative z-10 mb-1 flex h-10 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-200"

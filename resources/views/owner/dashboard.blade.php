@@ -66,18 +66,33 @@
             <div class="absolute -bottom-12 -left-12 w-48 h-48 bg-white/10 rounded-full"></div>
             <div class="absolute top-8 right-8 w-12 h-12 bg-white/20 rounded-xl rotate-12 animate-bounce" style="animation-duration: 3s;"></div>
             
-            <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div>
-                    <h1 class="text-4xl md:text-5xl font-black outfit tracking-tight leading-tight">
-                        {{ $restaurant?->name ?? $latestRequest?->restaurant_name ?? Auth::user()->name }}
-                    </h1>
+            <div class="relative z-10 flex flex-col gap-6">
+                <div class="w-full flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
+                <div class="w-full max-w-3xl">
+                    <div class="flex items-start justify-between gap-4">
+                        <h1 class="text-4xl md:text-5xl font-black outfit tracking-tight leading-tight">
+                            {{ $restaurant?->name ?? $latestRequest?->restaurant_name ?? Auth::user()->name }}
+                        </h1>
+                        <div class="flex-shrink-0">
+                            @if($restaurant?->logo)
+                                <div class="h-16 w-16 md:h-20 md:w-20 overflow-hidden rounded-3xl border border-white/25 bg-white/15 shadow-lg backdrop-blur-sm">
+                                    <img src="{{ Storage::url($restaurant->logo) }}" alt="{{ $restaurant->name }} logo" class="h-full w-full object-cover">
+                                </div>
+                            @else
+                                <div class="h-16 w-16 md:h-20 md:w-20 rounded-3xl border border-white/25 bg-white/15 shadow-lg backdrop-blur-sm flex items-center justify-center text-2xl md:text-3xl font-black text-white/95">
+                                    {{ mb_substr($restaurant?->name ?? $latestRequest?->restaurant_name ?? Auth::user()->name, 0, 1) }}
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                     <p class="mt-3 text-purple-200 font-medium text-lg max-w-lg">
                         {{ $restaurant ? 'Manage your restaurant, categories, and menu items from this dashboard.' : 'Submit your restaurant details for review and come back here to track the decision.' }}
                     </p>
                 </div>
-                
-                <div class="flex flex-col lg:items-end gap-2 w-full lg:w-auto">
-                    <div class="flex flex-col lg:flex-row lg:items-center gap-4 w-full lg:w-auto">
+                </div>
+
+                <div class="flex flex-col lg:items-end gap-2 w-full">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-end gap-4 w-full">
                         @if($restaurant)
                         <div class="flex-shrink-0">
                             <button type="button" @click="toggleRestaurantStatus()" :disabled="togglingStatus" class="group w-full lg:w-auto flex items-center gap-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 px-5 rounded-2xl transition-all shadow-lg backdrop-blur-sm disabled:opacity-50">
@@ -270,12 +285,12 @@
             <!-- Charts & Popular Items Section -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
                 <!-- Bar Chart -->
-                <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 p-8">
+                <div class="lg:col-span-2 -mx-4 border-y border-gray-100 bg-white px-5 py-8 dark:border-gray-700 dark:bg-gray-800 sm:mx-0 sm:rounded-[2.5rem] sm:border sm:p-8">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                        <h3 class="text-xl font-black outfit text-gray-900 dark:text-white flex items-center gap-2">
-                            <span class="w-2 h-8 bg-indigo-500 rounded-full"></span>
-                            <span id="barChartTitle">{{ $stats['chart_data']['bar']['title'] ?? 'Weekly Orders' }}</span>
-                        </h3>
+                        <div>
+                            <p class="text-[11px] font-black uppercase tracking-[0.28em] text-blue-600">Performance</p>
+                            <h3 id="barChartTitle" class="mt-2 text-xl font-black outfit text-gray-900 dark:text-white">{{ $stats['chart_data']['bar']['title'] ?? 'Weekly Orders' }}</h3>
+                        </div>
 
                         <div class="inline-flex bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-2xl p-1">
                             <button type="button" data-period="day" class="chart-period-btn px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-gray-500 hover:text-emerald-600 hover:bg-white">
@@ -300,10 +315,10 @@
 
                 <!-- Popular Items -->
                 <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 p-8">
-                    <h3 class="text-xl font-black outfit text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                        <span class="w-2 h-8 bg-emerald-500 rounded-full"></span>
-                        Top Selling Items
-                    </h3>
+                    <div class="mb-6">
+                        <p class="text-[11px] font-black uppercase tracking-[0.28em] text-emerald-600">Sales Mix</p>
+                        <h3 class="mt-2 text-xl font-black outfit text-gray-900 dark:text-white">Top Selling Items</h3>
+                    </div>
                     <div class="space-y-4">
                         @forelse($stats['top_items'] ?? [] as $item)
                             <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-transparent hover:border-emerald-200 dark:hover:border-emerald-500/30 transition-all group">
@@ -326,11 +341,11 @@
                 </div>
 
                 <!-- Pie Chart -->
-                <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 p-8">
-                    <h3 class="text-xl font-black outfit text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                        <span class="w-2 h-8 bg-pink-500 rounded-full"></span>
-                        Order Status Breakdown
-                    </h3>
+                <div class="lg:col-span-3 -mx-4 border-y border-gray-100 bg-white px-5 py-8 dark:border-gray-700 dark:bg-gray-800 sm:mx-0 sm:rounded-[2.5rem] sm:border sm:p-8">
+                    <div class="mb-6">
+
+                        <h3 class="mt-2 text-xl font-black outfit text-gray-900 dark:text-white">Order Status Breakdown</h3>
+                    </div>
                     <div class="h-64 flex items-center justify-center">
                         <canvas id="pieChart"></canvas>
                     </div>
@@ -340,10 +355,8 @@
             <!-- Orders Management Link -->
             <div class="mb-16 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h3 class="text-2xl font-black outfit text-gray-900 dark:text-white flex items-center gap-3">
-                        <span class="w-2 h-8 bg-emerald-500 rounded-full"></span>
-                        Incoming Orders
-                    </h3>
+                    <p class="text-[11px] font-black uppercase tracking-[0.28em] text-emerald-600">Operations</p>
+                    <h3 class="mt-2 text-2xl font-black outfit text-gray-900 dark:text-white">Incoming Orders</h3>
                     <p class="text-gray-500 font-medium mt-1">Manage and track your restaurant's orders in real-time.</p>
                 </div>
                 <a href="{{ route('owner.orders') }}" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 w-full sm:w-auto">

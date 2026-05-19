@@ -111,6 +111,7 @@ class DashboardController extends Controller
             $start = Carbon::today()->startOfDay();
             $end = Carbon::today()->endOfDay();
             $orders = Order::where('restaurant_id', '=', $restaurantId)
+                ->unarchived()
                 ->whereBetween('created_at', [$start, $end])
                 ->get(['created_at']);
 
@@ -143,6 +144,7 @@ class DashboardController extends Controller
             $start = now()->subDays($days - 1)->startOfDay();
             $end = now()->endOfDay();
             $orders = Order::where('restaurant_id', '=', $restaurantId)
+                ->unarchived()
                 ->whereBetween('created_at', [$start, $end])
                 ->get(['created_at']);
 
@@ -169,6 +171,7 @@ class DashboardController extends Controller
         $end = now()->endOfDay();
 
         $orders = Order::where('restaurant_id', '=', $restaurantId)
+            ->unarchived()
             ->whereBetween('created_at', [$start, $end])
             ->get(['created_at']);
 
@@ -247,7 +250,9 @@ class DashboardController extends Controller
         if ($restaurant) {
             $restaurant->load('menuCategories.menuItems');
 
-            $orders = Order::where('restaurant_id', '=', $restaurant->id)->get();
+            $orders = Order::where('restaurant_id', '=', $restaurant->id)
+                ->unarchived()
+                ->get();
             $revenueOrders = $orders->whereIn('status', self::REVENUE_ELIGIBLE_STATUSES);
             
             $stats['total_orders'] = $orders->count();
@@ -275,6 +280,7 @@ class DashboardController extends Controller
             $sparkStart = now()->subDays($sparkDays - 1)->startOfDay();
             $sparkEnd = now()->endOfDay();
             $ordersRecent = Order::where('restaurant_id', '=', $restaurant->id)
+                ->unarchived()
                 ->whereBetween('created_at', [$sparkStart, $sparkEnd])
                 ->get(['created_at', 'status', 'total']);
 
@@ -314,7 +320,8 @@ class DashboardController extends Controller
 
             // Top Selling Items
             $stats['top_items'] = \App\Models\OrderItem::whereHas('order', function($query) use ($restaurant) {
-                    $query->where('restaurant_id', $restaurant->id);
+                    $query->where('restaurant_id', $restaurant->id)
+                        ->unarchived();
                 })
                 ->select('name', DB::raw('SUM(quantity) as total_quantity'))
                 ->groupBy('name')

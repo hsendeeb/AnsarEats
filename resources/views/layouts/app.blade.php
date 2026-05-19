@@ -223,6 +223,12 @@
                 ->exists()
             : false;
         $hasRestaurant = auth()->check() && auth()->user()->restaurant;
+        $ownerPendingOrdersCount = $hasRestaurant && auth()->user()->role !== 'super_admin'
+            ? \App\Models\Order::where('restaurant_id', auth()->user()->restaurant->id)
+                ->unarchived()
+                ->where('status', 'pending')
+                ->count()
+            : 0;
     @endphp
 
     <!-- Global Page Loader (Skeleton Transition) -->
@@ -788,6 +794,12 @@
                                 d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
                             </path>
                         </svg>
+                        @if($ownerPendingOrdersCount > 0 && !request()->routeIs('owner.dashboard'))
+                            <span
+                                class="absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-red-500  text-[9px] leading-none font-black text-white flex items-center justify-center shadow-sm">
+                                {{ $ownerPendingOrdersCount > 9 ? '9+' : $ownerPendingOrdersCount }}
+                            </span>
+                        @endif
                     </span>
                     <span class="text-[10px] font-bold transition-transform duration-300" :class="activeTab === 'dashboard' ? 'scale-100' : 'scale-[0.98]'">Dashboard</span>
                 </a>

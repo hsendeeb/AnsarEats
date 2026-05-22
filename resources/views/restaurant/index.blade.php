@@ -26,10 +26,13 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             @for ($i = 0; $i < 6; $i++)
             <article class="bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/40 overflow-hidden animate-pulse">
-                <div class="h-48 w-full bg-gray-200 dark:bg-gray-800"></div>
-                <div class="p-6 space-y-4 relative">
-                    <div class="absolute -top-10 left-6 w-16 h-16 rounded-2xl bg-gray-300 dark:bg-gray-700 border-4 border-white dark:border-gray-900"></div>
-                    <div class="pt-6 h-6 bg-gray-200 dark:bg-gray-800 rounded w-3/4"></div>
+                <div class="h-52 w-full bg-gray-200 dark:bg-gray-800"></div>
+                <div class="p-6 space-y-4">
+                    <div class="h-6 bg-gray-200 dark:bg-gray-800 rounded w-3/4"></div>
+                    <div class="space-y-2">
+                        <div class="h-3 bg-gray-200 dark:bg-gray-800 rounded w-full"></div>
+                        <div class="h-3 bg-gray-200 dark:bg-gray-800 rounded w-5/6"></div>
+                    </div>
                     <div class="flex gap-2">
                         <div class="h-5 bg-gray-200 dark:bg-gray-800 rounded-full w-16"></div>
                         <div class="h-5 bg-gray-200 dark:bg-gray-800 rounded-full w-20"></div>
@@ -550,10 +553,13 @@
                 <div x-show="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 py-4">
                     @for ($i = 0; $i < 3; $i++)
                     <article class="bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/40 overflow-hidden animate-pulse">
-                        <div class="h-48 w-full bg-gray-200"></div>
-                        <div class="p-6 space-y-4 relative">
-                            <div class="absolute -top-10 left-6 w-16 h-16 rounded-2xl bg-gray-300 border-4 border-white"></div>
-                            <div class="pt-6 h-6 bg-gray-200 rounded w-3/4"></div>
+                        <div class="h-52 w-full bg-gray-200"></div>
+                        <div class="p-6 space-y-4">
+                            <div class="h-6 bg-gray-200 rounded w-3/4"></div>
+                            <div class="space-y-2">
+                                <div class="h-3 bg-gray-200 rounded w-full"></div>
+                                <div class="h-3 bg-gray-200 rounded w-5/6"></div>
+                            </div>
                             <div class="flex gap-2">
                                 <div class="h-5 bg-gray-200 rounded-full w-16"></div>
                                 <div class="h-5 bg-gray-200 rounded-full w-20"></div>

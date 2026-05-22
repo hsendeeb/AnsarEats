@@ -1,19 +1,73 @@
 @extends('layouts.app')
 
 @section('skeleton')
-<div class="w-full h-[360px] sm:h-[420px] md:h-[400px] lg:h-96 bg-gray-200 dark:bg-gray-800 animate-pulse relative"></div>
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 lg:mt-24">
+<div class="relative">
+    <div class="w-full h-[360px] sm:h-[420px] md:h-[400px] lg:h-96 bg-gray-200 dark:bg-gray-800 animate-pulse"></div>
+
+    <div class="absolute bottom-0 left-0 w-full px-4 sm:px-6 lg:px-8 pb-6 md:pb-8 max-w-7xl mx-auto">
+        <div class="flex flex-row items-end gap-4 md:gap-6">
+            <div class="flex-shrink-0 w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-40 lg:h-40 rounded-2xl md:rounded-3xl bg-gray-100 dark:bg-gray-700 border-2 md:border-4 border-white dark:border-gray-800 shadow-2xl animate-pulse"></div>
+
+            <div class="flex-1 pb-1 md:pb-2 space-y-3">
+                <div class="h-8 sm:h-10 md:h-12 bg-gray-200/80 dark:bg-gray-700 rounded-2xl w-2/3 animate-pulse"></div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="h-6 w-20 rounded-full bg-gray-200/80 dark:bg-gray-700 animate-pulse"></div>
+                    <div class="h-6 w-24 rounded-full bg-gray-200/80 dark:bg-gray-700 animate-pulse"></div>
+                </div>
+                <div class="h-10 w-44 sm:w-60 md:w-80 rounded-2xl bg-gray-200/80 dark:bg-gray-700 animate-pulse"></div>
+                <div class="space-y-2">
+                    <div class="h-3 w-full max-w-2xl bg-gray-200/80 dark:bg-gray-700 rounded-full animate-pulse"></div>
+                    <div class="h-3 w-5/6 max-w-xl bg-gray-200/80 dark:bg-gray-700 rounded-full animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 lg:mt-24 pb-24">
     <div class="flex flex-col lg:flex-row gap-10">
         <div class="w-full lg:w-1/4">
-            <div class="w-full h-96 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
-        </div>
-        <div class="w-full lg:w-3/4 space-y-10">
-            <div class="w-1/3 h-8 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse mb-8"></div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                @for ($i = 0; $i < 6; $i++)
-                <div class="w-full h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
-                @endfor
+            <div class="space-y-4 lg:border lg:border-gray-100 lg:dark:border-gray-800 lg:rounded-3xl lg:p-6">
+                <div class="hidden lg:block h-8 w-24 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse"></div>
+                <div class="flex lg:flex-col gap-3 overflow-hidden">
+                    @for ($i = 0; $i < 5; $i++)
+                        <div class="h-12 lg:h-11 w-28 lg:w-full rounded-xl bg-gray-200 dark:bg-gray-800 animate-pulse @if($i > 2) hidden sm:block @endif"></div>
+                    @endfor
+                </div>
+                <div class="hidden lg:block pt-6 mt-2 border-t border-gray-100 dark:border-gray-800 space-y-3">
+                    <div class="h-4 w-28 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse"></div>
+                    @for ($i = 0; $i < 4; $i++)
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="h-3 w-10 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse"></div>
+                            <div class="h-3 w-24 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse"></div>
+                        </div>
+                    @endfor
+                </div>
             </div>
+        </div>
+        <div class="w-full lg:w-3/4 space-y-12">
+            @for ($section = 0; $section < 2; $section++)
+                <div>
+                    <div class="w-40 h-8 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse mb-8"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        @for ($i = 0; $i < 4; $i++)
+                            <div class="bg-white dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex gap-4 animate-pulse">
+                                <div class="w-24 h-24 rounded-2xl bg-gray-200 dark:bg-gray-800 shrink-0"></div>
+                                <div class="flex-1 space-y-3 py-1">
+                                    <div class="h-5 w-2/3 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>
+                                    <div class="space-y-2">
+                                        <div class="h-3 w-full bg-gray-200 dark:bg-gray-800 rounded-full"></div>
+                                        <div class="h-3 w-5/6 bg-gray-200 dark:bg-gray-800 rounded-full"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 pt-1">
+                                        <div class="h-5 w-16 bg-gray-200 dark:bg-gray-800 rounded-full"></div>
+                                        <div class="h-9 w-9 rounded-xl bg-gray-200 dark:bg-gray-800"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endfor
+                    </div>
+                </div>
+            @endfor
         </div>
     </div>
 </div>

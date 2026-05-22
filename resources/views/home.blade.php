@@ -6,14 +6,16 @@
         <div class="w-full h-16 bg-gray-100 dark:bg-gray-800 rounded-3xl mb-12 animate-pulse"></div>
 
         <!-- Categories Row Skeleton -->
-        <div class="flex gap-4 md:gap-8 mb-12 overflow-hidden justify-center md:justify-start">
-            @for ($i = 0; $i < 6; $i++)
-                <div
-                    class="flex flex-col items-center gap-3 animate-pulse @if($i > 2) hidden sm:flex @endif @if($i > 4) hidden lg:flex @endif">
-                    <div class="w-16 h-16 md:w-24 md:h-24 bg-gray-100 dark:bg-gray-800 rounded-full"></div>
-                    <div class="w-12 h-3 bg-gray-100 dark:bg-gray-800 rounded-full"></div>
-                </div>
-            @endfor
+        <div class="mb-12 overflow-hidden">
+            <div class="flex gap-3 sm:gap-4 w-max min-w-full">
+                @for ($i = 0; $i < 7; $i++)
+                    <div
+                        class="flex w-20 sm:w-24 lg:w-28 shrink-0 flex-col items-center gap-3 animate-pulse @if($i > 3) hidden sm:flex @endif @if($i > 5) hidden lg:flex @endif">
+                        <div class="w-full aspect-square bg-gray-100 dark:bg-gray-800 rounded-2xl"></div>
+                        <div class="w-14 sm:w-16 h-3 bg-gray-100 dark:bg-gray-800 rounded-full"></div>
+                    </div>
+                @endfor
+            </div>
         </div>
 
         <!-- Section Header Skeleton -->
@@ -410,51 +412,42 @@
                 @php
                     $homeCategories = \App\Http\Controllers\BrowseController::categories();
                     $homeCategories = array_filter($homeCategories, fn($c) => $c['slug'] !== 'all');
+                    $categoryVisuals = [
+                        'sandwich' => 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=600&q=80',
+                        'burger' => 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80',
+                        'pizza' => 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80',
+                        'dessert' => 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=600&q=80',
+                        'drink' => 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=600&q=80',
+                        'salad' => 'https://images.unsplash.com/photo-1546793665-c74683f339c1?auto=format&fit=crop&w=600&q=80',
+                        'breakfast' => 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=600&q=80',
+                        'pasta' => 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=600&q=80',
+                        'seafood' => 'https://images.unsplash.com/photo-1579631542720-3a87824fff86?auto=format&fit=crop&w=600&q=80',
+                        'chicken' => 'https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=600&q=80',
+                    ];
                 @endphp
 
-                <!-- 3D Category Slider -->
-                <div class="relative px-4 overflow-x-hidden" x-data="{ initSwiper() {
-                    new Swiper('.category-swiper', {
-                        effect: 'coverflow',
-                        grabCursor: true,
-                        centeredSlides: true,
-                        slidesPerView: 'auto',
-                        initialSlide: 2,
-                        coverflowEffect: {
-                            rotate: 5,
-                            stretch: 0,
-                            depth: 100,
-                            modifier: 2.5,
-                            slideShadows: false,
-                        },
-                        loop: {{ count($homeCategories ?? []) >= 3 ? 'true' : 'false' }},
-                        autoplay: {
-                            delay: 3000,
-                            disableOnInteraction: false,
-                        },
-                        breakpoints: {
-                            320: { slidesPerView: 2.4, spaceBetween: 8 },
-                            640: { slidesPerView: 3.4, spaceBetween: 12 },
-                            1024: { slidesPerView: 5, spaceBetween: 18 }
-                        }
-                    });
-                }}" x-init="initSwiper()">
-                    <div class="swiper category-swiper !overflow-hidden md:!overflow-visible">
-                        <div class="swiper-wrapper">
+                <div class="px-4">
+                    <nav class="-mx-4 flex overflow-x-auto overscroll-contain no-scrollbar px-4 pb-2"
+                         aria-label="Browse categories">
+                        <div class="flex items-start gap-3 sm:gap-4">
                             @foreach($homeCategories as $cat)
-                                <div class="swiper-slide !w-28 sm:!w-32 lg:!w-36">
-                                    <a href="{{ route('browse.index', ['category' => $cat['slug']]) }}"
-                                       class="group flex flex-col items-center justify-center gap-1.5 w-full aspect-square rounded-full transition-all duration-300 cursor-pointer text-center">
-                                        <span class="text-2xl sm:text-[1.7rem] leading-none transition-transform duration-300 group-hover:scale-110">{{ $cat['emoji'] }}</span>
-                                        <span class="block font-black text-gray-900 dark:text-gray-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 text-[11px] sm:text-xs leading-tight transition-colors">{{ $cat['label'] }}</span>
-                                    </a>
-                                </div>
+                                <a href="{{ route('browse.index', ['category' => $cat['slug']]) }}"
+                                   class="group flex w-20 sm:w-24 lg:w-28 shrink-0 flex-col items-center text-center">
+                                    <div class="w-full aspect-square overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-md">
+                                        <img
+                                            src="{{ $categoryVisuals[$cat['slug']] ?? 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80' }}"
+                                            alt="{{ $cat['label'] }}"
+                                            loading="lazy"
+                                            class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                        >
+                                    </div>
+                                    <span class="mt-2 block text-[11px] sm:text-xs font-black leading-tight text-gray-900 dark:text-gray-300 transition-colors group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
+                                        {{ $cat['label'] }}
+                                    </span>
+                                </a>
                             @endforeach
                         </div>
-                    </div>
-
-
-
+                    </nav>
                 </div>
             </div>
 

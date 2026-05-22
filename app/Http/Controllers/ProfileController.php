@@ -246,35 +246,58 @@ class ProfileController extends Controller
         $user = Auth::user();
         $activeFilter = $request->filter ?? 'all';
 
+        $baseOrdersQuery = Order::query()
+            ->where('user_id', $user->id)
+            ->with('restaurant', 'orderItems.menuItem');
+
+        if ($request->filled('filter')) {
+            switch ($request->filter) {
+                case 'today':
+                    $baseOrdersQuery->whereDate('created_at', Carbon::today());
+                    break;
+                case 'week':
+                    $baseOrdersQuery->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                    break;
+                case 'month':
+                    $baseOrdersQuery->whereMonth('created_at', Carbon::now()->month)
+                        ->whereYear('created_at', Carbon::now()->year);
+                    break;
+            }
+        }
+
+        $summary = [
+            'count' => (clone $baseOrdersQuery)->count(),
+            'total' => (float) (clone $baseOrdersQuery)->sum('total'),
+        ];
+
         $orders = PerformanceCache::remember(
             'profile-orders',
-            json_encode(['user_id' => $user->id, 'filter' => $activeFilter]),
+            json_encode([
+                'user_id' => $user->id,
+                'filter' => $activeFilter,
+                'page' => (int) $request->get('page', 1),
+            ]),
             now()->addSeconds(config('performance.cache_ttl.profile_orders')),
-            function () use ($user, $request) {
-                $query = Order::where('user_id', $user->id)->with('restaurant', 'orderItems.menuItem');
-
-                if ($request->filled('filter')) {
-                    switch ($request->filter) {
-                        case 'today':
-                            $query->whereDate('created_at', Carbon::today());
-                            break;
-                        case 'week':
-                            $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-                            break;
-                        case 'month':
-                            $query->whereMonth('created_at', Carbon::now()->month)
-                                ->whereYear('created_at', Carbon::now()->year);
-                            break;
-                    }
-                }
-
-                return $query->latest()->get();
+            function () use ($baseOrdersQuery, $request) {
+                return (clone $baseOrdersQuery)
+                    ->latest()
+                    ->paginate(10)
+                    ->appends($request->query());
             }
         );
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'html' => view('profile.partials.order-cards', ['orders' => $orders])->render(),
+                'hasMore' => $orders->hasMorePages(),
+                'nextPage' => $orders->currentPage() + 1,
+            ]);
+        }
+
         return view('profile.orders', [
             'orders' => $orders,
-            'activeFilter' => $activeFilter
+            'activeFilter' => $activeFilter,
+            'ordersSummary' => $summary,
         ]);
     }
 

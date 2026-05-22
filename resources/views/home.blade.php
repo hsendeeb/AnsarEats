@@ -413,16 +413,16 @@
                     $homeCategories = \App\Http\Controllers\BrowseController::categories();
                     $homeCategories = array_filter($homeCategories, fn($c) => $c['slug'] !== 'all');
                     $categoryVisuals = [
-                        'sandwich' => 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=600&q=80',
-                        'burger' => 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80',
-                        'pizza' => 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80',
-                        'dessert' => 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=600&q=80',
-                        'drink' => 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=600&q=80',
-                        'salad' => 'https://images.unsplash.com/photo-1546793665-c74683f339c1?auto=format&fit=crop&w=600&q=80',
-                        'breakfast' => 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=600&q=80',
-                        'pasta' => 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=600&q=80',
-                        'seafood' => 'https://images.unsplash.com/photo-1579631542720-3a87824fff86?auto=format&fit=crop&w=600&q=80',
-                        'chicken' => 'https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=600&q=80',
+                        'sandwich' => asset('images/categories/sandwich.jpg'),
+                        'burger' => asset('images/categories/burger.jpg'),
+                        'pizza' => asset('images/categories/pizza.jpg'),
+                        'dessert' => asset('images/categories/dessert.jpg'),
+                        'drink' => asset('images/categories/drink.jpg'),
+                        'salad' => asset('images/categories/salad.jpg'),
+                        'breakfast' => asset('images/categories/breakfast.jpg'),
+                        'pasta' => asset('images/categories/pasta.jpg'),
+                        'seafood' => asset('images/categories/seafood.jpg'),
+                        'chicken' => asset('images/categories/chicken.jpg'),
                     ];
                 @endphp
 
@@ -435,7 +435,7 @@
                                    class="group flex w-20 sm:w-24 lg:w-28 shrink-0 flex-col items-center text-center">
                                     <div class="w-full aspect-square overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-md">
                                         <img
-                                            src="{{ $categoryVisuals[$cat['slug']] ?? 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80' }}"
+                                            src="{{ $categoryVisuals[$cat['slug']] ?? asset('images/categories/sandwich.jpg') }}"
                                             alt="{{ $cat['label'] }}"
                                             loading="lazy"
                                             class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"

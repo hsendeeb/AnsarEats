@@ -100,6 +100,7 @@
                                         @endif
                                     </h4>
                                 </a>
+
                                 <div class="shrink-0 text-right whitespace-nowrap">
                                     <div class="flex items-center justify-end gap-2">
                                         <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>
@@ -827,6 +828,7 @@
                             '<p x-show="hasActiveSale" x-cloak class="mt-0.5 text-[11px] font-bold text-rose-500" x-text="`Save ${formattedSavings}`"></p>' +
                         '</div>' +
                     '</div>' +
+
                     descHtml +
                 '</div>' +
                 

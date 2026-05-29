@@ -24,7 +24,7 @@
     },
     selectedCategoryId: null,
     editingCategory: { id: null, name: '' },
-    editingMenuItem: { id: null, name: '', description: '', price: '', category_id: null, image_url: '', variants: null, variant_type: '', is_on_sale: false, sale_price: '', discount_percentage: '' },
+    editingMenuItem: { id: null, name: '', description: '', price: '', category_id: null, image_url: '', variants: null, variant_type: '', is_on_sale: false, sale_price: '', discount_percentage: '', tags: [] },
     isRestaurantOpen: {{ $restaurant && $restaurant->is_open ? 'true' : 'false' }},
     togglingStatus: false,
     async toggleRestaurantStatus() {
@@ -507,7 +507,8 @@
                                                 variant_type: {{ Js::from($item->variants['type'] ?? '') }},
                                                 is_on_sale: {{ $item->is_on_sale ? 'true' : 'false' }},
                                                 sale_price: {{ Js::from($item->sale_price) }},
-                                                discount_percentage: {{ Js::from($item->saleDiscountPercentage()) }}
+                                                discount_percentage: {{ Js::from($item->saleDiscountPercentage()) }},
+                                                tags: {{ Js::from($item->tags ?? []) }}
                                             }; showEditMenuItemModal = true" title="Edit item" class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-400 hover:bg-indigo-100 hover:text-indigo-600 flex items-center justify-center transition-colors">
                                                 <x-heroicon-o-pencil-square class="w-5 h-5" />
                                             </button>
@@ -572,7 +573,8 @@
                                                     variant_type: {{ Js::from($item->variants['type'] ?? '') }},
                                                     is_on_sale: {{ $item->is_on_sale ? 'true' : 'false' }},
                                                     sale_price: {{ Js::from($item->sale_price) }},
-                                                    discount_percentage: {{ Js::from($item->saleDiscountPercentage()) }}
+                                                    discount_percentage: {{ Js::from($item->saleDiscountPercentage()) }},
+                                                    tags: {{ Js::from($item->tags ?? []) }}
                                                 }; showEditMenuItemModal = true; open = false" class="w-full px-4 py-3 text-left text-sm font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center gap-2">
                                                     <x-heroicon-o-pencil-square class="w-4 h-4" />
                                                     Edit Item
@@ -1060,7 +1062,20 @@
                     } else {
                         this.variants[0] = { name: '', price: '' };
                     }
-                }
+                },
+                selectedTags: [],
+                availableTags: [
+                    { slug: 'sandwich', label: 'Sandwiches', emoji: '🥪' },
+                    { slug: 'burger', label: 'Burgers', emoji: '🍔' },
+                    { slug: 'pizza', label: 'Pizza', emoji: '🍕' },
+                    { slug: 'dessert', label: 'Desserts', emoji: '🍰' },
+                    { slug: 'drink', label: 'Drinks', emoji: '🥤' },
+                    { slug: 'salad', label: 'Salads', emoji: '🥗' },
+                    { slug: 'breakfast', label: 'Breakfast', emoji: '🍳' },
+                    { slug: 'pasta', label: 'Pasta', emoji: '🍝' },
+                    { slug: 'seafood', label: 'Seafood', emoji: '🦐' },
+                    { slug: 'chicken', label: 'Chicken', emoji: '🍗' }
+                ]
             }" @submit="submitting = true">
                 @csrf
                 <div>
@@ -1084,6 +1099,70 @@
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Price ($)</label>
                     <input type="number" step="0.01" min="0" name="price" x-model="basePrice" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 transition-all" placeholder="12.99">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Tags (Browse Categories)</label>
+                    <div x-data="{
+                        dropdownOpen: false,
+                        searchQuery: '',
+                        addTag(tag) {
+                            if (!selectedTags.some(t => t.slug === tag.slug)) {
+                                selectedTags.push(tag);
+                            }
+                            this.searchQuery = '';
+                            this.dropdownOpen = false;
+                        },
+                        removeTag(slug) {
+                            selectedTags = selectedTags.filter(t => t.slug !== slug);
+                        },
+                        filteredTags() {
+                            return availableTags.filter(tag => 
+                                tag.label.toLowerCase().includes(this.searchQuery.toLowerCase()) &&
+                                !selectedTags.some(t => t.slug === tag.slug)
+                            );
+                        }
+                    }" class="relative">
+                        <!-- Selected tags container (Shopify-like premium UI) -->
+                        <div class="flex flex-wrap gap-2 mb-2">
+                            <template x-for="tag in selectedTags" :key="tag.slug">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 shadow-sm transition-all">
+                                    <span x-text="tag.emoji"></span>
+                                    <span x-text="tag.label"></span>
+                                    <button type="button" @click="removeTag(tag.slug)" class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 hover:bg-emerald-200 hover:text-emerald-950 flex items-center justify-center transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                    <!-- Hidden input to submit with the form -->
+                                    <input type="hidden" name="tags[]" :value="tag.slug">
+                                </span>
+                            </template>
+                        </div>
+
+                        <!-- Tag search / input field -->
+                        <div class="relative">
+                            <input type="text" 
+                                   x-model="searchQuery" 
+                                   @focus="dropdownOpen = true"
+                                   @click.outside="dropdownOpen = false"
+                                   @keydown.escape="dropdownOpen = false"
+                                   placeholder="Type to search tags (e.g. Burgers, Pizza)..." 
+                                   class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 transition-all">
+                            
+                            <!-- Suggestions Dropdown -->
+                            <div x-show="dropdownOpen && filteredTags().length > 0" 
+                                 x-transition
+                                 class="absolute left-0 right-0 mt-2 bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 max-h-48 overflow-y-auto z-50 py-1.5">
+                                <template x-for="tag in filteredTags()" :key="tag.slug">
+                                    <button type="button" 
+                                            @click="addTag(tag)"
+                                            class="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
+                                        <span x-text="tag.emoji" class="text-base"></span>
+                                        <span x-text="tag.label"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="pt-2 border-t border-gray-100 space-y-3">
@@ -1338,6 +1417,7 @@
 
                             this.editIsOnSale = !!val.is_on_sale;
                             this.editDiscountPercentage = val.discount_percentage || '';
+                            this.editTags = val.tags || [];
                         }
                     }, { immediate: true });
                 },
@@ -1362,7 +1442,20 @@
                     } else {
                         this.editVariants = [{ name: '', price: '' }];
                     }
-                }
+                },
+                editTags: [],
+                availableTags: [
+                    { slug: 'sandwich', label: 'Sandwiches', emoji: '🥪' },
+                    { slug: 'burger', label: 'Burgers', emoji: '🍔' },
+                    { slug: 'pizza', label: 'Pizza', emoji: '🍕' },
+                    { slug: 'dessert', label: 'Desserts', emoji: '🍰' },
+                    { slug: 'drink', label: 'Drinks', emoji: '🥤' },
+                    { slug: 'salad', label: 'Salads', emoji: '🥗' },
+                    { slug: 'breakfast', label: 'Breakfast', emoji: '🍳' },
+                    { slug: 'pasta', label: 'Pasta', emoji: '🍝' },
+                    { slug: 'seafood', label: 'Seafood', emoji: '🦐' },
+                    { slug: 'chicken', label: 'Chicken', emoji: '🍗' }
+                ]
             }" @submit="submitting = true">
                 @csrf
                 @method('PUT')
@@ -1377,6 +1470,75 @@
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Price ($)</label>
                     <input type="number" step="0.01" min="0" name="price" x-model="editingMenuItem.price" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="12.99">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Tags (Browse Categories)</label>
+                    <div x-data="{
+                        dropdownOpen: false,
+                        searchQuery: '',
+                        addTag(tag) {
+                            if (!editTags.includes(tag.slug)) {
+                                editTags.push(tag.slug);
+                            }
+                            this.searchQuery = '';
+                            this.dropdownOpen = false;
+                        },
+                        removeTag(slug) {
+                            const idx = editTags.indexOf(slug);
+                            if (idx > -1) {
+                                editTags.splice(idx, 1);
+                            }
+                        },
+                        filteredTags() {
+                            return availableTags.filter(tag => 
+                                tag.label.toLowerCase().includes(this.searchQuery.toLowerCase()) &&
+                                !editTags.includes(tag.slug)
+                            );
+                        }
+                    }" class="relative">
+                        <!-- Selected tags container (Shopify-like premium UI) -->
+                        <div class="flex flex-wrap gap-2 mb-2">
+                            <template x-for="slug in editTags" :key="slug">
+                                <template x-if="availableTags.find(t => t.slug === slug)">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 shadow-sm transition-all">
+                                        <span x-text="availableTags.find(t => t.slug === slug).emoji"></span>
+                                        <span x-text="availableTags.find(t => t.slug === slug).label"></span>
+                                        <button type="button" @click="removeTag(slug)" class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 hover:bg-emerald-200 hover:text-emerald-950 flex items-center justify-center transition-colors">
+                                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                        </button>
+                                        <!-- Hidden input to submit with the form -->
+                                        <input type="hidden" name="tags[]" :value="slug">
+                                    </span>
+                                </template>
+                            </template>
+                        </div>
+
+                        <!-- Tag search / input field -->
+                        <div class="relative">
+                            <input type="text" 
+                                   x-model="searchQuery" 
+                                   @focus="dropdownOpen = true"
+                                   @click.outside="dropdownOpen = false"
+                                   @keydown.escape="dropdownOpen = false"
+                                   placeholder="Type to search tags (e.g. Burgers, Pizza)..." 
+                                   class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all">
+                            
+                            <!-- Suggestions Dropdown -->
+                            <div x-show="dropdownOpen && filteredTags().length > 0" 
+                                 x-transition
+                                 class="absolute left-0 right-0 mt-2 bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 max-h-48 overflow-y-auto z-50 py-1.5">
+                                <template x-for="tag in filteredTags()" :key="tag.slug">
+                                    <button type="button" 
+                                            @click="addTag(tag)"
+                                            class="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
+                                        <span x-text="tag.emoji" class="text-base"></span>
+                                        <span x-text="tag.label"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="pt-2 border-t border-gray-100 space-y-3">

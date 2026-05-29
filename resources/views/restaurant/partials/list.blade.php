@@ -42,6 +42,12 @@
 
             <div class="p-6">
                 <h3 class="text-2xl font-black outfit text-gray-900 dark:text-white group-hover:text-emerald-500 transition-colors line-clamp-1">{{ $restaurant->name }}</h3>
+                @if($restaurant->address)
+                    <div class="flex items-center gap-1.5 mt-2">
+                        <svg class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <span class="text-xs font-semibold text-gray-400 truncate">{{ $restaurant->address }}</span>
+                    </div>
+                @endif
                 <p class="mt-3 text-sm text-gray-500 font-medium line-clamp-2 min-h-[2.75rem]">
                     {{ $restaurant->description ?? 'Fresh food, signature flavors, and a storefront ready to explore.' }}
                 </p>

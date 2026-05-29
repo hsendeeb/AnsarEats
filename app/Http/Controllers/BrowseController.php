@@ -55,6 +55,7 @@ class BrowseController extends Controller
                         'restaurant_id'   => $restaurant?->id,
                         'restaurant_user_id'=> $restaurant?->user_id,
                         'restaurant_name' => $restaurant?->name ?? '',
+                        'restaurant_address'=> $restaurant?->address,
                         'restaurant_logo' => $restaurant?->logo
                             ? asset('storage/' . $restaurant->logo)
                             : null,
@@ -88,13 +89,7 @@ class BrowseController extends Controller
                     ->where('is_available', true);
 
                 if ($category !== 'all') {
-                    $query->where(function ($filteredQuery) use ($category) {
-                        $filteredQuery
-                            ->whereHas('menuCategory', function ($q) use ($category) {
-                                $q->where('name', 'like', '%' . $category . '%');
-                            })
-                            ->orWhere('name', 'like', '%' . $category . '%');
-                    });
+                    $query->whereJsonContains('tags', $category);
                 }
 
                 return $query->paginate(20, ['*'], 'page', $page);

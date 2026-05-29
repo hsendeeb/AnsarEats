@@ -13,6 +13,7 @@ class MenuItem extends Model
 
     protected $casts = [
         'variants' => 'array',
+        'tags' => 'array',
         'is_available' => 'boolean',
         'is_featured' => 'boolean',
         'is_on_sale' => 'boolean',

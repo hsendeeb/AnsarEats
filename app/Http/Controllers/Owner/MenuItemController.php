@@ -27,6 +27,8 @@ class MenuItemController extends Controller
             'variant_prices.*' => 'nullable|numeric|min:0',
             'is_on_sale' => 'sometimes|boolean',
             'discount_percentage' => 'nullable|required_if:is_on_sale,1|numeric|min:0.01|max:100',
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|max:255',
         ]);
     }
 
@@ -99,6 +101,7 @@ class MenuItemController extends Controller
 
         $data = $request->only('name', 'description', 'price');
         $data['variants'] = $this->buildVariantsPayload($request);
+        $data['tags'] = $request->input('tags', []);
         $this->applySaleFields($data, $request);
 
         if ($request->hasFile('image')) {
@@ -131,6 +134,7 @@ class MenuItemController extends Controller
 
         $data = $request->only('name', 'description', 'price');
         $data['variants'] = $this->buildVariantsPayload($request);
+        $data['tags'] = $request->input('tags', []);
         $this->applySaleFields($data, $request);
 
         if ($request->hasFile('image')) {

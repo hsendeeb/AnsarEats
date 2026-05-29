@@ -14,6 +14,7 @@ class HomeRestaurantResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
+            'address' => $this->address,
             'logo_url' => $this->logo ? Storage::url($this->logo) : null,
             'url' => route('restaurant.show', $this->resource),
             'menu_categories_count' => (int) ($this->menu_categories_count ?? 0),

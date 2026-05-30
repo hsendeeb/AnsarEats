@@ -57,10 +57,11 @@
         <div id="items-grid"
              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 transition-opacity duration-300">
             @forelse($items as $meal)
-                <div id="browse-card-{{ $meal->id }}" class="relative bg-white border border-gray-100 rounded-2xl p-4 flex flex-wrap gap-4 hover:shadow-xl transition-shadow group overflow-visible h-full"
+                <div id="browse-card-{{ $meal->id }}" class="relative bg-white border border-gray-100 rounded-2xl p-4 flex flex-col gap-4 hover:shadow-xl transition-shadow group overflow-visible h-full"
                      :class="{ 'z-30': variantDropdownOpen }"
                      x-data="menuItemPricing({{ $meal->price }}, @js($meal->variants ?? []), {{ $meal->is_on_sale ? 'true' : 'false' }}, {{ Js::from($meal->sale_price) }}, {{ Js::from($meal->saleDiscountPercentage()) }})">
                     
+                    <div class="flex gap-4">
                     <!-- Item Image -->
                     <div id="browse-img-{{ $meal->id }}" class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative">
                         <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="block w-full h-full">
@@ -140,6 +141,7 @@
                             </div>
                         </div>
                     </div>
+                    </div>
 
                         <!-- Variants -->
                         <div x-show="hasVariants" x-cloak class="basis-full w-full">
@@ -195,7 +197,7 @@
                         </div>
 
                         <!-- Add to Cart Button -->
-                        <div class="basis-full flex justify-end">
+                        <div class="mt-auto basis-full flex justify-end pt-1">
                             @if(Auth::id() === ($meal->menuCategory->restaurant->user_id ?? null))
                                 <span class="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 flex-shrink-0 self-end">Own Restaurant</span>
                             @elseif(!$meal->menuCategory->restaurant->isOpenNow())
@@ -882,7 +884,8 @@
         var variantsJson = JSON.stringify(meal.variants || []);
         var xDataStr = "menuItemPricing(" + meal.raw_price + ", " + variantsJson.replace(/\"/g, '&quot;') + ", " + (meal.is_on_sale ? 'true' : 'false') + ", " + (meal.raw_sale_price !== null ? meal.raw_sale_price : 'null') + ", " + (meal.discount_percentage !== null ? meal.discount_percentage : 'null') + ")";
 
-        return '<div id="browse-card-' + meal.id + '" class="relative bg-white border border-gray-100 rounded-2xl p-4 flex flex-wrap gap-4 hover:shadow-xl transition-shadow group overflow-visible h-full" :class="{ \'z-30\': variantDropdownOpen }" x-data="' + xDataStr + '">' +
+        return '<div id="browse-card-' + meal.id + '" class="relative bg-white border border-gray-100 rounded-2xl p-4 flex flex-col gap-4 hover:shadow-xl transition-shadow group overflow-visible h-full" :class="{ \'z-30\': variantDropdownOpen }" x-data="' + xDataStr + '">' +
+            '<div class="flex gap-4">' +
             '<!-- Item Image -->' +
             '<div id="browse-img-' + meal.id + '" class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative">' +
                 '<a href="' + meal.url + '#meal-' + meal.id + '" class="block w-full h-full">' +
@@ -917,7 +920,8 @@
                     descHtml +
                 '</div>' +
             '</div>' +
-                
+            '</div>' +
+
                 '<!-- Variants -->' +
                 '<div x-show="hasVariants" x-cloak class="basis-full w-full">' +
                     '<div class="relative" @click.outside="variantDropdownOpen = false">' +
@@ -951,9 +955,8 @@
                         '</div>' +
                     '</div>' +
                 '</div>' +
-
                 '<!-- Add button -->' +
-                '<div class="basis-full flex justify-end">' +
+                '<div class="mt-auto basis-full flex justify-end pt-1">' +
                     actionHtml +
                 '</div>' +
         '</div>';

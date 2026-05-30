@@ -668,7 +668,7 @@
                                                 }
                                             @endphp
                                                     <div class="group h-full" id="browse-card-[homemeal]-{{ $meal->id }}">
-                                                        <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex flex-wrap gap-4 hover:shadow-2xl transition-all duration-300 relative h-full group-hover:-translate-y-1"
+                                                        <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex flex-col gap-4 hover:shadow-2xl transition-all duration-300 relative h-full group-hover:-translate-y-1"
                                              x-data="{
                                                 adding: false,
                                                 basePrice: parseFloat('{{ $meal->price }}'),
@@ -848,67 +848,69 @@
                                                     }
                                                 }
                                              }">
-                                            <!-- Meal Image -->
-                                            <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="w-24 h-24 flex-shrink-0">
-                                                <div class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative" id="browse-img-[homemeal]-{{ $meal->id }}">
-                                                    @if($meal->image)
-                                                        <img alt="{{ $meal->name }}" src="{{ Storage::url($meal->image) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
-                                                    @else
-                                                        <div class="w-full h-full flex items-center justify-center text-gray-300">
-                                                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                                        </div>
-                                                    @endif
-                                                    @if(!$meal->is_available)
-                                                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
-                                                            <span class="text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-gray-900/80 rounded border border-gray-700">Sold out</span>
-                                                        </div>
-                                                    @elseif(!$meal->menuCategory->restaurant->isOpenNow())
-                                                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
-                                                            <span class="text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-red-900/80 rounded border border-red-700">Closed</span>
-                                                        </div>
-                                                    @endif
+                                            <div class="flex gap-4">
+                                                <!-- Meal Image -->
+                                                <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="w-24 h-24 flex-shrink-0">
+                                                    <div class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative" id="browse-img-[homemeal]-{{ $meal->id }}">
+                                                        @if($meal->image)
+                                                            <img alt="{{ $meal->name }}" src="{{ Storage::url($meal->image) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                                                        @else
+                                                            <div class="w-full h-full flex items-center justify-center text-gray-300">
+                                                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                            </div>
+                                                        @endif
+                                                        @if(!$meal->is_available)
+                                                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
+                                                                <span class="text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-gray-900/80 rounded border border-gray-700">Sold out</span>
+                                                            </div>
+                                                        @elseif(!$meal->menuCategory->restaurant->isOpenNow())
+                                                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
+                                                                <span class="text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-red-900/80 rounded border border-red-700">Closed</span>
+                                                            </div>
+                                                        @endif
 
-                                                    <!-- Restaurant Mini Badge Overlay -->
-                                                    <div class="absolute bottom-1 left-1 flex items-center gap-1 bg-white/90 backdrop-blur-md pl-1 pr-1.5 py-0.5 rounded-full shadow-md z-10 pointer-events-none">
-                                                        <div class="w-4 h-4 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-white">
-                                                            @if($meal->menuCategory->restaurant->logo)
-                                                                <img src="{{ Storage::url($meal->menuCategory->restaurant->logo) }}" class="w-full h-full object-cover">
-                                                            @else
-                                                                <div class="w-full h-full flex items-center justify-center bg-emerald-100 text-emerald-600 text-[8px] font-bold">{{ substr($meal->menuCategory->restaurant->name, 0, 1) }}</div>
-                                                            @endif
+                                                        <!-- Restaurant Mini Badge Overlay -->
+                                                        <div class="absolute bottom-1 left-1 flex items-center gap-1 bg-white/90 backdrop-blur-md pl-1 pr-1.5 py-0.5 rounded-full shadow-md z-10 pointer-events-none">
+                                                            <div class="w-4 h-4 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-white">
+                                                                @if($meal->menuCategory->restaurant->logo)
+                                                                    <img src="{{ Storage::url($meal->menuCategory->restaurant->logo) }}" class="w-full h-full object-cover">
+                                                                @else
+                                                                    <div class="w-full h-full flex items-center justify-center bg-emerald-100 text-emerald-600 text-[8px] font-bold">{{ substr($meal->menuCategory->restaurant->name, 0, 1) }}</div>
+                                                                @endif
+                                                            </div>
+                                                            <span class="text-[8px] font-bold text-gray-900 truncate max-w-[50px]">{{ $meal->menuCategory->restaurant->name }}</span>
                                                         </div>
-                                                        <span class="text-[8px] font-bold text-gray-900 truncate max-w-[50px]">{{ $meal->menuCategory->restaurant->name }}</span>
                                                     </div>
-                                                </div>
-                                            </a>
+                                                </a>
 
-                                            <!-- Details -->
-                                            <div class="flex-1 min-w-0">
-                                                <div>
-                                                    <div class="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
-                                                        <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="min-w-0 flex-1">
-                                                            <h4 class="font-bold text-lg text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors leading-tight break-words block">
-                                                                {{ $meal->name }}
-                                                            </h4>
-                                                            @if($meal->is_featured)
-                                                                <div class="mt-1 flex block">
-                                                                    <span class="inline-flex items-center text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-widest border border-amber-100 whitespace-nowrap">Featured</span>
+                                                <!-- Details -->
+                                                <div class="flex-1 min-w-0">
+                                                    <div>
+                                                        <div class="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
+                                                            <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="min-w-0 flex-1">
+                                                                <h4 class="font-bold text-lg text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors leading-tight break-words block">
+                                                                    {{ $meal->name }}
+                                                                </h4>
+                                                                @if($meal->is_featured)
+                                                                    <div class="mt-1 flex block">
+                                                                        <span class="inline-flex items-center text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-widest border border-amber-100 whitespace-nowrap">Featured</span>
+                                                                    </div>
+                                                                @endif
+                                                                <div class="hidden sm:flex items-center gap-1.5 mt-1">
+                                                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ $meal->menuCategory->name }}</span>
                                                                 </div>
-                                                            @endif
-                                                            <div class="hidden sm:flex items-center gap-1.5 mt-1">
-                                                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ $meal->menuCategory->name }}</span>
-                                                            </div>
-                                                        </a>
-                                                        <div class="shrink-0 text-right whitespace-nowrap">
-                                                            <div class="flex items-center justify-end gap-2">
-                                                                <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>
-                                                                <span class="font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">${{ number_format($meal->price, 2) }}</span>
+                                                            </a>
+                                                            <div class="shrink-0 text-right whitespace-nowrap">
+                                                                <div class="flex items-center justify-end gap-2">
+                                                                    <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>
+                                                                    <span class="font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">${{ number_format($meal->price, 2) }}</span>
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                        @if($meal->description)
+                                                            <p class="text-sm text-gray-500 font-medium line-clamp-2 mt-2 break-words">{{ $meal->description }}</p>
+                                                        @endif
                                                     </div>
-                                                    @if($meal->description)
-                                                        <p class="text-sm text-gray-500 font-medium line-clamp-2 mt-2 break-words">{{ $meal->description }}</p>
-                                                    @endif
                                                 </div>
                                             </div>
 
@@ -963,8 +965,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-
-                                                <div class="basis-full flex items-center justify-between">
+                                                <div class="mt-auto basis-full flex items-center justify-between pt-1">
                                                     <div class="text-xs font-bold text-gray-400 flex items-center gap-1">
                                                         <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                                                         {{ $meal->order_items_count }} orders
@@ -986,9 +987,8 @@
                                                             <svg x-show="adding" x-cloak class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                                                         </button>
                                                     @endif
+                                                </div>
                                             </div>
-                                                        </div>
-                                                    </div>
                                         @endforeach
                                     </div>
                                 @endforeach

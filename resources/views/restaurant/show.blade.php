@@ -877,9 +877,10 @@
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 @foreach($category->menuItems as $item)
-                                    <div id="item-card-{{ $item->id }}" class="relative bg-white dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex flex-wrap gap-4 hover:shadow-xl transition-shadow group {{ !$item->is_available ? 'opacity-60 grayscale' : '' }}"
+                                    <div id="item-card-{{ $item->id }}" class="relative bg-white dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex flex-col gap-4 hover:shadow-xl transition-shadow group {{ !$item->is_available ? 'opacity-60 grayscale' : '' }}"
                                          :class="{ 'z-30': variantDropdownOpen }"
                                          x-data="menuItemPricing({{ $item->price }}, @js($item->variants), {{ $item->is_on_sale ? 'true' : 'false' }}, {{ Js::from($item->sale_price) }}, {{ Js::from($item->saleDiscountPercentage()) }})">
+                                        <div class="flex gap-4">
                                         <!-- Item Image -->
                                         <div id="item-img-{{ $item->id }}" class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative">
                                             @if($item->image)
@@ -967,6 +968,7 @@
 
                                             </div>
                                         </div>
+                                        </div>
 
                                             @if($item->is_available && $restaurant->isOpenNow())
                                                 <div x-show="hasVariants" x-cloak class="basis-full w-full">
@@ -1020,7 +1022,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="basis-full flex justify-end">
+                                                <div class="mt-auto basis-full flex justify-end pt-1">
                                                     @if(Auth::id() === $restaurant->user_id)
                                                         <span class="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">Own Restaurant</span>
                                                     @else

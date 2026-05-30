@@ -641,7 +641,7 @@
                         }
                     }" x-init="initMealSwiper()" class="relative w-full">
 
-                        <div class="swiper most-ordered-swiper !pb-8 !px-1.5 !pt-1.5 md:!overflow-visible" style="overflow: hidden;">
+                        <div class="swiper most-ordered-swiper !pb-8 !px-1.5 !pt-1.5 md:!overflow-visible" style="overflow: visible;">
                             <div class="swiper-wrapper md:!flex md:!flex-wrap md:!gap-6 md:!transform-none md:!h-auto">
                                 @foreach($trendingMeals->chunk(2) as $mealPair)
                                     <div class="swiper-slide h-auto flex flex-col gap-4 md:!w-[calc(50%-0.75rem)] xl:!w-[calc(33.333%-1rem)] md:!mr-0">
@@ -667,8 +667,9 @@
                                                     ]];
                                                 }
                                             @endphp
-                                                    <div class="group h-full" id="browse-card-[homemeal]-{{ $meal->id }}">
+                                                    <div class="group relative z-0 h-full" id="browse-card-[homemeal]-{{ $meal->id }}">
                                                         <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex flex-col gap-4 hover:shadow-2xl transition-all duration-300 relative h-full group-hover:-translate-y-1"
+                                             :class="{ 'z-50': variantDropdownOpen }"
                                              x-data="{
                                                 adding: false,
                                                 basePrice: parseFloat('{{ $meal->price }}'),
@@ -939,7 +940,7 @@
                                                             x-transition:leave="transition ease-in duration-100"
                                                             x-transition:leave-start="opacity-100 translate-y-0"
                                                             x-transition:leave-end="opacity-0 -translate-y-1"
-                                                            class="absolute left-0 right-0 top-full z-40 mt-1 max-h-72 overflow-y-auto rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-gray-900/10">
+                                                            class="absolute left-0 right-0 top-full z-[70] mt-1 max-h-72 overflow-y-auto rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-gray-900/10">
                                                             <template x-for="(group, groupIndex) in variantGroups" :key="groupIndex">
                                                                 <div class="py-1.5" :class="groupIndex > 0 ? 'border-t border-gray-100' : ''">
                                                                     <p class="px-2 pb-1 text-[11px] font-black uppercase tracking-widest text-gray-400" x-text="group.type"></p>

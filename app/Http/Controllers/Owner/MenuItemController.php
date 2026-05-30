@@ -21,11 +21,17 @@ class MenuItemController extends Controller
             'price' => 'required|numeric|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp',
             'has_variants' => 'sometimes|boolean',
-            'variant_type' => 'required_if:has_variants,1|nullable|string|max:255',
-            'variant_names' => 'required_if:has_variants,1|nullable|array',
+            'variant_type' => 'nullable|string|max:255',
+            'variant_names' => 'nullable|array',
             'variant_names.*' => 'nullable|string|max:255',
-            'variant_prices' => 'required_if:has_variants,1|nullable|array',
+            'variant_prices' => 'nullable|array',
             'variant_prices.*' => 'nullable|numeric|min:0',
+            'variant_groups' => 'nullable|array',
+            'variant_groups.*.type' => 'nullable|string|max:255',
+            'variant_groups.*.required' => 'sometimes|boolean',
+            'variant_groups.*.options' => 'nullable|array',
+            'variant_groups.*.options.*.name' => 'nullable|string|max:255',
+            'variant_groups.*.options.*.price' => 'nullable|numeric|min:0',
             'is_on_sale' => 'sometimes|boolean',
             'discount_percentage' => 'nullable|required_if:is_on_sale,1|numeric|min:0.01|max:100',
             'tags' => 'nullable|array',
@@ -41,6 +47,45 @@ class MenuItemController extends Controller
     {
         if (! $request->boolean('has_variants')) {
             return null;
+        }
+
+        $groups = collect($request->input('variant_groups', []))
+            ->map(function (array $group): ?array {
+                $type = trim((string) ($group['type'] ?? ''));
+                $options = collect($group['options'] ?? [])
+                    ->map(function (array $option): ?array {
+                        $name = trim((string) ($option['name'] ?? ''));
+                        $price = $option['price'] ?? null;
+
+                        if ($name === '' || $price === null || $price === '') {
+                            return null;
+                        }
+
+                        return [
+                            'label' => $name,
+                            'price' => (float) $price,
+                        ];
+                    })
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                if ($type === '' || empty($options)) {
+                    return null;
+                }
+
+                return [
+                    'type' => $type,
+                    'required' => (bool) ($group['required'] ?? false),
+                    'options' => $options,
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        if (count($groups) > 0) {
+            return ['groups' => $groups];
         }
 
         $names = $request->input('variant_names', []);

@@ -432,7 +432,7 @@ class DashboardController extends Controller
             ]),
             now()->addSeconds(config('performance.cache_ttl.owner_orders')),
             function () use ($request, $restaurant) {
-                $ordersQuery = Order::with(['user', 'orderItems'])
+                $ordersQuery = Order::with(['user', 'orderItems.menuItem'])
                     ->where('restaurant_id', $restaurant->id)
                     ->unarchived();
 

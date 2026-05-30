@@ -614,12 +614,13 @@
                                     <div class="mt-5 pt-5 border-t border-gray-50 bg-gray-50/30 -mx-5 -mb-5 px-5 pb-5">
                                         <div class="flex flex-wrap gap-2">
                                             @foreach($order->orderItems as $item)
+                                                @php($displayVariantLabel = $item->displayVariantLabel())
                                                 <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-xl border border-gray-100 shadow-sm">
                                                     <span class="text-[10px] font-black text-emerald-500">{{ $item->quantity }}x</span>
                                                     <span class="text-[11px] font-bold text-gray-700">
                                                         {{ $item->name }}
-                                                        @if($item->variant_label)
-                                                            <span class="text-gray-400 font-medium">({{ $item->variant_label }})</span>
+                                                        @if($displayVariantLabel)
+                                                            <span class="text-gray-400 font-medium">({{ $displayVariantLabel }})</span>
                                                         @endif
                                                     </span>
                                                 </div>

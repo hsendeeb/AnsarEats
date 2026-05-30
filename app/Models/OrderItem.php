@@ -24,4 +24,15 @@ class OrderItem extends Model
     {
         return $this->belongsTo(MenuItem::class);
     }
+
+    public function displayVariantLabel(): ?string
+    {
+        $label = trim((string) $this->variant_label);
+
+        if ($label === '') {
+            return null;
+        }
+
+        return $label;
+    }
 }

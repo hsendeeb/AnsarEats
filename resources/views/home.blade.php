@@ -646,19 +646,40 @@
                                 @foreach($trendingMeals->chunk(2) as $mealPair)
                                     <div class="swiper-slide h-auto flex flex-col gap-4 md:!w-[calc(50%-0.75rem)] xl:!w-[calc(33.333%-1rem)] md:!mr-0">
                                         @foreach($mealPair as $meal)
+                                            @php
+                                                $homeVariantGroups = collect(data_get($meal->variants, 'groups', []))
+                                                    ->map(fn ($group) => [
+                                                        'type' => data_get($group, 'type', 'Option'),
+                                                        'required' => data_get($group, 'required', true) !== false,
+                                                        'mode' => 'addon',
+                                                        'options' => data_get($group, 'options', []),
+                                                    ])
+                                                    ->filter(fn ($group) => ! empty($group['options']))
+                                                    ->values()
+                                                    ->all();
+
+                                                if (empty($homeVariantGroups) && ! empty(data_get($meal->variants, 'options', []))) {
+                                                    $homeVariantGroups = [[
+                                                        'type' => data_get($meal->variants, 'type', 'Option'),
+                                                        'required' => true,
+                                                        'mode' => 'absolute',
+                                                        'options' => data_get($meal->variants, 'options', []),
+                                                    ]];
+                                                }
+                                            @endphp
                                                     <div class="group h-full" id="browse-card-[homemeal]-{{ $meal->id }}">
-                                                        <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex gap-4 hover:shadow-2xl transition-all duration-300 relative h-full group-hover:-translate-y-1"
+                                                        <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex flex-wrap gap-4 hover:shadow-2xl transition-all duration-300 relative h-full group-hover:-translate-y-1"
                                              x-data="{
                                                 adding: false,
                                                 basePrice: parseFloat('{{ $meal->price }}'),
                                                 isOnSale: {{ $meal->is_on_sale ? 'true' : 'false' }},
                                                 salePrice: {{ Js::from($meal->sale_price) }},
                                                 discountPercentage: {{ Js::from($meal->saleDiscountPercentage()) }},
-                                                variants: @js(data_get($meal->variants, 'options', [])),
-                                                variantType: @js(data_get($meal->variants, 'type')),
-                                                selectedIndex: 0,
+                                                variantGroups: @js($homeVariantGroups),
+                                                selectedOptions: @js(collect($homeVariantGroups)->map(fn ($group) => data_get($group, 'required', true) ? 0 : [])->values()->all()),
+                                                variantDropdownOpen: false,
                                                 get hasVariants() {
-                                                    return this.variants && this.variants.length > 0;
+                                                    return this.variantGroups.some((group) => group.options && group.options.length > 0);
                                                 },
                                                 formatCurrency(value) {
                                                     const numericValue = parseFloat(value);
@@ -686,14 +707,39 @@
                                                         || (!this.hasVariants && this.salePrice !== null && this.salePrice !== '' && !Number.isNaN(parseFloat(this.salePrice)) && parseFloat(this.salePrice) < this.basePrice)
                                                     );
                                                 },
-                                                get currentOption() {
-                                                    if (!this.hasVariants) return null;
-                                                    return this.variants[this.selectedIndex] || this.variants[0];
+                                                get currentSelections() {
+                                                    if (!this.hasVariants) return [];
+
+                                                    return this.variantGroups.flatMap((group, groupIndex) => {
+                                                        const selectedValue = this.selectedOptions[groupIndex];
+
+                                                        if (!group.required) {
+                                                            return (Array.isArray(selectedValue) ? selectedValue : [])
+                                                                .map((optionIndex) => ({
+                                                                    group,
+                                                                    option: group.options[optionIndex],
+                                                                }))
+                                                                .filter((selection) => selection.option);
+                                                        }
+
+                                                        return [{
+                                                            group,
+                                                            option: group.options[selectedValue ?? 0] || group.options[0],
+                                                        }];
+                                                    }).filter((selection) => selection && selection.option);
                                                 },
                                                 get currentOriginalPrice() {
-                                                    if (!this.currentOption) return this.basePrice;
-                                                    const value = parseFloat(this.currentOption.price);
-                                                    return Number.isNaN(value) ? this.basePrice : value;
+                                                    if (!this.hasVariants) return this.basePrice;
+
+                                                    if (this.variantGroups.length === 1 && this.variantGroups[0].mode === 'absolute') {
+                                                        const value = parseFloat(this.currentSelections[0]?.option?.price);
+                                                        return Number.isNaN(value) ? this.basePrice : value;
+                                                    }
+
+                                                    return this.currentSelections.reduce((total, selection) => {
+                                                        const value = parseFloat(selection.option?.price);
+                                                        return total + (Number.isNaN(value) ? 0 : value);
+                                                    }, this.basePrice);
                                                 },
                                                 get currentPrice() {
                                                     return this.hasActiveSale
@@ -704,7 +750,13 @@
                                                     return this.hasActiveSale ? this.currentOriginalPrice : null;
                                                 },
                                                 get currentLabel() {
-                                                    return this.currentOption ? this.currentOption.label : null;
+                                                    if (this.variantGroups.length === 1 && this.variantGroups[0].mode === 'absolute') {
+                                                        return this.currentSelections[0]?.option?.label || null;
+                                                    }
+
+                                                    return this.currentSelections.length
+                                                        ? this.currentSelections.map((selection) => `${selection.group.type}: ${selection.option.label}`).join(' / ')
+                                                        : null;
                                                 },
                                                 get formattedPrice() {
                                                     return this.formatCurrency(this.currentPrice);
@@ -724,6 +776,43 @@
                                                 },
                                                 formattedOptionSalePrice(option) {
                                                     return this.formatCurrency(this.optionSalePrice(option));
+                                                },
+                                                optionAddonPrice(option) {
+                                                    const numericPrice = parseFloat(option?.price);
+                                                    return Number.isNaN(numericPrice) ? 0 : numericPrice;
+                                                },
+                                                formattedOptionAddonPrice(option) {
+                                                    const price = this.optionAddonPrice(option);
+                                                    return price > 0 ? `+${this.formatCurrency(price)}` : this.formatCurrency(0);
+                                                },
+                                                selectVariant(groupIndex, optionIndex) {
+                                                    this.selectedOptions[groupIndex] = optionIndex;
+                                                },
+                                                isVariantSelected(groupIndex, optionIndex) {
+                                                    const selectedValue = this.selectedOptions[groupIndex];
+
+                                                    return Array.isArray(selectedValue)
+                                                        ? selectedValue.includes(optionIndex)
+                                                        : selectedValue === optionIndex;
+                                                },
+                                                toggleVariant(groupIndex, optionIndex) {
+                                                    if (this.variantGroups[groupIndex]?.required) {
+                                                        this.selectVariant(groupIndex, optionIndex);
+                                                        return;
+                                                    }
+
+                                                    const selectedValue = Array.isArray(this.selectedOptions[groupIndex])
+                                                        ? [...this.selectedOptions[groupIndex]]
+                                                        : [];
+                                                    const existingIndex = selectedValue.indexOf(optionIndex);
+
+                                                    if (existingIndex >= 0) {
+                                                        selectedValue.splice(existingIndex, 1);
+                                                    } else {
+                                                        selectedValue.push(optionIndex);
+                                                    }
+
+                                                    this.selectedOptions[groupIndex] = selectedValue;
                                                 },
                                                 async addToCart(itemId) {
                                                     if (this.adding) return;
@@ -794,7 +883,7 @@
                                             </a>
 
                                             <!-- Details -->
-                                            <div class="flex-1 min-w-0 flex flex-col justify-between">
+                                            <div class="flex-1 min-w-0">
                                                 <div>
                                                     <div class="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
                                                         <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="min-w-0 flex-1">
@@ -821,24 +910,61 @@
                                                         <p class="text-sm text-gray-500 font-medium line-clamp-2 mt-2 break-words">{{ $meal->description }}</p>
                                                     @endif
                                                 </div>
+                                            </div>
 
-                                                <div x-show="hasVariants" x-cloak class="mt-3">
-                                                    <p class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1" x-text="variantType ? variantType : 'Option'"></p>
-                                                    <div class="flex flex-wrap gap-2">
-                                                        <template x-for="(opt, idx) in variants" :key="idx">
-                                                            <button type="button"
-                                                                    @click="selectedIndex = idx"
-                                                                    class="px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all"
-                                                                    :class="selectedIndex === idx ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'">
-                                                                <span x-text="opt.label"></span>
-                                                                <span x-show="hasActiveSale" x-cloak class="ml-1 text-[10px] line-through" :class="selectedIndex === idx ? 'text-emerald-100' : 'text-gray-400'" x-text="formattedOptionOriginalPrice(opt)"></span>
-                                                                <span class="ml-1" :class="hasActiveSale ? (selectedIndex === idx ? 'font-bold text-white opacity-100' : 'font-bold text-emerald-500 opacity-100') : 'opacity-80'" x-text="hasActiveSale ? formattedOptionSalePrice(opt) : formattedOptionOriginalPrice(opt)"></span>
-                                                            </button>
-                                                        </template>
+                                                <div x-show="hasVariants" x-cloak class="basis-full w-full">
+                                                    <div class="relative" @click.outside="variantDropdownOpen = false">
+                                                        <button
+                                                            type="button"
+                                                            @click="variantDropdownOpen = !variantDropdownOpen"
+                                                            :aria-expanded="variantDropdownOpen.toString()"
+                                                            class="w-full cursor-pointer rounded-xl border border-gray-200 bg-white px-3 py-2 text-left shadow-sm transition-all hover:border-emerald-200 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                                            <span class="flex items-center justify-between gap-3">
+                                                                <span class="min-w-0">
+                                                                    <span class="mb-0.5 block text-[10px] font-black uppercase tracking-widest text-emerald-500">Choose options</span>
+                                                                    <span class="block truncate text-sm font-black text-gray-800" x-text="currentLabel || 'Choose options'"></span>
+                                                                </span>
+                                                                <span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500 transition-transform" :class="{ 'rotate-180': variantDropdownOpen }">
+                                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                                                                </span>
+                                                            </span>
+                                                        </button>
+                                                        <div
+                                                            x-show="variantDropdownOpen"
+                                                            x-transition:enter="transition ease-out duration-150"
+                                                            x-transition:enter-start="opacity-0 -translate-y-1"
+                                                            x-transition:enter-end="opacity-100 translate-y-0"
+                                                            x-transition:leave="transition ease-in duration-100"
+                                                            x-transition:leave-start="opacity-100 translate-y-0"
+                                                            x-transition:leave-end="opacity-0 -translate-y-1"
+                                                            class="absolute left-0 right-0 top-full z-40 mt-1 max-h-72 overflow-y-auto rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-gray-900/10">
+                                                            <template x-for="(group, groupIndex) in variantGroups" :key="groupIndex">
+                                                                <div class="py-1.5" :class="groupIndex > 0 ? 'border-t border-gray-100' : ''">
+                                                                    <p class="px-2 pb-1 text-[11px] font-black uppercase tracking-widest text-gray-400" x-text="group.type"></p>
+                                                                    <template x-for="(opt, idx) in group.options" :key="idx">
+                                                                        <button
+                                                                            type="button"
+                                                                            @click="toggleVariant(groupIndex, idx)"
+                                                                            class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-emerald-50"
+                                                                            :class="isVariantSelected(groupIndex, idx) ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'">
+                                                                            <span class="flex min-w-0 items-center gap-2">
+                                                                                <span class="flex h-4 w-4 flex-shrink-0 items-center justify-center border" :class="[group.required ? 'rounded-full' : 'rounded', isVariantSelected(groupIndex, idx) ? 'border-emerald-500 bg-emerald-500' : 'border-gray-300 bg-white']">
+                                                                                    <span class="h-2 w-2 rounded-full bg-white" x-show="group.required && isVariantSelected(groupIndex, idx)"></span>
+                                                                                    <svg x-show="!group.required && isVariantSelected(groupIndex, idx)" class="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                                                                </span>
+                                                                                <span class="block truncate text-sm font-bold" x-text="opt.label"></span>
+                                                                            </span>
+                                                                            <span class="flex-shrink-0 text-sm font-black" :class="isVariantSelected(groupIndex, idx) ? 'text-emerald-600' : 'text-gray-900'" x-text="group.mode === 'absolute' ? formattedOptionOriginalPrice(opt) : formattedOptionAddonPrice(opt)"></span>
+                                                                        </button>
+                                                                    </template>
+                                                                </div>
+                                                            </template>
+                                                            <div class="mt-1 border-t border-gray-100 px-2 pt-2 text-right text-sm font-black text-emerald-600" x-text="`Total ${formattedPrice}`"></div>
+                                                        </div>
                                                     </div>
                                                 </div>
 
-                                                <div class="flex items-center justify-between mt-3">
+                                                <div class="basis-full flex items-center justify-between">
                                                     <div class="text-xs font-bold text-gray-400 flex items-center gap-1">
                                                         <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                                                         {{ $meal->order_items_count }} orders
@@ -860,7 +986,6 @@
                                                             <svg x-show="adding" x-cloak class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                                                         </button>
                                                     @endif
-                                                </div>
                                             </div>
                                                         </div>
                                                     </div>

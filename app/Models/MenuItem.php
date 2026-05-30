@@ -73,9 +73,13 @@ class MenuItem extends Model
             return null;
         }
 
-        $options = data_get($this->variants, 'options', []);
+        $groupedPrice = $this->variantPriceFromGroups($label, $applyDiscount);
 
-        foreach ($options as $option) {
+        if ($groupedPrice !== null) {
+            return $groupedPrice;
+        }
+
+        foreach ($this->variantOptions() as $option) {
             if (mb_strtolower((string) data_get($option, 'label')) !== mb_strtolower($label)) {
                 continue;
             }
@@ -94,6 +98,164 @@ class MenuItem extends Model
         }
 
         return null;
+    }
+
+    private function variantPriceFromGroups(string $label, bool $applyDiscount = true): ?float
+    {
+        $groups = data_get($this->variants, 'groups', []);
+
+        if (empty($groups)) {
+            return null;
+        }
+
+        $parts = collect(explode(' / ', $label))
+            ->map(fn (string $part): string => trim($part))
+            ->filter()
+            ->values();
+
+        if ($parts->isEmpty()) {
+            return null;
+        }
+
+        $selectedByType = [];
+
+        foreach ($parts as $part) {
+            if (! str_contains($part, ':')) {
+                return null;
+            }
+
+            [$type, $optionLabel] = array_map('trim', explode(':', $part, 2));
+
+            if ($type === '' || $optionLabel === '') {
+                return null;
+            }
+
+            $selectedByType[mb_strtolower($type)][] = mb_strtolower($optionLabel);
+        }
+
+        $total = (float) $this->price;
+
+        foreach ($groups as $group) {
+            $groupType = trim((string) data_get($group, 'type', 'Option'));
+            $groupKey = mb_strtolower($groupType);
+            $isRequired = data_get($group, 'required', true) !== false;
+            $selectedLabels = $selectedByType[$groupKey] ?? [];
+            $optionsByLabel = collect(data_get($group, 'options', []))
+                ->mapWithKeys(function ($option): array {
+                    $optionLabel = trim((string) data_get($option, 'label'));
+
+                    return $optionLabel === ''
+                        ? []
+                        : [mb_strtolower($optionLabel) => (float) data_get($option, 'price', 0)];
+                });
+
+            if ($isRequired && count($selectedLabels) !== 1) {
+                return null;
+            }
+
+            if (! $isRequired && count($selectedLabels) !== count(array_unique($selectedLabels))) {
+                return null;
+            }
+
+            foreach ($selectedLabels as $selectedLabel) {
+                if (! $optionsByLabel->has($selectedLabel)) {
+                    return null;
+                }
+
+                $total += (float) $optionsByLabel->get($selectedLabel);
+            }
+
+            unset($selectedByType[$groupKey]);
+        }
+
+        if (! empty($selectedByType)) {
+            return null;
+        }
+
+        $total = round($total, 2);
+
+        return $applyDiscount
+            ? $this->discountedPriceFor($total)
+            : $total;
+    }
+
+    public function variantOptions(): array
+    {
+        $options = data_get($this->variants, 'options', []);
+
+        if (! empty($options)) {
+            return $options;
+        }
+
+        $groups = data_get($this->variants, 'groups', []);
+
+        if (empty($groups)) {
+            return [];
+        }
+
+        $combinations = [
+            ['parts' => [], 'price' => (float) $this->price],
+        ];
+        foreach ($groups as $group) {
+            $groupType = trim((string) data_get($group, 'type', 'Option'));
+            $groupOptions = data_get($group, 'options', []);
+            $isRequired = data_get($group, 'required', true) !== false;
+            $normalizedOptions = collect($groupOptions)
+                ->map(function ($option): ?array {
+                    $optionLabel = trim((string) data_get($option, 'label'));
+
+                    if ($optionLabel === '') {
+                        return null;
+                    }
+
+                    return [
+                        'label' => $optionLabel,
+                        'price' => (float) data_get($option, 'price', 0),
+                    ];
+                })
+                ->filter()
+                ->values();
+
+            if (! $isRequired) {
+                $normalizedOptions->prepend([
+                    'label' => null,
+                    'price' => 0,
+                ]);
+            }
+
+            $nextCombinations = [];
+
+            foreach ($combinations as $combination) {
+                foreach ($normalizedOptions as $option) {
+                    $optionLabel = data_get($option, 'label');
+                    $parts = $combination['parts'];
+
+                    if ($optionLabel !== null) {
+                        $parts[] = "{$groupType}: {$optionLabel}";
+                    }
+
+                    $nextCombinations[] = [
+                        'parts' => $parts,
+                        'price' => $combination['price'] + (float) data_get($option, 'price', 0),
+                    ];
+                }
+            }
+
+            $combinations = $nextCombinations;
+        }
+
+        if (empty($combinations)) {
+            return [];
+        }
+
+        return collect($combinations)
+            ->filter(fn (array $combination): bool => ! empty($combination['parts']))
+            ->map(fn (array $combination): array => [
+                'label' => implode(' / ', $combination['parts']),
+                'price' => round((float) $combination['price'], 2),
+            ])
+            ->values()
+            ->all();
     }
 
     public function menuCategory()

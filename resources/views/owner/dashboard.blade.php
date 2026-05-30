@@ -1006,7 +1006,7 @@
                 hasVariants: false,
                 isOnSale: false,
                 discountPercentage: '',
-                variants: [{ name: '', price: '' }],
+                variantGroups: [{ type: '', required: true, options: [{ name: '', price: '' }] }],
                 parsedDiscount() {
                     const value = parseFloat(this.discountPercentage);
                     return Number.isNaN(value) ? null : value;
@@ -1030,7 +1030,10 @@
                     return Math.max(numericPrice * (1 - (percentage / 100)), 0).toFixed(2);
                 },
                 validVariants() {
-                    return this.variants.filter((variant) => `${variant.name ?? ''}`.trim() !== '' && variant.price !== '' && variant.price !== null);
+                    return this.variantGroups.flatMap((group) => (group.options || []).map((variant) => ({
+                        name: `${group.type || 'Option'}: ${variant.name || ''}`,
+                        price: variant.price
+                    }))).filter((variant) => `${variant.name ?? ''}`.trim() !== 'Option:' && variant.price !== '' && variant.price !== null);
                 },
                 handleFileSelect(event) {
                     const file = event.target.files[0];
@@ -1054,14 +1057,25 @@
                     this.imagePreview = null;
                     this.$refs.imageInput.value = '';
                 },
-                addVariantRow() {
-                    this.variants.push({ name: '', price: '' });
+                addVariantGroup() {
+                    this.variantGroups.push({ type: '', required: false, options: [{ name: '', price: '' }] });
                 },
-                removeVariantRow(index) {
-                    if (this.variants.length > 1) {
-                        this.variants.splice(index, 1);
+                removeVariantGroup(groupIndex) {
+                    if (this.variantGroups.length > 1) {
+                        this.variantGroups.splice(groupIndex, 1);
                     } else {
-                        this.variants[0] = { name: '', price: '' };
+                        this.variantGroups[0] = { type: '', required: true, options: [{ name: '', price: '' }] };
+                    }
+                },
+                addVariantRow(groupIndex) {
+                    this.variantGroups[groupIndex].options.push({ name: '', price: '' });
+                },
+                removeVariantRow(groupIndex, optionIndex) {
+                    const options = this.variantGroups[groupIndex].options;
+                    if (options.length > 1) {
+                        options.splice(optionIndex, 1);
+                    } else {
+                        options[0] = { name: '', price: '' };
                     }
                 },
                 selectedTags: [],
@@ -1229,44 +1243,72 @@
 
                 <!-- Variant Configuration -->
                 <div x-show="hasVariants" x-transition class="space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
-                    <div>
-                        <label class="block text-xs font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Variant Type</label>
-                        <input type="text" name="variant_type" class="block w-full px-3 py-2.5 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all" placeholder="e.g. Size, Portion, Bread Type">
+                    <div class="flex items-center justify-between gap-3">
+                        <label class="block text-xs font-black text-emerald-700 uppercase tracking-widest">Variant Types</label>
+                        <button type="button"
+                                @click="addVariantGroup()"
+                                class="text-[11px] font-bold text-emerald-600 hover:text-emerald-500">
+                            + Add type
+                        </button>
                     </div>
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between">
-                            <label class="block text-xs font-black text-emerald-700 uppercase tracking-widest">Variant Options</label>
-                            <button type="button"
-                                    @click="addVariantRow()"
-                                    class="text-[11px] font-bold text-emerald-600 hover:text-emerald-500">
-                                + Add option
-                            </button>
-                        </div>
-                        <template x-for="(variant, index) in variants" :key="index">
+                    <template x-for="(group, groupIndex) in variantGroups" :key="groupIndex">
+                        <div class="space-y-3 rounded-2xl border border-emerald-200 bg-white/70 p-3">
                             <div class="flex items-center gap-2">
                                 <input type="text"
-                                       class="w-32 sm:w-48 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                                       placeholder="e.g. Small"
-                                       x-model="variant.name"
-                                       :name="`variant_names[${index}]` ">
-                                <input type="number"
-                                       step="0.01"
-                                       min="0"
-                                       class="w-20 sm:w-24 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                                       placeholder="$9.99"
-                                       x-model="variant.price"
-                                       :name="`variant_prices[${index}]` ">
+                                       class="min-w-0 flex-1 px-3 py-2.5 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                       placeholder="Type e.g. Size, Crust"
+                                       x-model="group.type"
+                                       :name="`variant_groups[${groupIndex}][type]`">
+                                <label class="flex flex-shrink-0 items-center gap-1.5 rounded-xl border border-emerald-100 bg-emerald-50 px-2.5 py-2 text-[11px] font-black text-emerald-700">
+                                    <input type="checkbox"
+                                           value="1"
+                                           x-model="group.required"
+                                           :name="`variant_groups[${groupIndex}][required]`"
+                                           class="rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500">
+                                    Required
+                                </label>
                                 <button type="button"
-                                        @click="removeVariantRow(index)"
+                                        @click="removeVariantGroup(groupIndex)"
                                         class="text-red-400 hover:text-red-600 transition-colors">
                                     <x-heroicon-o-x-mark class="w-4 h-4" />
                                 </button>
                             </div>
-                        </template>
-                        <p class="mt-1 text-[11px] text-emerald-600 font-medium">
-                            Each option can have its own price. Customers will pick one when ordering.
-                        </p>
-                    </div>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="block text-xs font-black text-emerald-700 uppercase tracking-widest">Options</label>
+                                    <button type="button"
+                                            @click="addVariantRow(groupIndex)"
+                                            class="text-[11px] font-bold text-emerald-600 hover:text-emerald-500">
+                                        + Add option
+                                    </button>
+                                </div>
+                                <template x-for="(variant, index) in group.options" :key="index">
+                                    <div class="flex items-center gap-2">
+                                        <input type="text"
+                                               class="w-32 sm:w-48 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                               placeholder="e.g. Small"
+                                               x-model="variant.name"
+                                               :name="`variant_groups[${groupIndex}][options][${index}][name]`">
+                                        <input type="number"
+                                               step="0.01"
+                                               min="0"
+                                               class="w-20 sm:w-24 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                               placeholder="$0.00"
+                                               x-model="variant.price"
+                                               :name="`variant_groups[${groupIndex}][options][${index}][price]`">
+                                        <button type="button"
+                                                @click="removeVariantRow(groupIndex, index)"
+                                                class="text-red-400 hover:text-red-600 transition-colors">
+                                            <x-heroicon-o-x-mark class="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                    <p class="mt-1 text-[11px] text-emerald-600 font-medium">
+                        With multiple types, option prices are added to the base item price.
+                    </p>
                 </div>
 
                 <!-- Image Upload -->
@@ -1364,7 +1406,7 @@
                 editIsOnSale: false,
                 editDiscountPercentage: '',
                 editVariantType: '',
-                editVariants: [{ name: '', price: '' }],
+                editVariantGroups: [{ type: '', required: true, options: [{ name: '', price: '' }] }],
                 parsedEditDiscount() {
                     const value = parseFloat(this.editDiscountPercentage);
                     return Number.isNaN(value) ? null : value;
@@ -1388,21 +1430,36 @@
                     return Math.max(numericPrice * (1 - (percentage / 100)), 0).toFixed(2);
                 },
                 validEditVariants() {
-                    return this.editVariants.filter((variant) => `${variant.name ?? ''}`.trim() !== '' && variant.price !== '' && variant.price !== null);
+                    return this.editVariantGroups.flatMap((group) => (group.options || []).map((variant) => ({
+                        name: `${group.type || 'Option'}: ${variant.name || ''}`,
+                        price: variant.price
+                    }))).filter((variant) => `${variant.name ?? ''}`.trim() !== 'Option:' && variant.price !== '' && variant.price !== null);
                 },
                 
                 init() {
                     this.$watch('editingMenuItem', (val) => {
                         if (val && val.id) {
                             const v = val.variants;
-                            if (v && v.options && v.options.length > 0) {
+                            if (v && v.groups && v.groups.length > 0) {
+                                this.editHasVariants = true;
+                                this.editVariantType = '';
+                                this.editVariantGroups = v.groups.map(group => ({
+                                    type: group.type || '',
+                                    required: group.required !== false,
+                                    options: (group.options || []).map(o => ({ name: o.label || '', price: o.price || '' }))
+                                }));
+                            } else if (v && v.options && v.options.length > 0) {
                                 this.editHasVariants = true;
                                 this.editVariantType = v.type || '';
-                                this.editVariants = v.options.map(o => ({ name: o.label || '', price: o.price || '' }));
+                                this.editVariantGroups = [{
+                                    type: v.type || '',
+                                    required: true,
+                                    options: v.options.map(o => ({ name: o.label || '', price: o.price || '' }))
+                                }];
                             } else {
                                 this.editHasVariants = false;
                                 this.editVariantType = '';
-                                this.editVariants = [{ name: '', price: '' }];
+                                this.editVariantGroups = [{ type: '', required: true, options: [{ name: '', price: '' }] }];
                             }
 
                             this.editIsOnSale = !!val.is_on_sale;
@@ -1424,13 +1481,34 @@
                     this.$refs.editImageInput.value = '';
                 },
                 addEditVariantRow() {
-                    this.editVariants.push({ name: '', price: '' });
+                    this.editVariantGroups[0].options.push({ name: '', price: '' });
                 },
                 removeEditVariantRow(index) {
-                    if (this.editVariants.length > 1) {
-                        this.editVariants.splice(index, 1);
+                    if (this.editVariantGroups[0].options.length > 1) {
+                        this.editVariantGroups[0].options.splice(index, 1);
                     } else {
-                        this.editVariants = [{ name: '', price: '' }];
+                        this.editVariantGroups[0].options = [{ name: '', price: '' }];
+                    }
+                },
+                addEditVariantGroup() {
+                    this.editVariantGroups.push({ type: '', required: false, options: [{ name: '', price: '' }] });
+                },
+                removeEditVariantGroup(groupIndex) {
+                    if (this.editVariantGroups.length > 1) {
+                        this.editVariantGroups.splice(groupIndex, 1);
+                    } else {
+                        this.editVariantGroups[0] = { type: '', required: true, options: [{ name: '', price: '' }] };
+                    }
+                },
+                addEditVariantOption(groupIndex) {
+                    this.editVariantGroups[groupIndex].options.push({ name: '', price: '' });
+                },
+                removeEditVariantOption(groupIndex, optionIndex) {
+                    const options = this.editVariantGroups[groupIndex].options;
+                    if (options.length > 1) {
+                        options.splice(optionIndex, 1);
+                    } else {
+                        options[0] = { name: '', price: '' };
                     }
                 },
                 editTags: [],
@@ -1594,44 +1672,72 @@
 
                 <!-- Variant Configuration -->
                 <div x-show="editHasVariants" x-transition class="space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
-                    <div>
-                        <label class="block text-xs font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Variant Type</label>
-                        <input type="text" name="variant_type" x-model="editVariantType" class="block w-full px-3 py-2.5 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all" placeholder="e.g. Size, Portion, Bread Type">
+                    <div class="flex items-center justify-between gap-3">
+                        <label class="block text-xs font-black text-emerald-700 uppercase tracking-widest">Variant Types</label>
+                        <button type="button"
+                                @click="addEditVariantGroup()"
+                                class="text-[11px] font-bold text-emerald-600 hover:text-emerald-500">
+                            + Add type
+                        </button>
                     </div>
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between">
-                            <label class="block text-xs font-black text-emerald-700 uppercase tracking-widest">Variant Options</label>
-                            <button type="button"
-                                    @click="addEditVariantRow()"
-                                    class="text-[11px] font-bold text-emerald-600 hover:text-emerald-500">
-                                + Add option
-                            </button>
-                        </div>
-                        <template x-for="(variant, index) in editVariants" :key="index">
+                    <template x-for="(group, groupIndex) in editVariantGroups" :key="groupIndex">
+                        <div class="space-y-3 rounded-2xl border border-emerald-200 bg-white/70 p-3">
                             <div class="flex items-center gap-2">
                                 <input type="text"
-                                       class="w-32 sm:w-48 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                                       placeholder="e.g. Small"
-                                       x-model="variant.name"
-                                       :name="`variant_names[${index}]` ">
-                                <input type="number"
-                                       step="0.01"
-                                       min="0"
-                                       class="w-20 sm:w-24 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                                       placeholder="$9.99"
-                                       x-model="variant.price"
-                                       :name="`variant_prices[${index}]` ">
+                                       class="min-w-0 flex-1 px-3 py-2.5 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                       placeholder="Type e.g. Size, Crust"
+                                       x-model="group.type"
+                                       :name="`variant_groups[${groupIndex}][type]`">
+                                <label class="flex flex-shrink-0 items-center gap-1.5 rounded-xl border border-emerald-100 bg-emerald-50 px-2.5 py-2 text-[11px] font-black text-emerald-700">
+                                    <input type="checkbox"
+                                           value="1"
+                                           x-model="group.required"
+                                           :name="`variant_groups[${groupIndex}][required]`"
+                                           class="rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500">
+                                    Required
+                                </label>
                                 <button type="button"
-                                        @click="removeEditVariantRow(index)"
+                                        @click="removeEditVariantGroup(groupIndex)"
                                         class="text-red-400 hover:text-red-600 transition-colors">
                                     <x-heroicon-o-x-mark class="w-4 h-4" />
                                 </button>
                             </div>
-                        </template>
-                        <p class="mt-1 text-[11px] text-emerald-600 font-medium">
-                            Each option can have its own price. Customers will pick one when ordering.
-                        </p>
-                    </div>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="block text-xs font-black text-emerald-700 uppercase tracking-widest">Options</label>
+                                    <button type="button"
+                                            @click="addEditVariantOption(groupIndex)"
+                                            class="text-[11px] font-bold text-emerald-600 hover:text-emerald-500">
+                                        + Add option
+                                    </button>
+                                </div>
+                                <template x-for="(variant, index) in group.options" :key="index">
+                                    <div class="flex items-center gap-2">
+                                        <input type="text"
+                                               class="w-32 sm:w-48 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                               placeholder="e.g. Small"
+                                               x-model="variant.name"
+                                               :name="`variant_groups[${groupIndex}][options][${index}][name]`">
+                                        <input type="number"
+                                               step="0.01"
+                                               min="0"
+                                               class="w-20 sm:w-24 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                               placeholder="$0.00"
+                                               x-model="variant.price"
+                                               :name="`variant_groups[${groupIndex}][options][${index}][price]`">
+                                        <button type="button"
+                                                @click="removeEditVariantOption(groupIndex, index)"
+                                                class="text-red-400 hover:text-red-600 transition-colors">
+                                            <x-heroicon-o-x-mark class="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                    <p class="mt-1 text-[11px] text-emerald-600 font-medium">
+                        With multiple types, option prices are added to the base item price.
+                    </p>
                 </div>
 
                 <!-- Image Upload -->

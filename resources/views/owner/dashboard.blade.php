@@ -3,6 +3,7 @@
 @section('content')
 @php
     $restaurantDraft = $restaurant ?? $latestRequest ?? $pendingRequest ?? null;
+    $categoryTags = $categoryTags ?? collect();
 @endphp
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-10 px-4 relative" x-data="{ 
     showRestaurantModal: false, 
@@ -1064,18 +1065,7 @@
                     }
                 },
                 selectedTags: [],
-                availableTags: [
-                    { slug: 'sandwich', label: 'Sandwiches', emoji: '🥪' },
-                    { slug: 'burger', label: 'Burgers', emoji: '🍔' },
-                    { slug: 'pizza', label: 'Pizza', emoji: '🍕' },
-                    { slug: 'dessert', label: 'Desserts', emoji: '🍰' },
-                    { slug: 'drink', label: 'Drinks', emoji: '🥤' },
-                    { slug: 'salad', label: 'Salads', emoji: '🥗' },
-                    { slug: 'breakfast', label: 'Breakfast', emoji: '🍳' },
-                    { slug: 'pasta', label: 'Pasta', emoji: '🍝' },
-                    { slug: 'seafood', label: 'Seafood', emoji: '🦐' },
-                    { slug: 'chicken', label: 'Chicken', emoji: '🍗' }
-                ]
+                availableTags: {{ Js::from($categoryTags) }}
             }" @submit="submitting = true">
                 @csrf
                 <div>
@@ -1444,18 +1434,7 @@
                     }
                 },
                 editTags: [],
-                availableTags: [
-                    { slug: 'sandwich', label: 'Sandwiches', emoji: '🥪' },
-                    { slug: 'burger', label: 'Burgers', emoji: '🍔' },
-                    { slug: 'pizza', label: 'Pizza', emoji: '🍕' },
-                    { slug: 'dessert', label: 'Desserts', emoji: '🍰' },
-                    { slug: 'drink', label: 'Drinks', emoji: '🥤' },
-                    { slug: 'salad', label: 'Salads', emoji: '🥗' },
-                    { slug: 'breakfast', label: 'Breakfast', emoji: '🍳' },
-                    { slug: 'pasta', label: 'Pasta', emoji: '🍝' },
-                    { slug: 'seafood', label: 'Seafood', emoji: '🦐' },
-                    { slug: 'chicken', label: 'Chicken', emoji: '🍗' }
-                ]
+                availableTags: {{ Js::from($categoryTags) }}
             }" @submit="submitting = true">
                 @csrf
                 @method('PUT')

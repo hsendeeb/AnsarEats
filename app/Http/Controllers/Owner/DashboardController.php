@@ -4,6 +4,7 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\CategoryTag;
 use App\Models\Restaurant;
 use App\Models\MenuCategory;
 use App\Models\Order;
@@ -331,7 +332,19 @@ class DashboardController extends Controller
 
         }
         
-        return view('owner.dashboard', compact('restaurant', 'latestRequest', 'pendingRequest', 'stats'));
+        $categoryTags = CategoryTag::active()
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (CategoryTag $tag): array => [
+                'slug' => $tag->slug,
+                'label' => $tag->name,
+                'emoji' => $tag->emoji ?? '',
+                'image' => $tag->image ? asset('storage/' . $tag->image) : null,
+            ])
+            ->values();
+
+        return view('owner.dashboard', compact('restaurant', 'latestRequest', 'pendingRequest', 'stats', 'categoryTags'));
     }
 
     public function customers()

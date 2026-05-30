@@ -8,6 +8,7 @@ use App\Models\MenuCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class MenuItemController extends Controller
 {
@@ -28,7 +29,11 @@ class MenuItemController extends Controller
             'is_on_sale' => 'sometimes|boolean',
             'discount_percentage' => 'nullable|required_if:is_on_sale,1|numeric|min:0.01|max:100',
             'tags' => 'nullable|array',
-            'tags.*' => 'string|max:255',
+            'tags.*' => [
+                'string',
+                'max:255',
+                Rule::exists('category_tags', 'slug')->where('is_active', true),
+            ],
         ]);
     }
 

@@ -412,18 +412,6 @@
                 @php
                     $homeCategories = \App\Http\Controllers\BrowseController::categories();
                     $homeCategories = array_filter($homeCategories, fn($c) => $c['slug'] !== 'all');
-                    $categoryVisuals = [
-                        'sandwich' => asset('images/categories/sandwich.jpg'),
-                        'burger' => asset('images/categories/burger.jpg'),
-                        'pizza' => asset('images/categories/pizza.jpg'),
-                        'dessert' => asset('images/categories/dessert.jpg'),
-                        'drink' => asset('images/categories/drink.jpg'),
-                        'salad' => asset('images/categories/salad.jpg'),
-                        'breakfast' => asset('images/categories/breakfast.jpg'),
-                        'pasta' => asset('images/categories/pasta.jpg'),
-                        'seafood' => asset('images/categories/seafood.jpg'),
-                        'chicken' => asset('images/categories/chicken.jpg'),
-                    ];
                 @endphp
 
                 <div class="px-4">
@@ -434,12 +422,18 @@
                                 <a href="{{ route('browse.index', ['category' => $cat['slug']]) }}"
                                    class="group flex w-20 sm:w-24 lg:w-28 shrink-0 flex-col items-center text-center">
                                     <div class="w-full aspect-square overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-md">
-                                        <img
-                                            src="{{ $categoryVisuals[$cat['slug']] ?? asset('images/categories/sandwich.jpg') }}"
-                                            alt="{{ $cat['label'] }}"
-                                            loading="lazy"
-                                            class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                        >
+                                        @if(!empty($cat['image']))
+                                            <img
+                                                src="{{ $cat['image'] }}"
+                                                alt="{{ $cat['label'] }}"
+                                                loading="lazy"
+                                                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                            >
+                                        @else
+                                            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 text-2xl font-black text-gray-400">
+                                                {{ $cat['emoji'] ?? '•' }}
+                                            </div>
+                                        @endif
                                     </div>
                                     <span class="mt-2 block text-[11px] sm:text-xs font-black leading-tight text-gray-900 dark:text-gray-300 transition-colors group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
                                         {{ $cat['label'] }}

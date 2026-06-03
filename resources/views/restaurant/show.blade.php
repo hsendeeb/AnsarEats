@@ -208,7 +208,7 @@
             if (btnEvent) {
                 const btnRect = btnEvent.currentTarget?.getBoundingClientRect();
                 if (btnRect) {
-                    const priceEl = cardEl?.querySelector('.text-emerald-500');
+                    const priceEl = cardEl?.querySelector('[x-text="formattedPrice"]');
                     const priceText = priceEl?.textContent?.trim() || '';
                     spawnPriceFly(btnRect.left - 30, btnRect.top - 10, priceText);
                 }
@@ -1030,11 +1030,11 @@
                                                 </div>
                                             @endif
                                                 <div class="mt-auto basis-full flex items-center justify-between gap-3 pt-1">
-                                                    <div class="min-w-0 flex items-center gap-2 whitespace-nowrap">
-                                                        <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 dark:text-gray-500 line-through" x-text="formattedOriginalPrice"></span>
-                                                        <span class="font-black text-emerald-500 dark:text-emerald-400" x-text="formattedPrice">
+                                                    <div class="min-w-0 flex flex-col items-start justify-center">
+                                                        <span class="font-black text-emerald-500 dark:text-emerald-400 whitespace-nowrap" x-text="formattedPrice">
                                                             {{ number_format($item->price, 0) }} LBP
                                                         </span>
+                                                        <span x-show="hasActiveSale" x-cloak class="text-[10px] font-bold text-gray-400 dark:text-gray-500 line-through leading-none mt-0.5" x-text="formattedOriginalPrice"></span>
                                                     </div>
                                                     @if(!$item->is_available || !$restaurant->isOpenNow())
                                                         <span class="text-xs font-bold {{ !$item->is_available ? 'text-gray-500 bg-gray-100 border-gray-200' : 'text-red-500 bg-red-50 border-red-100' }} px-3 py-1 rounded-full border">

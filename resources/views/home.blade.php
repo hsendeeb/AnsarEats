@@ -969,9 +969,9 @@
                                                     </div>
                                                 </div>
                                                 <div class="mt-auto basis-full flex items-center justify-between pt-1">
-                                                    <div class="min-w-0 flex items-center gap-2 whitespace-nowrap">
-                                                        <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>
+                                                    <div class="min-w-0 flex flex-col items-start justify-center">
                                                         <span class="font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">{{ number_format($meal->price, 0) }} LBP</span>
+                                                        <span x-show="hasActiveSale" x-cloak class="text-[10px] font-bold text-gray-400 line-through leading-none mt-0.5" x-text="formattedOriginalPrice"></span>
                                                     </div>
 
                                                     @if(!$meal->is_available || !$meal->menuCategory->restaurant->isOpenNow())

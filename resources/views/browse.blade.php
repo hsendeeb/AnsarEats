@@ -188,11 +188,11 @@
 
                         <!-- Add to Cart Button -->
                         <div class="mt-auto basis-full flex items-center justify-between gap-3 pt-1">
-                            <div class="min-w-0 flex items-center gap-2 whitespace-nowrap">
-                                <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>
-                                <span class="font-black text-emerald-500" x-text="formattedPrice">
+                            <div class="min-w-0 flex flex-col items-start justify-center">
+                                <span class="font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">
                                     {{ number_format($meal->price, 0) }} LBP
                                 </span>
+                                <span x-show="hasActiveSale" x-cloak class="text-[10px] font-bold text-gray-400 line-through leading-none mt-0.5" x-text="formattedOriginalPrice"></span>
                             </div>
                             @if(Auth::id() === ($meal->menuCategory->restaurant->user_id ?? null))
                                 <span class="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 flex-shrink-0 self-end">Own Restaurant</span>
@@ -965,9 +965,9 @@
                 '</div>' +
                 '<!-- Add button -->' +
                 '<div class="mt-auto basis-full flex items-center justify-between gap-3 pt-1">' +
-                    '<div class="min-w-0 flex items-center gap-2 whitespace-nowrap">' +
-                        '<span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>' +
-                        '<span class="font-black text-emerald-500" x-text="formattedPrice">' + escHtml(meal.price) + ' LBP</span>' +
+                    '<div class="min-w-0 flex flex-col items-start justify-center">' +
+                        '<span class="font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">' + escHtml(meal.price) + ' LBP</span>' +
+                        '<span x-show="hasActiveSale" x-cloak class="text-[10px] font-bold text-gray-400 line-through leading-none mt-0.5" x-text="formattedOriginalPrice"></span>' +
                     '</div>' +
                     actionHtml +
                 '</div>' +

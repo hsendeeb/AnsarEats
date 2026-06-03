@@ -385,7 +385,7 @@
                                                                 x-text="m.restaurant_name"></div>
                                                         </div>
                                                         <div class="font-black text-emerald-500 text-sm"
-                                                            x-text="'$' + m.price"></div>
+                                                            x-text="new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(parseFloat(m.price || 0)) + ' LBP'"></div>
                                                     </a>
                                                 </template>
                                             </div>
@@ -667,9 +667,8 @@
                                                     ]];
                                                 }
                                             @endphp
-                                                    <div class="group relative z-0 h-full" id="browse-card-[homemeal]-{{ $meal->id }}">
+                                                    <div class="group relative h-full" id="browse-card-[homemeal]-{{ $meal->id }}" x-data="{ variantDropdownOpen: false }" :class="{ 'z-50': variantDropdownOpen, 'z-0': !variantDropdownOpen }">
                                                         <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex flex-col gap-4 hover:shadow-2xl transition-all duration-300 relative h-full group-hover:-translate-y-1"
-                                             :class="{ 'z-50': variantDropdownOpen }"
                                              x-data="{
                                                 adding: false,
                                                 basePrice: parseFloat('{{ $meal->price }}'),
@@ -678,13 +677,12 @@
                                                 discountPercentage: {{ Js::from($meal->saleDiscountPercentage()) }},
                                                 variantGroups: @js($homeVariantGroups),
                                                 selectedOptions: @js(collect($homeVariantGroups)->map(fn ($group) => data_get($group, 'required', true) ? 0 : [])->values()->all()),
-                                                variantDropdownOpen: false,
                                                 get hasVariants() {
                                                     return this.variantGroups.some((group) => group.options && group.options.length > 0);
                                                 },
                                                 formatCurrency(value) {
                                                     const numericValue = parseFloat(value);
-                                                    return '$' + (Number.isNaN(numericValue) ? 0 : numericValue).toFixed(2);
+                                                    return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Number.isNaN(numericValue) ? 0 : numericValue) + ' LBP';
                                                 },
                                                 calculateDiscountedPrice(price) {
                                                     const numericPrice = parseFloat(price);
@@ -729,6 +727,14 @@
                                                         }];
                                                     }).filter((selection) => selection && selection.option);
                                                 },
+                                                get baseDiscountAmount() {
+                                                    const percentage = this.discountPercentage !== null ? parseFloat(this.discountPercentage) : NaN;
+                                                    if (Number.isNaN(percentage) || percentage <= 0) {
+                                                        return 0;
+                                                    }
+
+                                                    return Math.max(this.basePrice * (percentage / 100), 0);
+                                                },
                                                 get currentOriginalPrice() {
                                                     if (!this.hasVariants) return this.basePrice;
 
@@ -743,9 +749,11 @@
                                                     }, this.basePrice);
                                                 },
                                                 get currentPrice() {
-                                                    return this.hasActiveSale
-                                                        ? this.calculateDiscountedPrice(this.currentOriginalPrice)
-                                                        : this.currentOriginalPrice;
+                                                    if (!this.hasActiveSale) {
+                                                        return this.currentOriginalPrice;
+                                                    }
+
+                                                    return Math.max(this.currentOriginalPrice - this.baseDiscountAmount, 0);
                                                 },
                                                 get originalPrice() {
                                                     return this.hasActiveSale ? this.currentOriginalPrice : null;
@@ -770,7 +778,7 @@
                                                     return Number.isNaN(numericPrice) ? this.basePrice : numericPrice;
                                                 },
                                                 optionSalePrice(option) {
-                                                    return this.calculateDiscountedPrice(this.optionOriginalPrice(option));
+                                                    return this.optionOriginalPrice(option);
                                                 },
                                                 formattedOptionOriginalPrice(option) {
                                                     return this.formatCurrency(this.optionOriginalPrice(option));
@@ -887,7 +895,7 @@
                                                 <!-- Details -->
                                                 <div class="flex-1 min-w-0">
                                                     <div>
-                                                        <div class="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
+                                                        <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
                                                             <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="min-w-0 flex-1">
                                                                 <h4 class="font-bold text-lg text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors leading-tight break-words block">
                                                                     {{ $meal->name }}
@@ -901,12 +909,6 @@
                                                                     <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ $meal->menuCategory->name }}</span>
                                                                 </div>
                                                             </a>
-                                                            <div class="shrink-0 text-right whitespace-nowrap">
-                                                                <div class="flex items-center justify-end gap-2">
-                                                                    <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>
-                                                                    <span class="font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">${{ number_format($meal->price, 2) }}</span>
-                                                                </div>
-                                                            </div>
                                                         </div>
                                                         @if($meal->description)
                                                             <p class="text-sm text-gray-500 font-medium line-clamp-2 mt-2 break-words">{{ $meal->description }}</p>
@@ -967,9 +969,9 @@
                                                     </div>
                                                 </div>
                                                 <div class="mt-auto basis-full flex items-center justify-between pt-1">
-                                                    <div class="text-xs font-bold text-gray-400 flex items-center gap-1">
-                                                        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                                                        {{ $meal->order_items_count }} orders
+                                                    <div class="min-w-0 flex items-center gap-2 whitespace-nowrap">
+                                                        <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>
+                                                        <span class="font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">{{ number_format($meal->price, 0) }} LBP</span>
                                                     </div>
 
                                                     @if(!$meal->is_available || !$meal->menuCategory->restaurant->isOpenNow())

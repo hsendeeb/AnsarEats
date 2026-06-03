@@ -60,6 +60,17 @@ class MenuItem extends Model
         return round(max($price * (1 - ($percentage / 100)), 0), 2);
     }
 
+    private function baseDiscountAmount(): float
+    {
+        $percentage = $this->saleDiscountPercentage();
+
+        if ($percentage === null) {
+            return 0.0;
+        }
+
+        return round(((float) $this->price * $percentage) / 100, 2);
+    }
+
     public function effectivePrice(): float
     {
         return $this->discountedPriceFor((float) $this->price);
@@ -93,7 +104,7 @@ class MenuItem extends Model
             $numericPrice = (float) $price;
 
             return $applyDiscount
-                ? $this->discountedPriceFor($numericPrice)
+                ? round(max($numericPrice - $this->baseDiscountAmount(), 0), 2)
                 : round($numericPrice, 2);
         }
 
@@ -133,7 +144,8 @@ class MenuItem extends Model
             $selectedByType[mb_strtolower($type)][] = mb_strtolower($optionLabel);
         }
 
-        $total = (float) $this->price;
+        $basePrice = round((float) $this->price, 2);
+        $addonTotal = 0.0;
 
         foreach ($groups as $group) {
             $groupType = trim((string) data_get($group, 'type', 'Option'));
@@ -162,7 +174,7 @@ class MenuItem extends Model
                     return null;
                 }
 
-                $total += (float) $optionsByLabel->get($selectedLabel);
+                $addonTotal += (float) $optionsByLabel->get($selectedLabel);
             }
 
             unset($selectedByType[$groupKey]);
@@ -172,11 +184,11 @@ class MenuItem extends Model
             return null;
         }
 
-        $total = round($total, 2);
+        $total = $basePrice + $addonTotal;
 
         return $applyDiscount
-            ? $this->discountedPriceFor($total)
-            : $total;
+            ? round(max($this->discountedPriceFor($basePrice) + $addonTotal, 0), 2)
+            : round($total, 2);
     }
 
     public function variantOptions(): array

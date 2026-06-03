@@ -163,13 +163,18 @@
             });
         };
 
+        function formatLBPAmount(value) {
+            const numericValue = parseFloat(value);
+            return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Number.isNaN(numericValue) ? 0 : numericValue) + ' LBP';
+        }
+
         window.spawnPriceFly = function (x, y, price) {
             const el = document.createElement('div');
             el.classList.add('price-fly');
             el.style.left = x + 'px';
             el.style.top = y + 'px';
             el.style.fontSize = '18px';
-            el.textContent = '+$' + price;
+            el.textContent = '+' + price;
             document.body.appendChild(el);
 
             gsap.fromTo(el,
@@ -204,7 +209,7 @@
                 const btnRect = btnEvent.currentTarget?.getBoundingClientRect();
                 if (btnRect) {
                     const priceEl = cardEl?.querySelector('.text-emerald-500');
-                    const priceText = priceEl?.textContent?.replace('$', '') || '';
+                    const priceText = priceEl?.textContent?.trim() || '';
                     spawnPriceFly(btnRect.left - 30, btnRect.top - 10, priceText);
                 }
             }
@@ -333,7 +338,7 @@
                 },
                 formatCurrency(value) {
                     const numericValue = parseFloat(value);
-                    return '$' + (Number.isNaN(numericValue) ? 0 : numericValue).toFixed(2);
+                    return formatLBPAmount(numericValue);
                 },
                 calculateDiscountedPrice(price) {
                     const numericPrice = parseFloat(price);
@@ -379,6 +384,14 @@
                         }];
                     }).filter((selection) => selection && selection.option);
                 },
+                get baseDiscountAmount() {
+                    const percentage = this.discountPercentage !== null ? parseFloat(this.discountPercentage) : NaN;
+                    if (Number.isNaN(percentage) || percentage <= 0) {
+                        return 0;
+                    }
+
+                    return Math.max(this.basePrice * (percentage / 100), 0);
+                },
                 get currentOriginalPrice() {
                     if (!this.hasVariants) {
                         return this.basePrice;
@@ -395,9 +408,11 @@
                     }, this.basePrice);
                 },
                 get currentPrice() {
-                    return this.hasActiveSale
-                        ? this.calculateDiscountedPrice(this.currentOriginalPrice)
-                        : this.currentOriginalPrice;
+                    if (!this.hasActiveSale) {
+                        return this.currentOriginalPrice;
+                    }
+
+                    return Math.max(this.currentOriginalPrice - this.baseDiscountAmount, 0);
                 },
                 get originalPrice() {
                     return this.hasActiveSale ? this.currentOriginalPrice : null;
@@ -428,7 +443,7 @@
                     return Number.isNaN(numericPrice) ? this.basePrice : numericPrice;
                 },
                 optionSalePrice(option) {
-                    return this.calculateDiscountedPrice(this.optionOriginalPrice(option));
+                    return this.optionOriginalPrice(option);
                 },
                 formattedOptionOriginalPrice(option) {
                     return this.formatCurrency(this.optionOriginalPrice(option));
@@ -908,15 +923,6 @@
                                                     <h4 class="min-w-0 flex-1 font-bold text-lg text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-tight break-words flex items-center gap-2">
                                                         {{ $item->name }}
                                                     </h4>
-                                                    <div class="shrink-0 text-right whitespace-nowrap">
-                                                        <div class="flex items-center justify-end gap-2">
-                                                            <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 dark:text-gray-500 line-through" x-text="formattedOriginalPrice"></span>
-                                                            <span class="font-black text-emerald-500 dark:text-emerald-400" x-text="formattedPrice">
-                                                                ${{ number_format($item->price, 2) }}
-                                                            </span>
-                                                        </div>
-                                                        <p x-show="hasActiveSale" x-cloak class="mt-0.5 text-[11px] font-bold text-orange-500" x-text="`Save ${formattedSavings}`"></p>
-                                                    </div>
                                                 </div>
                                                 <div class="mt-1" x-data="{
                                                     expanded: false,
@@ -1022,8 +1028,19 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="mt-auto basis-full flex justify-end pt-1">
-                                                    @if(Auth::id() === $restaurant->user_id)
+                                            @endif
+                                                <div class="mt-auto basis-full flex items-center justify-between gap-3 pt-1">
+                                                    <div class="min-w-0 flex items-center gap-2 whitespace-nowrap">
+                                                        <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 dark:text-gray-500 line-through" x-text="formattedOriginalPrice"></span>
+                                                        <span class="font-black text-emerald-500 dark:text-emerald-400" x-text="formattedPrice">
+                                                            {{ number_format($item->price, 0) }} LBP
+                                                        </span>
+                                                    </div>
+                                                    @if(!$item->is_available || !$restaurant->isOpenNow())
+                                                        <span class="text-xs font-bold {{ !$item->is_available ? 'text-gray-500 bg-gray-100 border-gray-200' : 'text-red-500 bg-red-50 border-red-100' }} px-3 py-1 rounded-full border">
+                                                            {{ !$item->is_available ? 'Sold out' : 'Closed Now' }}
+                                                        </span>
+                                                    @elseif(Auth::id() === $restaurant->user_id)
                                                         <span class="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">Own Restaurant</span>
                                                     @else
                                                         <template x-if="getItemQty({{ $item->id }}, currentLabel, currentPrice) === 0">
@@ -1057,7 +1074,6 @@
                                                         </template>
                                                     @endif
                                                 </div>
-                                            @endif
                                     </div>
                                 @endforeach
 
@@ -1267,7 +1283,7 @@
                 class="bg-emerald-500 hover:bg-emerald-400 text-white px-6 py-4 rounded-md shadow-2xl shadow-emerald-500/40 font-bold flex items-center gap-3 transition-all transform   active:scale-95 w-full">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                 <span x-text="cart.count + ' item' + (cart.count !== 1 ? 's' : '')"></span>
-                <span class="bg-white/20 px-2 py-0.5 rounded-full text-sm">$<span x-text="cart.total.toFixed(2)"></span></span>
+                <span class="bg-white/20 px-2 py-0.5 rounded-full text-sm" x-text="new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(cart.total || 0) + ' LBP'"></span>
             </button>
         </template>
     </div>

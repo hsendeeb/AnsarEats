@@ -202,7 +202,11 @@
 
                     @php
                         $lbpRate = 89000;
-                        $totalLbp = ((float) $cart['total'] + (float) $cart['delivery_fee']) * $lbpRate;
+                        $subtotalUsd = (float) $cart['subtotal'] / $lbpRate;
+                        $discountUsd = (float) $cart['discount'] / $lbpRate;
+                        $deliveryUsd = (float) $cart['delivery_fee'] / $lbpRate;
+                        $totalWithDelivery = (float) $cart['total'] + (float) $cart['delivery_fee'];
+                        $totalUsd = $totalWithDelivery / $lbpRate;
                     @endphp
 
                     <div class="space-y-3 mb-6">
@@ -214,7 +218,10 @@
                                         {{ $item['name'] }}@if(!empty($item['variant'])) ({{ $item['variant'] }})@endif
                                     </span>
                                 </div>
-                                <span class="font-bold text-gray-900 text-sm">${{ number_format($item['price'] * $item['quantity'], 2) }}</span>
+                                <div class="text-right">
+                                    <span class="block font-bold text-gray-900 text-sm">{{ number_format($item['price'] * $item['quantity'], 0) }} LBP</span>
+                                    <span class="block text-[11px] font-bold text-gray-400">${{ number_format(($item['price'] * $item['quantity']) / $lbpRate, 2) }}</span>
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -272,7 +279,10 @@
                     <div class="border-t-2 border-dashed border-gray-200 pt-4 mb-6">
                         <div class="flex justify-between items-center text-sm text-gray-500 font-medium mb-2">
                             <span>Subtotal</span>
-                            <span>${{ number_format($cart['subtotal'], 2) }}</span>
+                            <div class="text-right">
+                                <span class="block">{{ number_format($cart['subtotal'], 0) }} LBP</span>
+                                <span class="block text-[11px] font-bold text-gray-400">${{ number_format($subtotalUsd, 2) }}</span>
+                            </div>
                         </div>
                         @if($cart['discount'] > 0)
                             <div class="flex justify-between items-center text-sm text-emerald-600 font-medium mb-2">
@@ -280,14 +290,22 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
                                     Discount ({{ $cart['promo']['code'] }})
                                 </span>
-                                <span>-${{ number_format($cart['discount'], 2) }}</span>
+                                <div class="text-right">
+                                    <span class="block">-{{ number_format($cart['discount'], 0) }} LBP</span>
+                                    <span class="block text-[11px] font-bold text-emerald-500">-${{ number_format($discountUsd, 2) }}</span>
+                                </div>
                             </div>
                         @endif
                         <div class="flex justify-between items-center text-sm text-gray-500 font-medium mb-2">
                             <span>Delivery</span>
-                            <span class="font-bold {{ $cart['delivery_fee'] > 0 ? 'text-gray-900' : 'text-emerald-500' }}">
-                                {{ $cart['delivery_fee'] > 0 ? '$' . number_format($cart['delivery_fee'], 2) : 'Free' }}
-                            </span>
+                            <div class="text-right font-bold {{ $cart['delivery_fee'] > 0 ? 'text-gray-900' : 'text-emerald-500' }}">
+                                @if($cart['delivery_fee'] > 0)
+                                    <span class="block">{{ number_format($cart['delivery_fee'], 0) }} LBP</span>
+                                    <span class="block text-[11px] font-bold text-gray-400">${{ number_format($deliveryUsd, 2) }}</span>
+                                @else
+                                    Free
+                                @endif
+                            </div>
                         </div>
                         <div class="flex justify-between items-center mt-3">
                             <div>
@@ -295,8 +313,8 @@
                                 <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-400">1 USD = 89,000 LBP</p>
                             </div>
                             <div class="text-right">
-                                <span class="block text-2xl font-black outfit text-emerald-500">${{ number_format($cart['total'] + $cart['delivery_fee'], 2) }}</span>
-                                <span class="block text-sm font-black text-gray-500">LBP {{ number_format($totalLbp, 0) }}</span>
+                                <span class="block text-2xl font-black outfit text-emerald-500">{{ number_format($totalWithDelivery, 0) }} LBP</span>
+                                <span class="block text-sm font-black text-gray-500">${{ number_format($totalUsd, 2) }}</span>
                             </div>
                         </div>
                     </div>

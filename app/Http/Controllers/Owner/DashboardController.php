@@ -469,6 +469,7 @@ class DashboardController extends Controller
                 'filter' => (string) $request->get('filter', ''),
                 'status' => (string) $request->get('status', ''),
                 'q' => mb_strtolower($search),
+                'currency_display' => 'lbp-primary-usd-secondary',
             ]),
             now()->addSeconds(max(10, (int) config('performance.cache_ttl.owner_orders'))),
             function () use ($request, $restaurant, $search) {
@@ -485,8 +486,10 @@ class DashboardController extends Controller
                     ->limit(6)
                     ->get(['id', 'user_id', 'status', 'phone', 'total', 'created_at']);
 
+                $lbpRate = 89000;
+
                 return [
-                    'orders' => $orders->map(function ($order) {
+                    'orders' => $orders->map(function ($order) use ($lbpRate) {
                         $statusTone = match ($order->status) {
                             'pending' => 'bg-amber-100 text-amber-600',
                             'accepted' => 'bg-emerald-100 text-emerald-600',
@@ -495,6 +498,8 @@ class DashboardController extends Controller
                             default => 'bg-gray-100 text-gray-600',
                         };
 
+                        $total = (float) $order->total;
+
                         return [
                             'id' => $order->id,
                             'order_number' => '#'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
@@ -502,7 +507,9 @@ class DashboardController extends Controller
                             'customer_name' => $order->user?->name ?? 'Guest customer',
                             'phone' => $order->phone ?: 'No phone provided',
                             'created_at' => $order->created_at?->format('M d, h:i A'),
-                            'total' => '$'.number_format((float) $order->total, 2),
+                            'total' => number_format($total, 0).' LBP',
+                            'total_lbp' => number_format($total, 0).' LBP',
+                            'total_usd' => '$'.number_format($total / $lbpRate, 2),
                             'status_label' => ucwords(str_replace('_', ' ', $order->status)),
                             'status_tone' => $statusTone,
                         ];

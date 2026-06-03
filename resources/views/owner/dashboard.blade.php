@@ -4,6 +4,8 @@
 @php
     $restaurantDraft = $restaurant ?? $latestRequest ?? $pendingRequest ?? null;
     $categoryTags = $categoryTags ?? collect();
+    $lbpRate = 89000;
+    $formatUsdFromLbp = fn ($amount) => '$' . number_format(((float) $amount) / $lbpRate, 2);
 @endphp
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-10 px-4 relative" x-data="{ 
     showRestaurantModal: false, 
@@ -190,7 +192,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-bold text-gray-400">Total Revenue</p>
-                        <p class="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white outfit">${{ number_format($stats['total_revenue'], 2) }}</p>
+                        <p class="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white outfit">{{ $formatUsdFromLbp($stats['total_revenue']) }}</p>
                     </div>
                     <div class="absolute bottom-4 right-4 w-24 h-12">
                         <canvas class="sparkline" data-color="#10b981" data-sparkline='@json($stats["sparklines"]["revenue"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
@@ -207,7 +209,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-bold text-gray-400">Avg. Order</p>
-                        <p class="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white outfit">${{ number_format($stats['avg_order_value'], 2) }}</p>
+                        <p class="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white outfit">{{ $formatUsdFromLbp($stats['avg_order_value']) }}</p>
                     </div>
                     <div class="absolute bottom-4 right-4 w-24 h-12">
                         <canvas class="sparkline" data-color="#14b8a6" data-sparkline='@json($stats["sparklines"]["avg_order_value"] ?? $stats["chart_data"]["bar"]["data"] ?? [])'></canvas>
@@ -478,22 +480,23 @@
                                         <div class="flex-1 min-w-0">
                                             <h4 class="font-bold text-gray-900 dark:text-white truncate">{{ $item->name }}</h4>
                                             <p class="text-sm text-gray-500 font-medium truncate">{{ $item->description ?? 'No description' }}</p>
-                                        </div>
-                                        
-                                        <div class="text-right flex-shrink-0">
-                                            @if($item->isSaleActive())
-                                                <div class="flex flex-col items-end">
-                                                    <span class="text-sm font-bold text-gray-400 line-through">${{ number_format($item->price, 2) }}</span>
-                                                    <span class="font-black text-emerald-500 text-lg">${{ number_format($item->effectivePrice(), 2) }}</span>
-                                                    @if(!empty(data_get($item->variants, 'options', [])))
-                                                        <span class="text-[10px] font-bold text-emerald-500">
-                                                            {{ rtrim(rtrim(number_format($item->saleDiscountPercentage() ?? 0, 2), '0'), '.') }}% off variants
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            @else
-                                                <span class="font-black text-emerald-500 text-lg">${{ number_format($item->price, 2) }}</span>
-                                            @endif
+                                            <div class="mt-1">
+                                                @if($item->isSaleActive())
+                                                    <div class="flex flex-col items-start">
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="font-black text-emerald-500 text-lg">{{ number_format($item->effectivePrice(), 0) }} LBP</span>
+                                                            <span class="text-xs font-bold text-gray-400 line-through">{{ number_format($item->price, 0) }} LBP</span>
+                                                        </div>
+                                                        @if(!empty(data_get($item->variants, 'options', [])))
+                                                            <span class="text-[10px] font-bold text-emerald-500">
+                                                                {{ rtrim(rtrim(number_format($item->saleDiscountPercentage() ?? 0, 2), '0'), '.') }}% off variants
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                @else
+                                                    <span class="font-black text-emerald-500 text-lg">{{ number_format($item->price, 0) }} LBP</span>
+                                                @endif
+                                            </div>
                                         </div>
                                         
                                         <div class="hidden sm:flex items-center gap-2 flex-shrink-0">
@@ -900,16 +903,16 @@
                         <p class="mt-1 text-xs font-medium text-gray-500">No delivery fee will be added at checkout.</p>
                     </div>
                     <div x-show="deliveryFeeEnabled" x-transition>
-                        <label class="block text-xs font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Fee Amount ($)</label>
+                        <label class="block text-xs font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Fee Amount (LBP)</label>
                         <input type="number"
-                               step="0.01"
+                               step="1"
                                min="0"
                                name="delivery_fee"
                                value="{{ old('delivery_fee', optional($restaurantDraft)->delivery_fee) }}"
                                :required="deliveryFeeEnabled"
                                :disabled="!deliveryFeeEnabled"
                                class="block w-full px-4 py-3 bg-white border border-emerald-200 rounded-2xl font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                               placeholder="3.50">
+                               placeholder="e.g. 100000">
                     </div>
                 </div>
 
@@ -1016,7 +1019,7 @@
                 },
                 formatMoney(value) {
                     const numericValue = parseFloat(value);
-                    return `$${(Number.isNaN(numericValue) ? 0 : numericValue).toFixed(2)}`;
+                    return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Number.isNaN(numericValue) ? 0 : numericValue) + ' LBP';
                 },
                 calculateDiscountedPrice(price) {
                     const numericPrice = parseFloat(price);
@@ -1101,8 +1104,8 @@
                     <textarea name="description" rows="2" class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 transition-all resize-none" placeholder="Describe the dish..."></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Price ($)</label>
-                    <input type="number" step="0.01" min="0" name="price" x-model="basePrice" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 transition-all" placeholder="12.99">
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Price (LBP)</label>
+                    <input type="number" step="1" min="0" name="price" x-model="basePrice" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 transition-all" placeholder="e.g. 450000">
                 </div>
 
                 <div>
@@ -1173,7 +1176,7 @@
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <p class="text-sm font-bold text-gray-700">On Sale</p>
-                            <p class="text-xs font-medium text-gray-400">Enter one discount percentage and we'll calculate the sale price for the item and every variant.</p>
+                            <p class="text-xs font-medium text-gray-400">Enter one discount percentage and preview the base item sale price.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="is_on_sale" value="1" x-model="isOnSale" class="sr-only peer">
@@ -1196,7 +1199,7 @@
                                :disabled="!isOnSale"
                                class="block w-full px-3 py-2.5 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
                                placeholder="15">
-                        <p class="mt-1 text-[11px] text-emerald-600 font-medium">The system will calculate discounted prices automatically, including each variant option.</p>
+                        <p class="mt-1 text-[11px] text-emerald-600 font-medium">The system will calculate discounted prices automatically.</p>
 
                         <div x-show="parsedDiscount() !== null" x-cloak class="space-y-2 rounded-xl border border-emerald-200 bg-white/80 p-3">
                             <div class="flex items-center justify-between text-[11px] font-bold text-emerald-700">
@@ -1207,21 +1210,9 @@
                                 <span class="font-medium text-gray-600">Base item</span>
                                 <div class="flex items-center gap-2">
                                     <span class="text-gray-400 line-through" x-show="basePrice !== ''" x-text="formatMoney(basePrice)"></span>
-                                    <span class="font-black text-emerald-600" x-show="basePrice !== ''" x-text="'$' + calculateDiscountedPrice(basePrice)"></span>
+                                    <span class="font-black text-emerald-600" x-show="basePrice !== ''" x-text="formatMoney(calculateDiscountedPrice(basePrice))"></span>
                                 </div>
                             </div>
-                            <div x-show="hasVariants && validVariants().length > 0" x-cloak class="space-y-2 border-t border-emerald-100 pt-2">
-                                <template x-for="(variant, index) in validVariants()" :key="`${variant.name}-${index}`">
-                                    <div class="flex items-center justify-between text-sm">
-                                        <span class="font-medium text-gray-600" x-text="variant.name"></span>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-gray-400 line-through" x-text="formatMoney(variant.price)"></span>
-                                            <span class="font-bold text-emerald-600" x-text="'$' + calculateDiscountedPrice(variant.price)"></span>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                            <p x-show="hasVariants && validVariants().length === 0" x-cloak class="text-[11px] font-medium text-emerald-600">Add variant names and prices to preview their sale prices.</p>
                         </div>
                     </div>
                 </div>
@@ -1290,10 +1281,10 @@
                                                x-model="variant.name"
                                                :name="`variant_groups[${groupIndex}][options][${index}][name]`">
                                         <input type="number"
-                                               step="0.01"
+                                               step="1"
                                                min="0"
                                                class="w-20 sm:w-24 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                                               placeholder="$0.00"
+                                               placeholder="e.g. 50000"
                                                x-model="variant.price"
                                                :name="`variant_groups[${groupIndex}][options][${index}][price]`">
                                         <button type="button"
@@ -1416,7 +1407,7 @@
                 },
                 formatEditMoney(value) {
                     const numericValue = parseFloat(value);
-                    return `$${(Number.isNaN(numericValue) ? 0 : numericValue).toFixed(2)}`;
+                    return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Number.isNaN(numericValue) ? 0 : numericValue) + ' LBP';
                 },
                 calculateEditDiscountedPrice(price) {
                     const numericPrice = parseFloat(price);
@@ -1525,8 +1516,8 @@
                     <textarea name="description" x-model="editingMenuItem.description" rows="2" class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all resize-none" placeholder="Describe the dish..."></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Price ($)</label>
-                    <input type="number" step="0.01" min="0" name="price" x-model="editingMenuItem.price" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="12.99">
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Price (LBP)</label>
+                    <input type="number" step="1" min="0" name="price" x-model="editingMenuItem.price" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="e.g. 450000">
                 </div>
 
                 <div>
@@ -1602,7 +1593,7 @@
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <p class="text-sm font-bold text-gray-700">On Sale</p>
-                            <p class="text-xs font-medium text-gray-400">Enter one discount percentage and we'll apply it to the item and all of its variants.</p>
+                            <p class="text-xs font-medium text-gray-400">Enter one discount percentage and preview the base item sale price.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="is_on_sale" value="1" x-model="editIsOnSale" class="sr-only peer">
@@ -1625,7 +1616,7 @@
                                :disabled="!editIsOnSale"
                                class="block w-full px-3 py-2.5 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
                                placeholder="15">
-                        <p class="mt-1 text-[11px] text-emerald-600 font-medium">The system calculates the discounted sale price automatically for the item and every variant.</p>
+                        <p class="mt-1 text-[11px] text-emerald-600 font-medium">The system calculates the discounted sale price automatically.</p>
 
                         <div x-show="parsedEditDiscount() !== null" x-cloak class="space-y-2 rounded-xl border border-emerald-200 bg-white/80 p-3">
                             <div class="flex items-center justify-between text-[11px] font-bold text-emerald-700">
@@ -1636,21 +1627,9 @@
                                 <span class="font-medium text-gray-600">Base item</span>
                                 <div class="flex items-center gap-2">
                                     <span class="text-gray-400 line-through" x-show="editingMenuItem.price !== ''" x-text="formatEditMoney(editingMenuItem.price)"></span>
-                                    <span class="font-black text-emerald-600" x-show="editingMenuItem.price !== ''" x-text="'$' + calculateEditDiscountedPrice(editingMenuItem.price)"></span>
+                                    <span class="font-black text-emerald-600" x-show="editingMenuItem.price !== ''" x-text="formatEditMoney(calculateEditDiscountedPrice(editingMenuItem.price))"></span>
                                 </div>
                             </div>
-                            <div x-show="editHasVariants && validEditVariants().length > 0" x-cloak class="space-y-2 border-t border-emerald-100 pt-2">
-                                <template x-for="(variant, index) in validEditVariants()" :key="`${variant.name}-${index}`">
-                                    <div class="flex items-center justify-between text-sm">
-                                        <span class="font-medium text-gray-600" x-text="variant.name"></span>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-gray-400 line-through" x-text="formatEditMoney(variant.price)"></span>
-                                            <span class="font-bold text-emerald-600" x-text="'$' + calculateEditDiscountedPrice(variant.price)"></span>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                            <p x-show="editHasVariants && validEditVariants().length === 0" x-cloak class="text-[11px] font-medium text-emerald-600">Add variant names and prices to preview their sale prices.</p>
                         </div>
                     </div>
                 </div>
@@ -1719,10 +1698,10 @@
                                                x-model="variant.name"
                                                :name="`variant_groups[${groupIndex}][options][${index}][name]`">
                                         <input type="number"
-                                               step="0.01"
+                                               step="1"
                                                min="0"
                                                class="w-20 sm:w-24 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-medium placeholder-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                                               placeholder="$0.00"
+                                               placeholder="e.g. 50000"
                                                x-model="variant.price"
                                                :name="`variant_groups[${groupIndex}][options][${index}][price]`">
                                         <button type="button"

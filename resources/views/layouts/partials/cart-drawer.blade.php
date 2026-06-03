@@ -12,7 +12,10 @@
             class="w-full bg-emerald-500 text-white px-6 h-14 flex items-center justify-between rounded-xl font-black outfit tracking-widest text-sm cursor-pointer hover:bg-emerald-600 transition-all duration-300 transform active:scale-95">
             <div class="w-10"></div> <!-- Left spacer -->
             <div class="flex-1 text-center">VIEW CART</div>
-            <div class="text-base" x-text="'$' + (cart.total || 0).toFixed(2)"></div>
+            <div class="text-right leading-tight">
+                <div class="text-sm" x-text="formatLbp(cart.total || 0)"></div>
+                <div class="text-[10px] text-emerald-100" x-text="formatUsd(cart.total || 0)"></div>
+            </div>
         </button>
     </div>
 
@@ -99,8 +102,10 @@
                             <div class="flex-1 min-w-0">
                                 <h5 class="font-bold text-gray-900 truncate"
                                     x-text="item.variant ? `${item.name} (${item.variant})` : item.name"></h5>
-                                <p class="text-sm font-black text-emerald-500">$<span
-                                        x-text="(item.price * item.quantity).toFixed(2)"></span></p>
+                                <p class="text-sm font-black text-emerald-500"
+                                    x-text="formatLbp(item.price * item.quantity)"></p>
+                                <p class="text-[11px] font-bold text-gray-400"
+                                    x-text="formatUsd(item.price * item.quantity)"></p>
                             </div>
 
                             <!-- Quantity Controls -->
@@ -138,8 +143,13 @@
             <div class="flex-shrink-0 border-t border-gray-100 p-6 bg-white">
                 <div class="flex justify-between items-center mb-4">
                     <span class="text-gray-500 font-bold">Total</span>
-                    <span class="text-2xl font-black outfit text-gray-900">$<span
-                            x-text="cart.total.toFixed(2)"></span></span>
+                    <div class="text-right">
+                        <span class="block text-2xl font-black outfit text-gray-900"
+                            x-text="formatLbp(cart.total)"></span>
+                        <span class="block text-sm font-black text-gray-500"
+                            x-text="formatUsd(cart.total)"></span>
+                        <span class="block text-[10px] font-bold uppercase tracking-[0.16em] text-gray-400">1 USD = 89,000 LBP</span>
+                    </div>
                 </div>
                 <a href="{{ route('checkout') }}" @click="open = false"
                     class="block w-full text-center py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-2xl hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-[0.98] text-lg">

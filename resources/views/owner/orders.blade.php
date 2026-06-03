@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $lbpRate = 89000;
+@endphp
 <div class="min-h-screen bg-gray-50 py-10 px-4" x-data="ordersFilter()" x-init="init()" @submit.capture="interceptStatusSubmit($event)">
     <div x-show="toast.open"
          x-cloak
@@ -194,7 +197,8 @@
                                                             <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-gray-400">
                                                                 <span x-text="suggestion.phone"></span>
                                                                 <span x-text="suggestion.created_at"></span>
-                                                                <span class="font-bold text-emerald-600" x-text="suggestion.total"></span>
+                                                                <span class="font-bold text-emerald-600" x-text="suggestion.total_lbp || suggestion.total"></span>
+                                                                <span class="font-bold text-gray-400" x-show="suggestion.total_usd" x-text="suggestion.total_usd"></span>
                                                             </div>
                                                         </div>
                                                     </button>
@@ -534,7 +538,8 @@
                                         <div class="flex w-full flex-col gap-4 border-t pt-4 sm:flex-row sm:items-center sm:justify-between lg:w-auto lg:flex-col lg:items-end lg:justify-center lg:border-t-0 lg:pt-0">
                                             <div class="lg:text-right">
                                                 <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total</p>
-                                                <p class="text-2xl font-black outfit text-emerald-500">${{ number_format($order->total, 2) }}</p>
+                                                <p class="text-2xl font-black outfit text-emerald-500">{{ number_format($order->total, 0) }} LBP</p>
+                                                <p class="text-sm font-black text-gray-400">${{ number_format(((float) $order->total) / $lbpRate, 2) }}</p>
                                             </div>
                                             
                                             @if($order->status === 'pending')

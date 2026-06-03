@@ -90,7 +90,7 @@
                     <!-- Details -->
                     <div class="flex-1 min-w-0">
                         <div>
-                            <div class="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
+                            <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
                                 <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="min-w-0 flex-1">
                                     <h4 class="font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight break-words flex flex-wrap items-center gap-2">
                                         {{ $meal->name }}
@@ -101,16 +101,6 @@
                                         @endif
                                     </h4>
                                 </a>
-
-                                <div class="shrink-0 text-right whitespace-nowrap">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>
-                                        <span class="font-black text-emerald-500" x-text="formattedPrice">
-                                            ${{ number_format($meal->price, 2) }}
-                                        </span>
-                                    </div>
-                                    <p x-show="hasActiveSale" x-cloak class="mt-0.5 text-[11px] font-bold text-rose-500" x-text="`Save ${formattedSavings}`"></p>
-                                </div>
                             </div>
 
                             <!-- Description (Alpine Responsive Collapse) -->
@@ -165,7 +155,7 @@
                                     x-show="variantDropdownOpen"
                                     x-transition:enter="transition ease-out duration-150"
                                     x-transition:enter-start="opacity-0 -translate-y-1"
-                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                     x-transition:enter-end="opacity-100 translate-y-0"
                                     x-transition:leave="transition ease-in duration-100"
                                     x-transition:leave-start="opacity-100 translate-y-0"
                                     x-transition:leave-end="opacity-0 -translate-y-1"
@@ -197,7 +187,13 @@
                         </div>
 
                         <!-- Add to Cart Button -->
-                        <div class="mt-auto basis-full flex justify-end pt-1">
+                        <div class="mt-auto basis-full flex items-center justify-between gap-3 pt-1">
+                            <div class="min-w-0 flex items-center gap-2 whitespace-nowrap">
+                                <span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>
+                                <span class="font-black text-emerald-500" x-text="formattedPrice">
+                                    {{ number_format($meal->price, 0) }} LBP
+                                </span>
+                            </div>
                             @if(Auth::id() === ($meal->menuCategory->restaurant->user_id ?? null))
                                 <span class="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 flex-shrink-0 self-end">Own Restaurant</span>
                             @elseif(!$meal->menuCategory->restaurant->isOpenNow())
@@ -304,7 +300,7 @@
             },
             formatCurrency(value) {
                 const numericValue = parseFloat(value);
-                return '$' + (Number.isNaN(numericValue) ? 0 : numericValue).toFixed(2);
+                return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Number.isNaN(numericValue) ? 0 : numericValue) + ' LBP';
             },
             calculateDiscountedPrice(price) {
                 const numericPrice = parseFloat(price);
@@ -350,6 +346,14 @@
                     }];
                 }).filter((selection) => selection && selection.option);
             },
+            get baseDiscountAmount() {
+                const percentage = this.discountPercentage !== null ? parseFloat(this.discountPercentage) : NaN;
+                if (Number.isNaN(percentage) || percentage <= 0) {
+                    return 0;
+                }
+
+                return Math.max(this.basePrice * (percentage / 100), 0);
+            },
             get currentOriginalPrice() {
                 if (!this.hasVariants) {
                     return this.basePrice;
@@ -366,9 +370,15 @@
                 }, this.basePrice);
             },
             get currentPrice() {
-                return this.hasActiveSale
-                    ? this.calculateDiscountedPrice(this.currentOriginalPrice)
-                    : this.currentOriginalPrice;
+                if (!this.hasActiveSale) {
+                    return this.currentOriginalPrice;
+                }
+
+                if (this.variantGroups.length === 1 && this.variantGroups[0].mode === 'absolute') {
+                    return Math.max(this.currentOriginalPrice - this.baseDiscountAmount, 0);
+                }
+
+                return Math.max(this.currentOriginalPrice - this.baseDiscountAmount, 0);
             },
             get originalPrice() {
                 return this.hasActiveSale ? this.currentOriginalPrice : null;
@@ -399,7 +409,7 @@
                 return Number.isNaN(numericPrice) ? this.basePrice : numericPrice;
             },
             optionSalePrice(option) {
-                return this.calculateDiscountedPrice(this.optionOriginalPrice(option));
+                return this.optionOriginalPrice(option);
             },
             formattedOptionOriginalPrice(option) {
                 return this.formatCurrency(this.optionOriginalPrice(option));
@@ -534,13 +544,18 @@
         });
     };
 
+    function formatLBPAmount(value) {
+        const numericValue = parseFloat(value);
+        return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Number.isNaN(numericValue) ? 0 : numericValue) + ' LBP';
+    }
+
     window.spawnPriceFly = window.spawnPriceFly || function(x, y, price) {
         const el = document.createElement('div');
         el.classList.add('price-fly');
         el.style.left = x + 'px';
         el.style.top = y + 'px';
         el.style.fontSize = '18px';
-        el.textContent = '+$' + price;
+        el.textContent = '+' + formatLBPAmount(price);
         document.body.appendChild(el);
         gsap.fromTo(el,
             { opacity: 1, y: 0, scale: 1 },
@@ -902,19 +917,12 @@
             '<!-- Details -->' +
             '<div class="flex-1 min-w-0">' +
                 '<div>' +
-                    '<div class="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">' +
+                    '<div class="flex flex-wrap items-start gap-x-2 gap-y-1">' +
                         '<a href="' + meal.url + '#meal-' + meal.id + '" class="min-w-0 flex-1">' +
                             '<h4 class="font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight break-words flex flex-wrap items-center gap-2">' +
                                 escHtml(meal.name) + ' ' + featuredHtml +
                             '</h4>' +
                         '</a>' +
-                        '<div class="shrink-0 text-right whitespace-nowrap">' +
-                            '<div class="flex items-center justify-end gap-2">' +
-                                '<span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>' +
-                                '<span class="font-black text-emerald-500" x-text="formattedPrice">$' + escHtml(meal.price) + '</span>' +
-                            '</div>' +
-                            '<p x-show="hasActiveSale" x-cloak class="mt-0.5 text-[11px] font-bold text-rose-500" x-text="`Save ${formattedSavings}`"></p>' +
-                        '</div>' +
                     '</div>' +
 
                     descHtml +
@@ -956,7 +964,11 @@
                     '</div>' +
                 '</div>' +
                 '<!-- Add button -->' +
-                '<div class="mt-auto basis-full flex justify-end pt-1">' +
+                '<div class="mt-auto basis-full flex items-center justify-between gap-3 pt-1">' +
+                    '<div class="min-w-0 flex items-center gap-2 whitespace-nowrap">' +
+                        '<span x-show="hasActiveSale" x-cloak class="text-sm font-bold text-gray-400 line-through" x-text="formattedOriginalPrice"></span>' +
+                        '<span class="font-black text-emerald-500" x-text="formattedPrice">' + escHtml(meal.price) + ' LBP</span>' +
+                    '</div>' +
                     actionHtml +
                 '</div>' +
         '</div>';

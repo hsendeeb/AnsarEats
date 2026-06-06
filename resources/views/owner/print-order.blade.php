@@ -117,7 +117,7 @@
                             <br><small>({{ $item->variant_label }})</small>
                         @endif
                     </td>
-                    <td class="price">${{ number_format($item->price * $item->quantity, 2) }}</td>
+                    <td class="price">{{ number_format($item->price * $item->quantity, 0) }} LBP</td>
                 </tr>
             @endforeach
         </tbody>
@@ -126,7 +126,11 @@
     <div class="total-section">
         <div class="total-row">
             <span>Total</span>
-            <span>${{ number_format($order->total, 2) }}</span>
+            <span>{{ number_format($order->total, 0) }} LBP</span>
+        </div>
+        <div class="details-row" style="font-size: 13px; margin-top: 5px; color: #444; justify-content: space-between; display: flex;">
+            <span>USD Total (Est.)</span>
+            <strong>${{ number_format($order->total / 89000, 2) }}</strong>
         </div>
     </div>
 

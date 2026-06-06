@@ -474,7 +474,7 @@
                                 slidesPerView: 2,
                                 slidesPerGroup: 2,
                                 spaceBetween: 12,
-                                loop: {{ count($trendingSpots ?? []) >= 4 ? 'true' : 'false' }},
+                                loop: {{ count($trendingSpots ?? []) >= 6 ? 'true' : 'false' }},
                                 autoplay: {
                                     delay: 3500,
                                     disableOnInteraction: false,
@@ -630,7 +630,7 @@
                                 new Swiper('.most-ordered-swiper', {
                                     slidesPerView: 1,
                                     spaceBetween: 16,
-                                    loop: {{ (isset($trendingMeals) && $trendingMeals->chunk(2)->count() >= 2) ? 'true' : 'false' }},
+                                    loop: {{ (isset($trendingMeals) && $trendingMeals->chunk(2)->count() >= 3) ? 'true' : 'false' }},
                                     autoplay: { delay: 4500, disableOnInteraction: false },
                                     pagination: {
                                         el: '.swiper-pagination-meals',

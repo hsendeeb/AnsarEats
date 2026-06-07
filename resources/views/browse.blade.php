@@ -1,0 +1,1030 @@
+@extends('layouts.app')
+
+@section('skeleton')
+<div class="bg-white dark:bg-gray-800/10 border-b border-gray-100 dark:border-gray-800 shadow-sm py-5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex gap-4 overflow-hidden">
+        @for ($i = 0; $i < 8; $i++)
+        <div class="shrink-0 w-32 h-10 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse"></div>
+        @endfor
+    </div>
+</div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="w-32 h-5 bg-gray-200 dark:bg-gray-800 rounded mb-8 animate-pulse"></div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        @for ($i = 0; $i < 6; $i++)
+        <div class="w-full h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
+        @endfor
+    </div>
+</div>
+@endsection
+
+@section('content')
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+
+    <!-- Page Header -->
+    <div class="bg-white dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+
+            <!-- Horizontal Category Pills -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1"
+                 id="category-pills-container">
+                 
+         
+                @foreach($categories as $cat)
+                    <button
+                        onclick="selectCategory('{{ $cat['slug'] }}')"
+                        id="pill-{{ $cat['slug'] }}"
+                        class="category-pill flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-300 border whitespace-nowrap
+                               {{ $category === $cat['slug']
+                                  ? 'bg-emerald-500 text-white border-emerald-500'
+                                  : 'bg-white/95 text-gray-600 border-gray-200 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50/80 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:border-emerald-500/40 dark:hover:bg-emerald-500/10' }}">
+                        <span class="text-base transition-transform duration-300 {{ $category === $cat['slug'] ? 'scale-110' : '' }}">{{ $cat['emoji'] }}</span>
+                        <span>{{ $cat['label'] }}</span>
+                    </button>
+                    
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Grid -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Results count -->
+        <p class="text-sm font-bold text-gray-400 mb-8 uppercase tracking-widest" id="results-label">
+            Showing <span id="results-count">{{ $items->count() }}</span> items
+        </p>
+
+        <div id="items-grid"
+             class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 transition-opacity duration-300">
+            @forelse($items as $meal)
+                <div id="browse-card-{{ $meal->id }}" class="relative bg-white border border-gray-100 rounded-2xl p-4 flex flex-col gap-4 hover:shadow-xl transition-shadow group overflow-visible h-full"
+                     :class="{ 'z-30': variantDropdownOpen }"
+                     x-data="menuItemPricing({{ $meal->price }}, @js($meal->variants ?? []), {{ $meal->is_on_sale ? 'true' : 'false' }}, {{ Js::from($meal->sale_price) }}, {{ Js::from($meal->saleDiscountPercentage()) }})">
+                    
+                    <div class="flex gap-4">
+                    <!-- Item Image -->
+                    <div id="browse-img-{{ $meal->id }}" class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative">
+                        <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="block w-full h-full">
+                            @if($meal->image)
+                                <img src="{{ Storage::url($meal->image) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                            @else
+                                <div class="w-full h-full flex items-center justify-center text-gray-300">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                </div>
+                            @endif
+                        </a>
+
+                        <!-- Restaurant Mini Badge Overlay -->
+                        <div class="absolute bottom-1 left-1 flex items-center gap-1 bg-white/90 backdrop-blur-md pl-1 pr-1.5 py-0.5 rounded-full shadow-md z-10 pointer-events-none">
+                            <div class="w-4 h-4 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-white">
+                                @if($meal->menuCategory->restaurant->logo)
+                                    <img src="{{ Storage::url($meal->menuCategory->restaurant->logo) }}" class="w-full h-full object-cover">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center bg-emerald-100 text-emerald-600 text-[8px] font-bold">{{ substr($meal->menuCategory->restaurant->name,0,1) }}</div>
+                                @endif
+                            </div>
+                            <span class="text-[8px] font-bold text-gray-900 truncate max-w-[60px]">{{ $meal->menuCategory->restaurant->name }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Details -->
+                    <div class="flex-1 min-w-0">
+                        <div>
+                            <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
+                                <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="min-w-0 flex-1">
+                                    <h4 class="font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight break-words flex flex-wrap items-center gap-2">
+                                        {{ $meal->name }}
+                                        @if($meal->is_featured)
+                                            <span class="inline-flex items-center text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-widest border border-amber-100 whitespace-nowrap">
+                                                Featured
+                                            </span>
+                                        @endif
+                                    </h4>
+                                </a>
+                            </div>
+
+                            <!-- Description (Alpine Responsive Collapse) -->
+                            <div class="mt-1" x-data="{
+                                expanded: false,
+                                canExpand: false,
+                                isSmall() { return window.matchMedia && window.matchMedia('(max-width: 767px)').matches; },
+                                clampStyle(lines = 2) { return `display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:${lines};overflow:hidden;`; },
+                                check() {
+                                    if (!this.isSmall()) { this.canExpand = false; this.expanded = true; return; }
+                                    this.$nextTick(() => {
+                                        const el = this.$refs.desc;
+                                        if (!el) return;
+                                        const prevExpanded = this.expanded;
+                                        this.expanded = false;
+                                        this.$nextTick(() => {
+                                            this.canExpand = el.scrollHeight > el.clientHeight + 1;
+                                            this.expanded = prevExpanded;
+                                        });
+                                    });
+                                }
+                            }" x-init="check(); window.addEventListener('resize', () => check())">
+                                <p x-ref="desc" class="text-sm text-gray-500 font-medium whitespace-normal break-words"
+                                   :style="(!expanded && isSmall()) ? (clampStyle(2) + 'word-break:break-word;overflow-wrap:anywhere;') : 'word-break:break-word;overflow-wrap:anywhere;'">{{ $meal->description }}</p>
+                                <button type="button" x-show="canExpand" x-cloak @click="expanded = !expanded" class="mt-1 text-xs font-black text-gray-500 hover:text-emerald-600 transition-colors">
+                                    <span x-text="expanded ? 'See less' : 'See more'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+                        <!-- Variants -->
+                        <div x-show="hasVariants" x-cloak class="basis-full w-full">
+                            <div class="relative" @click.outside="variantDropdownOpen = false">
+                                <button
+                                    type="button"
+                                    @click="variantDropdownOpen = !variantDropdownOpen"
+                                    :aria-expanded="variantDropdownOpen.toString()"
+                                    class="w-full cursor-pointer rounded-xl border border-gray-200 bg-white px-3 py-2 text-left shadow-sm transition-all hover:border-emerald-200 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                    <span class="flex items-center justify-between gap-3">
+                                        <span class="min-w-0">
+                                            <span class="mb-0.5 block text-[10px] font-black uppercase tracking-widest text-emerald-500">Choose options</span>
+                                            <span class="block truncate text-sm font-black text-gray-800" x-text="currentLabel || 'Choose options'"></span>
+                                        </span>
+                                        <span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500 transition-transform" :class="{ 'rotate-180': variantDropdownOpen }">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                                        </span>
+                                    </span>
+                                </button>
+                                <div
+                                    x-show="variantDropdownOpen"
+                                    x-transition:enter="transition ease-out duration-150"
+                                    x-transition:enter-start="opacity-0 -translate-y-1"
+                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-100"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 -translate-y-1"
+                                    class="absolute left-0 right-0 top-full z-40 mt-1 max-h-72 overflow-y-auto rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-gray-900/10">
+                                    <template x-for="(group, groupIndex) in variantGroups" :key="groupIndex">
+                                        <div class="py-1.5" :class="groupIndex > 0 ? 'border-t border-gray-100' : ''">
+                                            <p class="px-2 pb-1 text-[11px] font-black uppercase tracking-widest text-gray-400" x-text="group.type"></p>
+                                            <template x-for="(opt, idx) in group.options" :key="idx">
+                                                <button
+                                                    type="button"
+                                                    @click="toggleVariant(groupIndex, idx)"
+                                                    class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-emerald-50"
+                                                    :class="isVariantSelected(groupIndex, idx) ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'">
+                                                    <span class="flex min-w-0 items-center gap-2">
+                                                        <span class="flex h-4 w-4 flex-shrink-0 items-center justify-center border" :class="[group.required ? 'rounded-full' : 'rounded', isVariantSelected(groupIndex, idx) ? 'border-emerald-500 bg-emerald-500' : 'border-gray-300 bg-white']">
+                                                            <span class="h-2 w-2 rounded-full bg-white" x-show="group.required && isVariantSelected(groupIndex, idx)"></span>
+                                                            <svg x-show="!group.required && isVariantSelected(groupIndex, idx)" class="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                                        </span>
+                                                        <span class="block truncate text-sm font-bold" x-text="opt.label"></span>
+                                                    </span>
+                                                    <span class="flex-shrink-0 text-sm font-black" :class="isVariantSelected(groupIndex, idx) ? 'text-emerald-600' : 'text-gray-900'" x-text="group.mode === 'absolute' ? formattedOptionOriginalPrice(opt) : formattedOptionAddonPrice(opt)"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <div class="mt-1 border-t border-gray-100 px-2 pt-2 text-right text-sm font-black text-emerald-600" x-text="`Total ${formattedPrice}`"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add to Cart Button -->
+                        <div class="mt-auto basis-full flex items-center justify-between gap-3 pt-1">
+                            <div class="min-w-0 flex flex-col items-start justify-center">
+                                <span class="font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">
+                                    {{ number_format($meal->price, 0) }} LBP
+                                </span>
+                                <span x-show="hasActiveSale" x-cloak class="text-[10px] font-bold text-gray-400 line-through leading-none mt-0.5" x-text="formattedOriginalPrice"></span>
+                            </div>
+                            @if(Auth::id() === ($meal->menuCategory->restaurant->user_id ?? null))
+                                <span class="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 flex-shrink-0 self-end">Own Restaurant</span>
+                            @elseif(!$meal->menuCategory->restaurant->isOpenNow())
+                                <span class="text-xs font-bold text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100 flex-shrink-0 self-end">Closed Now</span>
+                            @else
+                                <button @click="browseAddToCart({{ $meal->id }}, currentPrice, $event, currentLabel)"
+                                        class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 shadow-sm hover:shadow-lg hover:shadow-emerald-500/30">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
+                                </button>
+                            @endif
+                    </div>
+                </div>
+            @empty
+                <div class="col-span-3 py-24 text-center">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 text-gray-300 mb-5">
+                        <span class="text-4xl">🍽️</span>
+                    </div>
+                    <h3 class="text-2xl outfit font-black text-gray-900 mb-2">No items found</h3>
+                    <p class="text-gray-500 font-medium">Try a different category!</p>
+                </div>
+            @endforelse
+        </div>
+
+        <!-- Loading Skeleton -->
+        <div id="loading-skeleton" class="hidden grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" aria-hidden="true">
+            @for ($i = 0; $i < 6; $i++)
+                <div class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 overflow-hidden h-full animate-pulse">
+                    <div class="w-24 h-24 flex-shrink-0 rounded-xl bg-gray-200"></div>
+                    <div class="flex-1 min-w-0 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="space-y-2 flex-1 min-w-0">
+                                    <div class="h-5 bg-gray-200 rounded-full w-3/4"></div>
+                                    <div class="h-4 bg-gray-200 rounded-full w-1/2"></div>
+                                </div>
+                                <div class="h-5 bg-gray-200 rounded-full w-16 flex-shrink-0"></div>
+                            </div>
+                            <div class="mt-3 space-y-2">
+                                <div class="h-3.5 bg-gray-200 rounded-full w-full"></div>
+                                <div class="h-3.5 bg-gray-200 rounded-full w-5/6"></div>
+                            </div>
+                        </div>
+                        <div class="flex justify-end mt-4">
+                            <div class="w-9 h-9 rounded-full bg-gray-200"></div>
+                        </div>
+                    </div>
+                </div>
+            @endfor
+        </div>
+
+        <!-- Infinite Scroll Trigger -->
+        <div id="infinite-scroll-container" class="mt-8 {{ $items->hasMorePages() ? '' : 'hidden' }}">
+            <div id="infinite-scroll-spinner" class="hidden items-center justify-center py-8" aria-live="polite" aria-label="Loading more items">
+                <svg class="h-8 w-8 animate-spin text-emerald-500" viewBox="0 0 24 24" fill="none">
+                    <circle class="opacity-20" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"></circle>
+                    <path class="opacity-90" stroke="currentColor" stroke-linecap="round" stroke-width="3" d="M21 12a9 9 0 0 0-9-9"></path>
+                </svg>
+            </div>
+            <div id="infinite-scroll-trigger" class="h-6 w-full" aria-hidden="true"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Particle container for GSAP burst effects -->
+<div id="particle-container" class="fixed inset-0 pointer-events-none z-[99]"></div>
+
+@push('scripts')
+<script>
+    // ========== Alpine Data Source ==========
+    window.menuItemPricing = function(basePrice, variants, isOnSale, salePrice, discountPercentage) {
+        const normalizedBasePrice = parseFloat(basePrice || 0);
+        const normalizedVariantGroups = (() => {
+            if (variants && Array.isArray(variants.groups) && variants.groups.length > 0) {
+                return variants.groups.map((group) => ({
+                    type: group.type || 'Option',
+                    required: group.required !== false,
+                    mode: 'addon',
+                    options: Array.isArray(group.options) ? group.options : []
+                })).filter((group) => group.options.length > 0);
+            }
+
+            if (variants && Array.isArray(variants.options) && variants.options.length > 0) {
+                return [{
+                    type: variants.type || 'Option',
+                    required: true,
+                    mode: 'absolute',
+                    options: variants.options
+                }];
+            }
+
+            return [];
+        })();
+
+        return {
+            basePrice: normalizedBasePrice,
+            variantGroups: normalizedVariantGroups,
+            selectedOptions: normalizedVariantGroups.map((group) => group.required ? 0 : []),
+            isOnSale: !!isOnSale,
+            salePrice: salePrice !== null && salePrice !== undefined && salePrice !== '' ? parseFloat(salePrice) : null,
+            discountPercentage: discountPercentage !== null && discountPercentage !== undefined && discountPercentage !== '' ? parseFloat(discountPercentage) : null,
+            variantDropdownOpen: false,
+            get hasVariants() {
+                return this.variantGroups.some((group) => group.options && group.options.length > 0);
+            },
+            formatCurrency(value) {
+                const numericValue = parseFloat(value);
+                return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Number.isNaN(numericValue) ? 0 : numericValue) + ' LBP';
+            },
+            calculateDiscountedPrice(price) {
+                const numericPrice = parseFloat(price);
+                if (Number.isNaN(numericPrice)) {
+                    return this.basePrice;
+                }
+
+                if (this.discountPercentage !== null && !Number.isNaN(this.discountPercentage) && this.discountPercentage > 0) {
+                    return Math.max(numericPrice * (1 - (this.discountPercentage / 100)), 0);
+                }
+
+                if (!this.hasVariants && this.salePrice !== null && !Number.isNaN(this.salePrice) && this.salePrice < this.basePrice) {
+                    return this.salePrice;
+                }
+
+                return numericPrice;
+            },
+            get hasActiveSale() {
+                return this.isOnSale
+                    && (
+                        (this.discountPercentage !== null && !Number.isNaN(this.discountPercentage) && this.discountPercentage > 0)
+                        || (!this.hasVariants && this.salePrice !== null && !Number.isNaN(this.salePrice) && this.salePrice < this.basePrice)
+                    );
+            },
+            get currentSelections() {
+                if (!this.hasVariants) return [];
+
+                return this.variantGroups.flatMap((group, groupIndex) => {
+                    const selectedValue = this.selectedOptions[groupIndex];
+
+                    if (!group.required) {
+                        return (Array.isArray(selectedValue) ? selectedValue : [])
+                            .map((optionIndex) => ({
+                                group,
+                                option: group.options[optionIndex],
+                            }))
+                            .filter((selection) => selection.option);
+                    }
+
+                    return [{
+                        group,
+                        option: group.options[selectedValue ?? 0] || group.options[0],
+                    }];
+                }).filter((selection) => selection && selection.option);
+            },
+            get baseDiscountAmount() {
+                const percentage = this.discountPercentage !== null ? parseFloat(this.discountPercentage) : NaN;
+                if (Number.isNaN(percentage) || percentage <= 0) {
+                    return 0;
+                }
+
+                return Math.max(this.basePrice * (percentage / 100), 0);
+            },
+            get currentOriginalPrice() {
+                if (!this.hasVariants) {
+                    return this.basePrice;
+                }
+
+                if (this.variantGroups.length === 1 && this.variantGroups[0].mode === 'absolute') {
+                    const price = parseFloat(this.currentSelections[0]?.option?.price);
+                    return Number.isNaN(price) ? this.basePrice : price;
+                }
+
+                return this.currentSelections.reduce((total, selection) => {
+                    const price = parseFloat(selection.option?.price);
+                    return total + (Number.isNaN(price) ? 0 : price);
+                }, this.basePrice);
+            },
+            get currentPrice() {
+                if (!this.hasActiveSale) {
+                    return this.currentOriginalPrice;
+                }
+
+                if (this.variantGroups.length === 1 && this.variantGroups[0].mode === 'absolute') {
+                    return Math.max(this.currentOriginalPrice - this.baseDiscountAmount, 0);
+                }
+
+                return Math.max(this.currentOriginalPrice - this.baseDiscountAmount, 0);
+            },
+            get originalPrice() {
+                return this.hasActiveSale ? this.currentOriginalPrice : null;
+            },
+            get formattedPrice() {
+                return this.formatCurrency(this.currentPrice);
+            },
+            get formattedOriginalPrice() {
+                return this.originalPrice !== null ? this.formatCurrency(this.originalPrice) : '';
+            },
+            get savingsAmount() {
+                return this.hasActiveSale ? Math.max(this.originalPrice - this.currentPrice, 0) : 0;
+            },
+            get formattedSavings() {
+                return this.formatCurrency(this.savingsAmount);
+            },
+            get currentLabel() {
+                if (this.variantGroups.length === 1 && this.variantGroups[0].mode === 'absolute') {
+                    return this.currentSelections[0]?.option?.label || null;
+                }
+
+                return this.currentSelections.length
+                    ? this.currentSelections.map((selection) => `${selection.group.type}: ${selection.option.label}`).join(' / ')
+                    : null;
+            },
+            optionOriginalPrice(option) {
+                const numericPrice = parseFloat(option?.price);
+                return Number.isNaN(numericPrice) ? this.basePrice : numericPrice;
+            },
+            optionSalePrice(option) {
+                return this.optionOriginalPrice(option);
+            },
+            formattedOptionOriginalPrice(option) {
+                return this.formatCurrency(this.optionOriginalPrice(option));
+            },
+            formattedOptionSalePrice(option) {
+                return this.formatCurrency(this.optionSalePrice(option));
+            },
+            variantOptionText(option) {
+                const label = option?.label || 'Option';
+                const price = this.hasActiveSale
+                    ? this.formattedOptionSalePrice(option)
+                    : this.formattedOptionOriginalPrice(option);
+                return `${label} - ${price}`;
+            },
+            optionAddonPrice(option) {
+                const numericPrice = parseFloat(option?.price);
+                return Number.isNaN(numericPrice) ? 0 : numericPrice;
+            },
+            formattedOptionAddonPrice(option) {
+                const price = this.optionAddonPrice(option);
+                return price > 0 ? `+${this.formatCurrency(price)}` : this.formatCurrency(0);
+            },
+            selectedOptionLabel(groupIndex) {
+                const selection = this.currentSelections[groupIndex];
+                return selection?.option?.label || 'Choose option';
+            },
+            selectVariant(groupIndex, optionIndex) {
+                this.selectedOptions[groupIndex] = optionIndex;
+            },
+            isVariantSelected(groupIndex, optionIndex) {
+                const selectedValue = this.selectedOptions[groupIndex];
+
+                return Array.isArray(selectedValue)
+                    ? selectedValue.includes(optionIndex)
+                    : selectedValue === optionIndex;
+            },
+            toggleVariant(groupIndex, optionIndex) {
+                if (this.variantGroups[groupIndex]?.required) {
+                    this.selectVariant(groupIndex, optionIndex);
+                    return;
+                }
+
+                const selectedValue = Array.isArray(this.selectedOptions[groupIndex])
+                    ? [...this.selectedOptions[groupIndex]]
+                    : [];
+                const existingIndex = selectedValue.indexOf(optionIndex);
+
+                if (existingIndex >= 0) {
+                    selectedValue.splice(existingIndex, 1);
+                } else {
+                    selectedValue.push(optionIndex);
+                }
+
+                this.selectedOptions[groupIndex] = selectedValue;
+            }
+        };
+    };
+
+    // ========== GSAP Animation Helpers (same as restaurant show) ==========
+
+    if (window.gsap && window.MotionPathPlugin) {
+        gsap.registerPlugin(MotionPathPlugin);
+    }
+
+    window.getCartTargetPos = window.getCartTargetPos || function() {
+        const navCartBtn = document.querySelector('[x-data="navCart"] button');
+        if (navCartBtn) {
+            const rect = navCartBtn.getBoundingClientRect();
+            return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        }
+        return { x: window.innerWidth - 60, y: 40 };
+    };
+
+    window.createFlyingClone = window.createFlyingClone || function(sourceEl) {
+        const rect = sourceEl.getBoundingClientRect();
+        const clone = document.createElement('div');
+        clone.classList.add('flying-clone');
+        clone.style.width = rect.width + 'px';
+        clone.style.height = rect.height + 'px';
+        clone.style.left = rect.left + 'px';
+        clone.style.top = rect.top + 'px';
+        clone.innerHTML = sourceEl.innerHTML;
+        document.body.appendChild(clone);
+        return clone;
+    };
+
+    window.spawnParticles = window.spawnParticles || function(x, y, count) {
+        count = count || 8;
+        const container = document.getElementById('particle-container');
+        const colors = ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#fbbf24', '#f59e0b'];
+        const particles = [];
+
+        for (let i = 0; i < count; i++) {
+            const p = document.createElement('div');
+            p.classList.add('gsap-particle');
+            const size = gsap.utils.random(6, 14);
+            p.style.width = size + 'px';
+            p.style.height = size + 'px';
+            p.style.left = x + 'px';
+            p.style.top = y + 'px';
+            p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            container.appendChild(p);
+            particles.push(p);
+        }
+
+        particles.forEach(function(p, i) {
+            const angle = (i / count) * Math.PI * 2;
+            const distance = gsap.utils.random(40, 100);
+            gsap.to(p, {
+                x: Math.cos(angle) * distance,
+                y: Math.sin(angle) * distance,
+                opacity: 0,
+                scale: 0,
+                duration: gsap.utils.random(0.6, 1.0),
+                ease: 'power3.out',
+                onComplete: function() { p.remove(); }
+            });
+        });
+    };
+
+    window.spawnRipple = window.spawnRipple || function(x, y) {
+        const ripple = document.createElement('div');
+        ripple.classList.add('cart-ripple');
+        ripple.style.left = (x - 20) + 'px';
+        ripple.style.top = (y - 20) + 'px';
+        ripple.style.width = '40px';
+        ripple.style.height = '40px';
+        document.body.appendChild(ripple);
+        gsap.to(ripple, {
+            scale: 3, opacity: 0, duration: 0.7, ease: 'power2.out',
+            onComplete: function() { ripple.remove(); }
+        });
+    };
+
+    function formatLBPAmount(value) {
+        const numericValue = parseFloat(value);
+        return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Number.isNaN(numericValue) ? 0 : numericValue) + ' LBP';
+    }
+
+    window.spawnPriceFly = window.spawnPriceFly || function(x, y, price) {
+        const el = document.createElement('div');
+        el.classList.add('price-fly');
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+        el.style.fontSize = '18px';
+        el.textContent = '+' + formatLBPAmount(price);
+        document.body.appendChild(el);
+        gsap.fromTo(el,
+            { opacity: 1, y: 0, scale: 1 },
+            { opacity: 0, y: -60, scale: 1.5, duration: 1.2, ease: 'power2.out',
+              onComplete: function() { el.remove(); } }
+        );
+    };
+
+    function browseAnimateAddToCart(itemId, price, btnEl) {
+        if (!window.gsap) return;
+
+        const imgEl = document.getElementById('browse-img-' + itemId);
+        const cardEl = document.getElementById('browse-card-' + itemId);
+        if (!imgEl) return;
+
+        const target = getCartTargetPos();
+        const imgRect = imgEl.getBoundingClientRect();
+        const startX = imgRect.left;
+        const startY = imgRect.top;
+
+        // Card bounce
+        gsap.timeline()
+            .to(cardEl, { scale: 0.95, duration: 0.1, ease: 'power2.in' })
+            .to(cardEl, { scale: 1, duration: 0.4, ease: 'elastic.out(1, 0.4)' });
+
+        // Flying clone
+        var clone = createFlyingClone(imgEl);
+        gsap.fromTo(clone, { scale: 1, rotation: 0 }, { scale: 1.2, duration: 0.15, ease: 'power2.out', yoyo: true, repeat: 1 });
+        spawnParticles(startX + imgRect.width / 2, startY + imgRect.height / 2, 10);
+
+        // Price fly
+        if (btnEl) {
+            var btnRect = btnEl.getBoundingClientRect();
+            spawnPriceFly(btnRect.left - 30, btnRect.top - 10, price);
+        }
+
+        var midX = (startX + target.x) / 2;
+        var midY = Math.min(startY, target.y) - 120;
+
+        gsap.to(clone, {
+            duration: 0.75,
+            ease: 'power2.inOut',
+            motionPath: {
+                path: [
+                    { x: 0, y: 0 },
+                    { x: midX - startX, y: midY - startY },
+                    { x: target.x - startX, y: target.y - startY }
+                ],
+                curviness: 1.5
+            },
+            scale: 0.3,
+            rotation: 360,
+            opacity: 0.8,
+            onComplete: function() {
+                spawnParticles(target.x, target.y, 12);
+                spawnRipple(target.x, target.y);
+                var navCartBtn = document.querySelector('[x-data="navCart"] button');
+                if (navCartBtn) {
+                    gsap.timeline()
+                        .to(navCartBtn, { scale: 1.4, duration: 0.15, ease: 'power2.out' })
+                        .to(navCartBtn, { scale: 1, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
+                }
+                gsap.to(clone, { scale: 0, opacity: 0, duration: 0.2, onComplete: function() { clone.remove(); } });
+            }
+        });
+    }
+
+    // ========== Add to Cart (fetch) ==========
+
+    function browseAddToCart(menuItemId, price, event, variantLabel) {
+        var btnEl = event ? event.currentTarget : null;
+        browseAnimateAddToCart(menuItemId, price, btnEl);
+
+        var token = document.querySelector('meta[name="csrf-token"]');
+        var csrfToken = token ? token.content : '';
+
+        var payload = { menu_item_id: menuItemId, quantity: 1 };
+        if (variantLabel) {
+            payload.variant_label = variantLabel;
+            payload.variant_price = price;
+        }
+
+        fetch('{{ route("cart.add") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(function(res) { 
+            if (!res.ok) {
+                return res.json().then(function(err) { throw new Error(err.message || 'Error adding to cart'); });
+            }
+            return res.json(); 
+        })
+        .then(function(data) {
+            if (data.cart) {
+                window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+                window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: data.message || 'Added to cart!', type: 'success' } }));
+            }
+        })
+        .catch(function(e) { 
+            console.error('Add to cart failed', e); 
+            window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: e.message || 'Could not add item.', type: 'error' } }));
+        });
+    }
+
+    // ========== Category Switching ==========
+
+    var BROWSE_URL   = '{{ route('browse.index') }}';
+    var activeCategory = '{{ $category }}';
+
+    var CURRENT_USER_ID = {{ Auth::id() ?? 'null' }};
+    var NEXT_PAGE_URL = '{{ $items->nextPageUrl() }}';
+    var HAS_MORE = {{ $items->hasMorePages() ? 'true' : 'false' }};
+    var TOTAL_ITEMS = {{ $items->total() }};
+    var IS_LOADING_MORE = false;
+    var loadMoreObserver = null;
+
+    function setInfiniteScrollLoading(isLoading) {
+        var spinner = document.getElementById('infinite-scroll-spinner');
+        if (!spinner) return;
+
+        spinner.classList.toggle('hidden', !isLoading);
+        spinner.classList.toggle('flex', isLoading);
+    }
+
+    function setInfiniteScrollVisibility() {
+        var container = document.getElementById('infinite-scroll-container');
+        if (!container) return;
+
+        container.classList.toggle('hidden', !HAS_MORE);
+    }
+
+    function maybeLoadMoreOnShortPage() {
+        if (!HAS_MORE || IS_LOADING_MORE) return;
+
+        var trigger = document.getElementById('infinite-scroll-trigger');
+        if (!trigger) return;
+
+        var rect = trigger.getBoundingClientRect();
+        if (rect.top <= window.innerHeight + 120) {
+            loadMoreItems();
+        }
+    }
+
+    function initInfiniteScrollObserver() {
+        var trigger = document.getElementById('infinite-scroll-trigger');
+        if (!trigger || !('IntersectionObserver' in window)) {
+            return;
+        }
+
+        if (loadMoreObserver) {
+            loadMoreObserver.disconnect();
+        }
+
+        loadMoreObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    loadMoreItems();
+                }
+            });
+        }, {
+            root: null,
+            rootMargin: '220px 0px 220px 0px',
+            threshold: 0
+        });
+
+        loadMoreObserver.observe(trigger);
+    }
+    
+    function selectCategory(slug) {
+        if (slug === activeCategory) return;
+        activeCategory = slug;
+
+        // Update pill styles
+        document.querySelectorAll('.category-pill').forEach(function(pill) {
+            pill.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-500');
+            pill.classList.add('bg-white/95', 'text-gray-600', 'border-gray-200', 'hover:border-emerald-300', 'hover:text-emerald-600', 'hover:bg-emerald-50/80');
+            var emoji = pill.querySelector('span');
+            if (emoji) {
+                emoji.classList.remove('scale-110');
+            }
+        });
+        var activePill = document.getElementById('pill-' + slug);
+        if (activePill) {
+            activePill.classList.remove('bg-white/95', 'text-gray-600', 'border-gray-200', 'hover:border-emerald-300', 'hover:text-emerald-600', 'hover:bg-emerald-50/80');
+            activePill.classList.add('bg-emerald-500', 'text-white', 'border-emerald-500');
+            var activeEmoji = activePill.querySelector('span');
+            if (activeEmoji) {
+                activeEmoji.classList.add('scale-110');
+            }
+            activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+
+        // Update browser URL without reload
+        var url = new URL(window.location);
+        url.searchParams.set('category', slug);
+        window.history.pushState({}, '', url);
+
+        // Show skeleton in place of the grid while the new category loads
+        var grid     = document.getElementById('items-grid');
+        var skeleton = document.getElementById('loading-skeleton');
+        var infiniteScrollContainer = document.getElementById('infinite-scroll-container');
+        grid.classList.add('hidden');
+        grid.style.opacity = '0';
+        grid.style.pointerEvents = 'none';
+        skeleton.classList.remove('hidden');
+        skeleton.classList.add('grid');
+        IS_LOADING_MORE = false;
+        setInfiniteScrollLoading(false);
+        if (infiniteScrollContainer) {
+            infiniteScrollContainer.classList.add('hidden');
+        }
+
+        // Fetch items via AJAX
+        fetch(BROWSE_URL + '?category=' + encodeURIComponent(slug), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) { 
+            NEXT_PAGE_URL = data.next_page_url;
+            HAS_MORE = data.has_more;
+            TOTAL_ITEMS = data.total;
+            renderItems(data.items, false); 
+        })
+        .catch(function() {
+            skeleton.classList.add('hidden');
+            skeleton.classList.remove('grid');
+            grid.classList.remove('hidden');
+            grid.style.opacity = '1';
+            grid.style.pointerEvents = '';
+            setInfiniteScrollVisibility();
+        });
+    }
+
+    function loadMoreItems() {
+        if (!NEXT_PAGE_URL || IS_LOADING_MORE || !HAS_MORE) return;
+
+        IS_LOADING_MORE = true;
+        setInfiniteScrollLoading(true);
+
+        fetch(NEXT_PAGE_URL, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            NEXT_PAGE_URL = data.next_page_url;
+            HAS_MORE = data.has_more;
+            TOTAL_ITEMS = data.total;
+            renderItems(data.items, true);
+        })
+        .catch(function() {
+            setInfiniteScrollVisibility();
+        })
+        .finally(function() {
+            IS_LOADING_MORE = false;
+            setInfiniteScrollLoading(false);
+            if (HAS_MORE) {
+                maybeLoadMoreOnShortPage();
+            }
+        });
+    }
+
+    function renderItems(items, append) {
+        var grid     = document.getElementById('items-grid');
+        var skeleton = document.getElementById('loading-skeleton');
+        var countEl  = document.getElementById('results-count');
+
+        skeleton.classList.add('hidden');
+        skeleton.classList.remove('grid');
+        grid.classList.remove('hidden');
+
+        if (!append) {
+            if (items.length === 0) {
+                grid.innerHTML = '<div class="col-span-3 py-24 text-center">' +
+                    '<div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 text-gray-300 mb-5">' +
+                    '<span class="text-4xl">\ud83c\udf7d\ufe0f</span></div>' +
+                    '<h3 class="text-2xl font-black text-gray-900 mb-2">No items found</h3>' +
+                    '<p class="text-gray-500 font-medium">Try a different category!</p></div>';
+            } else {
+                grid.innerHTML = items.map(function(meal) { return buildCard(meal); }).join('');
+            }
+        } else {
+            // Append mode: we need to use a temporary container to extract elements so x-data initializes correctly
+            // if we just concatenate innerHTML, we break existing Alpine states.
+            var temp = document.createElement('div');
+            temp.innerHTML = items.map(function(meal) { return buildCard(meal); }).join('');
+            while(temp.firstChild) {
+                grid.appendChild(temp.firstChild);
+            }
+        }
+
+        // We only use TOTAL_ITEMS for the accurate results count
+        if (countEl && TOTAL_ITEMS !== undefined) {
+             countEl.textContent = TOTAL_ITEMS;
+        }
+
+        setInfiniteScrollVisibility();
+        setInfiniteScrollLoading(false);
+        initInfiniteScrollObserver();
+
+        requestAnimationFrame(function() {
+            grid.style.transition = 'opacity 0.3s ease';
+            grid.style.opacity    = '1';
+            grid.style.pointerEvents = '';
+            maybeLoadMoreOnShortPage();
+        });
+    }
+
+    function buildCard(meal) {
+        var imageHtml = meal.image
+            ? '<img alt="' + escHtml(meal.name) + '" src="' + meal.image + '" class="w-full h-full object-cover group-hover:scale-110 transition-transform">'
+            : '<div class="w-full h-full flex items-center justify-center text-gray-300"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>';
+
+        var logoHtml = meal.restaurant_logo
+            ? '<img src="' + meal.restaurant_logo + '" class="w-full h-full object-cover">'
+            : '<div class="w-full h-full flex items-center justify-center bg-emerald-100 text-emerald-600 text-[8px] font-bold">' + escHtml(meal.restaurant_initial) + '</div>';
+
+        var descHtml = meal.description
+            ? '<div class="mt-1" x-data="{ expanded: false, canExpand: false, isSmall() { return window.matchMedia && window.matchMedia(\'(max-width: 767px)\').matches; }, clampStyle(lines = 2) { return `display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:${lines};overflow:hidden;`; }, check() { if (!this.isSmall()) { this.canExpand = false; this.expanded = true; return; } this.$nextTick(() => { const el = this.$refs.desc; if (!el) return; const prevExpanded = this.expanded; this.expanded = false; this.$nextTick(() => { this.canExpand = el.scrollHeight > el.clientHeight + 1; this.expanded = prevExpanded; }); }); } }" x-init="check(); window.addEventListener(\'resize\', () => check())">' +
+              '<p x-ref="desc" class="text-sm text-gray-500 font-medium whitespace-normal break-words" :style="(!expanded && isSmall()) ? (clampStyle(2) + \'word-break:break-word;overflow-wrap:anywhere;\') : \'word-break:break-word;overflow-wrap:anywhere;\'">' + escHtml(meal.description) + '</p>' +
+              '<button type="button" x-show="canExpand" x-cloak @click="expanded = !expanded" class="mt-1 text-xs font-black text-gray-500 hover:text-emerald-600 transition-colors"><span x-text="expanded ? \'See less\' : \'See more\'"></span></button></div>'
+            : '';
+
+        var featuredHtml = meal.is_featured 
+            ? '<span class="inline-flex items-center text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-widest border border-amber-100 whitespace-nowrap">Featured</span>'
+            : '';
+
+        var actionHtml = '';
+        if (CURRENT_USER_ID !== null && CURRENT_USER_ID === meal.restaurant_user_id) {
+            actionHtml = '<span class="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 flex-shrink-0 self-end">Own Restaurant</span>';
+        } else if (meal.restaurant_is_open_now === false) {
+            actionHtml = '<span class="text-xs font-bold text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100 flex-shrink-0 self-end">Closed Now</span>';
+        } else {
+            actionHtml = '<button @click="browseAddToCart(' + meal.id + ', currentPrice, $event, currentLabel)" class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 shadow-sm hover:shadow-lg hover:shadow-emerald-500/30"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg></button>';
+        }
+
+        var variantsJson = JSON.stringify(meal.variants || []);
+        var xDataStr = "menuItemPricing(" + meal.raw_price + ", " + variantsJson.replace(/\"/g, '&quot;') + ", " + (meal.is_on_sale ? 'true' : 'false') + ", " + (meal.raw_sale_price !== null ? meal.raw_sale_price : 'null') + ", " + (meal.discount_percentage !== null ? meal.discount_percentage : 'null') + ")";
+
+        return '<div id="browse-card-' + meal.id + '" class="relative bg-white border border-gray-100 rounded-2xl p-4 flex flex-col gap-4 hover:shadow-xl transition-shadow group overflow-visible h-full" :class="{ \'z-30\': variantDropdownOpen }" x-data="' + xDataStr + '">' +
+            '<div class="flex gap-4">' +
+            '<!-- Item Image -->' +
+            '<div id="browse-img-' + meal.id + '" class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative">' +
+                '<a href="' + meal.url + '#meal-' + meal.id + '" class="block w-full h-full">' +
+                    imageHtml +
+                '</a>' +
+                '<div class="absolute bottom-1 left-1 flex items-center gap-1 bg-white/90 backdrop-blur-md pl-1 pr-1.5 py-0.5 rounded-full shadow-md z-10 pointer-events-none">' +
+                    '<div class="w-4 h-4 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-white">' +
+                        logoHtml +
+                    '</div>' +
+                    '<span class="text-[8px] font-bold text-gray-900 truncate max-w-[60px]">' + escHtml(meal.restaurant_name) + '</span>' +
+                '</div>' +
+            '</div>' +
+            
+            '<!-- Details -->' +
+            '<div class="flex-1 min-w-0">' +
+                '<div>' +
+                    '<div class="flex flex-wrap items-start gap-x-2 gap-y-1">' +
+                        '<a href="' + meal.url + '#meal-' + meal.id + '" class="min-w-0 flex-1">' +
+                            '<h4 class="font-bold text-lg text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight break-words flex flex-wrap items-center gap-2">' +
+                                escHtml(meal.name) + ' ' + featuredHtml +
+                            '</h4>' +
+                        '</a>' +
+                    '</div>' +
+
+                    descHtml +
+                '</div>' +
+            '</div>' +
+            '</div>' +
+
+                '<!-- Variants -->' +
+                '<div x-show="hasVariants" x-cloak class="basis-full w-full">' +
+                    '<div class="relative" @click.outside="variantDropdownOpen = false">' +
+                        '<button type="button" @click="variantDropdownOpen = !variantDropdownOpen" :aria-expanded="variantDropdownOpen.toString()" class="w-full cursor-pointer rounded-xl border border-gray-200 bg-white px-3 py-2 text-left shadow-sm transition-all hover:border-emerald-200 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">' +
+                            '<span class="flex items-center justify-between gap-3">' +
+                                '<span class="min-w-0">' +
+                                    '<span class="mb-0.5 block text-[10px] font-black uppercase tracking-widest text-emerald-500">Choose options</span>' +
+                                    '<span class="block truncate text-sm font-black text-gray-800" x-text="currentLabel || \'Choose options\'"></span>' +
+                                '</span>' +
+                                '<span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500 transition-transform" :class="{ \'rotate-180\': variantDropdownOpen }">' +
+                                    '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>' +
+                                '</span>' +
+                            '</span>' +
+                        '</button>' +
+                        '<div x-show="variantDropdownOpen" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="absolute left-0 right-0 top-full z-40 mt-1 max-h-72 overflow-y-auto rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-gray-900/10">' +
+                            '<template x-for="(group, groupIndex) in variantGroups" :key="groupIndex">' +
+                                '<div class="py-1.5" :class="groupIndex > 0 ? \'border-t border-gray-100\' : \'\'">' +
+                                    '<p class="px-2 pb-1 text-[11px] font-black uppercase tracking-widest text-gray-400" x-text="group.type"></p>' +
+                                    '<template x-for="(opt, idx) in group.options" :key="idx">' +
+                                        '<button type="button" @click="toggleVariant(groupIndex, idx)" class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-emerald-50" :class="isVariantSelected(groupIndex, idx) ? \'bg-emerald-50 text-emerald-700\' : \'text-gray-700\'">' +
+                                            '<span class="flex min-w-0 items-center gap-2">' +
+                                                '<span class="flex h-4 w-4 flex-shrink-0 items-center justify-center border" :class="[group.required ? \'rounded-full\' : \'rounded\', isVariantSelected(groupIndex, idx) ? \'border-emerald-500 bg-emerald-500\' : \'border-gray-300 bg-white\']"><span class="h-2 w-2 rounded-full bg-white" x-show="group.required && isVariantSelected(groupIndex, idx)"></span><svg x-show="!group.required && isVariantSelected(groupIndex, idx)" class="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></span>' +
+                                                '<span class="block truncate text-sm font-bold" x-text="opt.label"></span>' +
+                                            '</span>' +
+                                            '<span class="flex-shrink-0 text-sm font-black" :class="isVariantSelected(groupIndex, idx) ? \'text-emerald-600\' : \'text-gray-900\'" x-text="group.mode === \'absolute\' ? formattedOptionOriginalPrice(opt) : formattedOptionAddonPrice(opt)"></span>' +
+                                        '</button>' +
+                                    '</template>' +
+                                '</div>' +
+                            '</template>' +
+                            '<div class="mt-1 border-t border-gray-100 px-2 pt-2 text-right text-sm font-black text-emerald-600" x-text="`Total ${formattedPrice}`"></div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<!-- Add button -->' +
+                '<div class="mt-auto basis-full flex items-center justify-between gap-3 pt-1">' +
+                    '<div class="min-w-0 flex flex-col items-start justify-center">' +
+                        '<span class="font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">' + escHtml(meal.price) + ' LBP</span>' +
+                        '<span x-show="hasActiveSale" x-cloak class="text-[10px] font-bold text-gray-400 line-through leading-none mt-0.5" x-text="formattedOriginalPrice"></span>' +
+                    '</div>' +
+                    actionHtml +
+                '</div>' +
+        '</div>';
+    }
+
+    function escHtml(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // Handle browser back/forward
+    window.addEventListener('popstate', function() {
+        var params = new URL(window.location).searchParams;
+        selectCategory(params.get('category') || 'all');
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setInfiniteScrollVisibility();
+        setInfiniteScrollLoading(false);
+        initInfiniteScrollObserver();
+        maybeLoadMoreOnShortPage();
+    });
+</script>
+
+<style>
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .flying-clone {
+        position: fixed;
+        z-index: 9999;
+        pointer-events: none;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(16, 185, 129, 0.5);
+    }
+    .gsap-particle {
+        position: fixed;
+        pointer-events: none;
+        z-index: 9998;
+        border-radius: 50%;
+    }
+    .cart-ripple {
+        position: fixed;
+        border-radius: 50%;
+        border: 3px solid #10b981;
+        pointer-events: none;
+        z-index: 9997;
+    }
+    .price-fly {
+        position: fixed;
+        z-index: 9999;
+        pointer-events: none;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 900;
+        color: #10b981;
+        text-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+    }
+</style>
+@endpush
+@endsection

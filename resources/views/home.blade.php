@@ -1,0 +1,1298 @@
+@extends('layouts.app')
+
+@section('skeleton')
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <!-- Search Bar Skeleton -->
+        <div class="w-full h-16 bg-gray-100 dark:bg-gray-800 rounded-3xl mb-12 animate-pulse"></div>
+
+        <!-- Categories Row Skeleton -->
+        <div class="mb-12 overflow-hidden">
+            <div class="flex gap-3 sm:gap-4 w-max min-w-full">
+                @for ($i = 0; $i < 7; $i++)
+                    <div
+                        class="flex w-20 sm:w-24 lg:w-28 shrink-0 flex-col items-center gap-3 animate-pulse @if($i > 3) hidden sm:flex @endif @if($i > 5) hidden lg:flex @endif">
+                        <div class="w-full aspect-square bg-gray-100 dark:bg-gray-800 rounded-2xl"></div>
+                        <div class="w-14 sm:w-16 h-3 bg-gray-100 dark:bg-gray-800 rounded-full"></div>
+                    </div>
+                @endfor
+            </div>
+        </div>
+
+        <!-- Section Header Skeleton -->
+        <div class="flex items-center justify-between mb-8">
+            <div class="w-48 h-8 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse"></div>
+            <div class="w-24 h-6 bg-gray-100 dark:bg-gray-800 rounded-full animate-pulse"></div>
+        </div>
+
+        <!-- Trending Spots Grid Skeleton -->
+        <div class="mb-16 px-4">
+            <!-- Mobile Skeleton (Matches Swiper layout) -->
+            <div class="flex md:hidden gap-3 overflow-hidden">
+                @for ($i = 0; $i < 2; $i++)
+                    <div class="flex-1 bg-white dark:bg-gray-800 rounded-3xl border border-gray-50 dark:border-gray-800 overflow-hidden animate-pulse shadow-sm">
+                        <div class="h-32 bg-gray-100 dark:bg-gray-700 w-full"></div>
+                        <div class="p-4 space-y-3">
+                            <div class="h-5 bg-gray-100 dark:bg-gray-700 rounded-lg w-3/4"></div>
+                            <div class="space-y-2 mt-2">
+                                <div class="h-2 bg-gray-100 dark:bg-gray-700 rounded-lg w-full"></div>
+                                <div class="h-2 bg-gray-100 dark:bg-gray-700 rounded-lg w-5/6"></div>
+                            </div>
+                        </div>
+                    </div>
+                @endfor
+            </div>
+
+            <!-- Desktop Skeleton (Matches Grid layout) -->
+            <div class="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                @for ($i = 0; $i < 3; $i++)
+                    <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-50 dark:border-gray-800 overflow-hidden animate-pulse shadow-md">
+                        <div class="h-48 bg-gray-100 dark:bg-gray-700 w-full"></div>
+                        <div class="p-6 space-y-4">
+                            <div class="h-6 bg-gray-100 dark:bg-gray-700 rounded-xl w-3/4"></div>
+                            <div class="space-y-2">
+                                <div class="h-3 bg-gray-100 dark:bg-gray-700 rounded-lg w-full"></div>
+                                <div class="h-3 bg-gray-100 dark:bg-gray-700 rounded-lg w-5/6"></div>
+                            </div>
+                        </div>
+                    </div>
+                @endfor
+            </div>
+        </div>
+    </div>
+@endsection
+
+
+@section('content')
+    <style>
+        .scroll-reveal {
+            opacity: 0;
+            transform: translate3d(0, var(--reveal-distance, 36px), 0) scale(0.985);
+            filter: blur(8px);
+            transition-property: opacity, transform, filter;
+            transition-duration: var(--reveal-duration, 700ms);
+            transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+            transition-delay: var(--reveal-delay, 0ms);
+            will-change: opacity, transform, filter;
+        }
+
+        .scroll-reveal.is-visible {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+            filter: blur(0);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .scroll-reveal,
+            .scroll-reveal.is-visible {
+                opacity: 1;
+                transform: none;
+                filter: none;
+                transition: none;
+            }
+        }
+
+        .placeholder-ticker-container {
+            position: absolute;
+            left: 3rem;
+            right: 3rem;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 1.5rem;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .placeholder-slide-up-enter-active,
+        .placeholder-slide-up-leave-active {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .placeholder-slide-up-enter-from {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+
+        .placeholder-slide-up-leave-to {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+    </style>
+    <div class="relative bg-white dark:bg-gray-900 transition-colors pt-6 md:pt-8 pb-0 overflow-x-clip z-[30]">
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="flex flex-col items-center">
+                <!-- Left Content -->
+                <div class="w-full text-center lg:text-left scroll-reveal" x-data="scrollReveal(0, 26)"
+                    x-intersect.once.margin.-100px.0.0.0="reveal()" :class="{ 'is-visible': shown }">
+
+
+                    <div class="w-full" x-data="{ 
+                            query: '', 
+                            results: { restaurants: [], meals: [] }, 
+                            recentSearches: [],
+                            show: false,
+                            loading: false,
+                            recentSearchKey: 'ansareats-recent-searches',
+                            search() {
+                                const normalized = this.query ? this.query.trim() : '';
+                                if (normalized.length) {
+                                    const fallbackRecent = this.results.restaurants.find((restaurant) =>
+                                        restaurant.name.toLowerCase() === normalized.toLowerCase()
+                                    ) ?? this.results.meals.find((meal) =>
+                                        meal.name.toLowerCase() === normalized.toLowerCase()
+                                    );
+
+                                    if (fallbackRecent) {
+                                        this.saveRecentSearch(fallbackRecent);
+                                    }
+
+                                    window.location.href = '{{ route('restaurants.index') }}?q=' + encodeURIComponent(normalized);
+                                }
+                            },
+                            loadRecentSearches() {
+                                try {
+                                    const stored = window.localStorage.getItem(this.recentSearchKey);
+                                    this.recentSearches = stored ? JSON.parse(stored) : [];
+                                } catch (e) {
+                                    this.recentSearches = [];
+                                }
+                            },
+                            saveRecentSearch(item) {
+                                if (!item || !item.url || !item.name) {
+                                    return;
+                                }
+
+                                const normalizedItem = {
+                                    id: item.id,
+                                    type: item.type,
+                                    name: item.name,
+                                    image: item.logo ?? item.image ?? null,
+                                    url: item.url,
+                                    subtitle: item.type === 'restaurant' ? 'Restaurant' : item.restaurant_name,
+                                };
+
+                                const filtered = this.recentSearches.filter((entry) => entry.url !== normalizedItem.url);
+                                this.recentSearches = [normalizedItem, ...filtered].slice(0, 10);
+
+                                try {
+                                    window.localStorage.setItem(this.recentSearchKey, JSON.stringify(this.recentSearches));
+                                } catch (e) {
+                                    console.error('Unable to store recent searches:', e);
+                                }
+                            },
+                            useRecentSearch(item) {
+                                this.saveRecentSearch(item);
+                                window.location.href = item.url;
+                            },
+                            handleFocus() {
+                                if (this.query.length >= 2) {
+                                    this.show = true;
+                                    return;
+                                }
+
+                                this.show = this.recentSearches.length > 0;
+                            },
+                            async fetchSuggestions() {
+                                if (this.query.length < 2) {
+                                    this.results = { restaurants: [], meals: [] };
+                                    this.show = this.recentSearches.length > 0;
+                                    return;
+                                }
+                                this.loading = true;
+                                try {
+                                    const response = await fetch(`/search/suggestions?q=${encodeURIComponent(this.query)}`);
+                                    this.results = await response.json();
+                                    this.show = true;
+                                } catch (e) {
+                                    console.error('Search error:', e);
+                                } finally {
+                                    this.loading = false;
+                                }
+                            },
+                            ticker: [
+                                'Search &quot;Burgers&quot;',
+                                'Search &quot;Desserts&quot;',
+                                'Search &quot;Pizza&quot;',
+                                'Search &quot;Sushi&quot;',
+                                'Search &quot;Tacos&quot;',
+                                'Search &quot;Pasta&quot;',
+                                'Search &quot;Ice Cream&quot;'
+                            ],
+                            tickerIndex: 0,
+                            init() {
+                                this.loadRecentSearches();
+                                setInterval(() => {
+                                    this.tickerIndex = (this.tickerIndex + 1) % this.ticker.length;
+                                }, 3000);
+                            }
+                         }" @click.away="show = false">
+
+                        <div class="relative w-full group">
+                            <!-- Search Input -->
+                             <div class="relative flex items-center">
+                                <input type="text" x-model="query" name="q" @input.debounce.300ms="fetchSuggestions()"
+                                    @focus="handleFocus()" @keydown.enter.prevent="search()"
+                                    placeholder=""
+                                    class="w-full pl-12 pr-12 py-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-emerald-500/20 rounded-2xl font-bold text-gray-900 dark:text-white placeholder-transparent shadow-sm transition-all text-lg">
+
+                                <!-- Animated Placeholder -->
+                                <div class="placeholder-ticker-container" x-show="!query.length">
+                                    <template x-for="(text, index) in ticker" :key="index">
+                                        <div x-show="tickerIndex === index"
+                                            x-transition:enter="placeholder-slide-up-enter-active"
+                                            x-transition:enter-start="placeholder-slide-up-enter-from"
+                                            x-transition:enter-end="opacity-100 translate-y-0"
+                                            x-transition:leave="placeholder-slide-up-leave-active"
+                                            x-transition:leave-start="opacity-100 translate-y-0"
+                                            x-transition:leave-end="placeholder-slide-up-leave-to"
+                                            class="absolute inset-0 flex items-center text-gray-400 font-bold text-lg whitespace-nowrap">
+                                            <span x-text="text"></span>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <button type="button" @click="search()" aria-label="Search restaurants"
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-2xl text-emerald-500 dark:text-emerald-300 hover:text-emerald-500 transition-colors duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    :disabled="!query.trim().length">
+                                    <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </button>
+
+                                <!-- Loading Spinner -->
+                                <div x-show="loading" class="absolute right-4 top-1/2 -translate-y-1/2">
+                                    <svg class="animate-spin h-5 w-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg"
+                                        fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <!-- Suggestions Dropdown -->
+                            <div x-show="show && (recentSearches.length > 0 || results.restaurants.length > 0 || results.meals.length > 0)"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 translate-y-2"
+                                x-transition:enter-end="opacity-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 translate-y-0"
+                                x-transition:leave-end="opacity-0 translate-y-2"
+                                class="absolute left-0 right-0 mt-3 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-[100]"
+                                x-cloak>
+
+                                <div class="h-80 md:h-96 overflow-y-scroll overscroll-contain no-scrollbar pb-4"
+                                    style="-webkit-overflow-scrolling: touch; touch-action: pan-y;">
+                                    <template x-if="recentSearches.length > 0 && query.length < 2">
+                                        <div>
+                                            <div
+                                                class="px-5 py-3 bg-gray-50/50 dark:bg-gray-900/50 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-50 dark:border-gray-700">
+                                                Recent Searches</div>
+                                            <div class="py-2">
+                                                <template x-for="recent in recentSearches" :key="recent.url">
+                                                    <button type="button" @click="useRecentSearch(recent)"
+                                                        class="flex w-full items-center gap-4 px-5 py-3 text-left hover:bg-emerald-50 transition-colors group">
+                                                        <div
+                                                            class="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                                            <template x-if="recent.image">
+                                                                <img :src="recent.image" class="w-full h-full object-cover">
+                                                            </template>
+                                                            <template x-if="!recent.image">
+                                                                <span class="text-lg font-black text-gray-400"
+                                                                    x-text="recent.name.charAt(0)"></span>
+                                                            </template>
+                                                        </div>
+                                                        <div class="min-w-0 flex-1">
+                                                            <div class="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors truncate"
+                                                                x-text="recent.name"></div>
+                                                            <div class="text-xs text-gray-500 font-medium truncate"
+                                                                x-text="recent.subtitle"></div>
+                                                        </div>
+                                                        <svg class="w-4 h-4 text-gray-300 group-hover:text-emerald-500 transition-colors" fill="none"
+                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4"
+                                                                d="M5 12h14m-6-6 6 6-6 6"></path>
+                                                        </svg>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <!-- Restaurants Section -->
+                                    <template x-if="results.restaurants.length > 0">
+                                        <div>
+                                            <div
+                                                class="px-5 py-3 bg-gray-50/50 dark:bg-gray-900/50 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-50 dark:border-gray-700">
+                                                Restaurants</div>
+                                            <div class="py-2">
+                                                <template x-for="r in results.restaurants" :key="r.id">
+                                                    <a :href="r.url" @click="saveRecentSearch(r)"
+                                                        class="flex items-center gap-4 px-5 py-3 hover:bg-emerald-50 transition-colors group">
+                                                        <div
+                                                            class="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                                            <template x-if="r.logo">
+                                                                <img :src="r.logo" class="w-full h-full object-cover">
+                                                            </template>
+                                                            <template x-if="!r.logo">
+                                                                <span class="text-lg font-black text-gray-400"
+                                                                    x-text="r.name.charAt(0)"></span>
+                                                            </template>
+                                                        </div>
+                                                        <div>
+                                                            <div class="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors"
+                                                                x-text="r.name"></div>
+                                                            <div class="text-xs text-gray-500 font-medium">Restaurant</div>
+                                                        </div>
+                                                    </a>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <!-- Meals Section -->
+                                    <template x-if="results.meals.length > 0">
+                                        <div class="border-t border-gray-50">
+                                            <div
+                                                class="px-5 py-3 bg-gray-50/50 dark:bg-gray-900/50 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-50 dark:border-gray-700">
+                                                Popular Meals</div>
+                                            <div class="py-2">
+                                                <template x-for="m in results.meals" :key="m.id">
+                                                    <a :href="m.url" @click="saveRecentSearch(m)"
+                                                        class="flex items-center gap-4 px-5 py-3 hover:bg-emerald-50 transition-colors group">
+                                                        <div
+                                                            class="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                                            <template x-if="m.image">
+                                                                <img :src="m.image" class="w-full h-full object-cover">
+                                                            </template>
+                                                            <template x-if="!m.image">
+                                                                <svg class="w-6 h-6 text-gray-300" fill="none"
+                                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6">
+                                                                    </path>
+                                                                </svg>
+                                                            </template>
+                                                        </div>
+                                                        <div class="flex-1">
+                                                            <div class="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors"
+                                                                x-text="m.name"></div>
+                                                            <div class="text-xs text-gray-500 font-medium"
+                                                                x-text="m.restaurant_name"></div>
+                                                        </div>
+                                                        <div class="font-black text-emerald-500 text-sm"
+                                                            x-text="new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(parseFloat(m.price || 0)) + ' LBP'"></div>
+                                                    </a>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <section class="pt-4 md:pt-8 pb-4 bg-white dark:bg-gray-900 relative z-20 transition-colors duration-300">
+        <div class="container mx-auto px-4">
+            <!-- Browse By Category Section -->
+            <div class="mb-4 md:mb-6 scroll-reveal" x-data="scrollReveal(0, 30)"
+                x-intersect.once.margin.-80px.0.0.0="reveal()" :class="{ 'is-visible': shown }">
+                @php
+                    $homeCategories = \App\Http\Controllers\BrowseController::categories();
+                    $homeCategories = array_filter($homeCategories, fn($c) => $c['slug'] !== 'all');
+                @endphp
+
+                <div class="px-4">
+                    <nav class="-mx-4 flex overflow-x-auto overscroll-contain no-scrollbar px-4 pb-2"
+                         aria-label="Browse categories">
+                        <div class="flex items-start gap-3 sm:gap-4">
+                            @foreach($homeCategories as $cat)
+                                <a href="{{ route('browse.index', ['category' => $cat['slug']]) }}"
+                                   class="group flex w-20 sm:w-24 lg:w-28 shrink-0 flex-col items-center text-center">
+                                    <div class="w-full aspect-square overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-md">
+                                        @if(!empty($cat['image']))
+                                            <img
+                                                src="{{ $cat['image'] }}"
+                                                alt="{{ $cat['label'] }}"
+                                                loading="lazy"
+                                                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                            >
+                                        @else
+                                            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 text-2xl font-black text-gray-400">
+                                                {{ $cat['emoji'] ?? '•' }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <span class="mt-2 block text-[11px] sm:text-xs font-black leading-tight text-gray-900 dark:text-gray-300 transition-colors group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
+                                        {{ $cat['label'] }}
+                                    </span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap justify-between items-end mb-12 px-4 scroll-reveal"
+                 x-data="scrollReveal(0, 24)"
+                 x-intersect.once.margin.-80px.0.0.0="reveal()"
+                 :class="{ 'is-visible': shown }">
+                <div>
+                    <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">Trending Spots</h2>
+                </div>
+                <a href="{{ route('restaurants.index') }}" class="inline-flex items-center transition-all text-sm md:text-base">
+                    
+                    <svg class="w-7 h-7 md:w-7 md:h-7 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                </a>
+            </div>
+
+            @php
+                $trendingSpots = collect($restaurants ?? collect())
+                    ->filter(fn($restaurant) => (int) ($restaurant->orders_count ?? 0) > 0)
+                    ->values();
+            @endphp
+
+            @if($trendingSpots->isNotEmpty())
+                <div class="md:hidden relative w-full overflow-hidden scroll-reveal pt-2 pb-6"
+                     x-data="scrollReveal(0, 20)"
+                     x-intersect.once.margin.-60px.0.0.0="reveal()"
+                     :class="{ 'is-visible': shown }">
+                    <div class="px-4" x-data="{ initSwiper() {
+                            new Swiper('.trending-swiper', {
+                                slidesPerView: 2,
+                                slidesPerGroup: 2,
+                                spaceBetween: 12,
+                                loop: {{ count($trendingSpots ?? []) >= 6 ? 'true' : 'false' }},
+                                autoplay: {
+                                    delay: 3500,
+                                    disableOnInteraction: false,
+                                },
+                            });
+                        } }" x-init="initSwiper()">
+                        <div class="swiper trending-swiper !overflow-visible">
+                            <div class="swiper-wrapper">
+                                @foreach($trendingSpots as $restaurant)
+                                    <div class="swiper-slide h-auto">
+                                        <a href="{{ route('restaurant.show', $restaurant) }}" class="block h-full group">
+                                            <div class="flex flex-col h-full bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group-hover:-translate-y-1">
+                                                <div class="relative h-32 overflow-hidden bg-gray-100 dark:bg-gray-700">
+                                                    @if($restaurant->logo)
+                                                        <img alt="{{ $restaurant->name }}" src="{{ Storage::url($restaurant->logo) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-in-out"/>
+                                                    @else
+                                                        <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 text-3xl font-black text-white opacity-90 transition-transform duration-500 group-hover:scale-110">
+                                                            {{ substr($restaurant->name, 0, 1) }}
+                                                        </div>
+                                                    @endif
+                                                    <div class="absolute inset-0 bg-gradient-to-t from-gray-900/50 to-transparent mix-blend-multiply"></div>
+
+                                                    <div class="absolute top-3 right-3 flex flex-col items-end gap-1.5 z-10">
+                                                        <div class="flex items-center gap-1 px-2 py-1 bg-white/70 backdrop-blur-md shadow-sm border border-white/50 rounded-full">
+                                                            <div class="w-2 h-2 rounded-full {{ $restaurant->isOpenNow() ? 'bg-emerald-500 shadow-sm' : 'bg-red-500 shadow-sm' }}"></div>
+                                                            <span class="text-[9px] font-black uppercase tracking-wider {{ $restaurant->isOpenNow() ? 'text-emerald-700' : 'text-red-700' }}">
+                                                                {{ $restaurant->isOpenNow() ? 'Open' : 'Closed' }}
+                                                            </span>
+                                                        </div>
+
+                                                        @if(auth()->check() && $restaurant->user_id === auth()->id())
+                                                            <div class="bg-amber-500 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full shadow-md border border-amber-400">
+                                                                Own Store
+                                                            </div>
+                                                        @endif
+                                                    </div>
+
+                                                    <div class="absolute bottom-2.5 left-2.5 bg-white/95 backdrop-blur-sm rounded-xl px-2 py-0.5 flex items-center gap-1 shadow-sm border border-white/50">
+                                                        <svg class="w-2.5 h-2.5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                                        <span class="text-[11px] font-black text-gray-900">
+                                                            @if(($restaurant->ratings_count ?? 0) > 0)
+                                                                {{ number_format($restaurant->ratings_avg_rating ?? 0, 1) }}
+                                                            @else
+                                                                New
+                                                            @endif
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="bg-white dark:bg-gray-800 p-4 flex-1 flex flex-col justify-center">
+                                                    <h6 class="text-[13px] sm:text-sm leading-tight font-black outfit text-gray-900 dark:text-white group-hover:text-emerald-500 transition-colors line-clamp-2">{{ $restaurant->name }}</h6>
+                                                    <p class="text-[10px] sm:text-[11px] text-gray-400 font-medium truncate mt-1">
+                                                        {{ $restaurant->menu_categories_count }} Categories
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden md:flex md:flex-wrap">
+                    @foreach($trendingSpots as $restaurant)
+                        <div class="w-full md:w-1/2 lg:w-1/3 px-4 mb-10 group scroll-reveal"
+                             x-data="scrollReveal({{ ($loop->index % 3) * 90 }}, 34)"
+                             x-intersect.once.margin.-60px.0.0.0="reveal()"
+                             :class="{ 'is-visible': shown }">
+                            <a href="{{ route('restaurant.show', $restaurant) }}" class="block h-full relative">
+                                <div class="relative flex flex-col min-w-0 break-words bg-white dark:bg-gray-800 w-full h-full shadow-md hover:shadow-2xl rounded-3xl transition-all duration-300 transform group-hover:-translate-y-2 border border-gray-100 dark:border-gray-700 overflow-hidden">
+                                    <div class="h-48 relative overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                                        @if($restaurant->logo)
+                                            <img alt="{{ $restaurant->name }}" src="{{ Storage::url($restaurant->logo) }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out"/>
+                                        @else
+                                            <div class="w-full h-full bg-gradient-to-br from-emerald-400 via-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-6xl outfit opacity-80 group-hover:scale-110 transition-transform duration-700 ease-in-out">
+                                                {{ substr($restaurant->name, 0, 1) }}
+                                            </div>
+                                        @endif
+                                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent"></div>
+
+                                        <div class="absolute top-4 right-4 flex flex-col items-end gap-2 z-10">
+                                            <div class="bg-white/70 backdrop-blur-md border border-white/50 text-gray-900 font-bold px-4 py-1.5 rounded-full text-xs shadow-lg flex items-center gap-1.5">
+                                                <div class="w-2 h-2 rounded-full {{ $restaurant->isOpenNow() ? 'bg-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]' }}"></div>
+                                                {{ $restaurant->isOpenNow() ? 'Open Now' : 'Closed' }}
+                                            </div>
+
+                                            @if(auth()->check() && $restaurant->user_id === auth()->id())
+                                                <div class="bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg border border-amber-400/50">
+                                                    Own Store
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        <div class="absolute bottom-4 left-4 flex items-center gap-2">
+                                            <div class="bg-white text-gray-900 font-bold px-3 py-1 rounded-full text-xs flex items-center gap-1 shadow-lg">
+                                                <svg class="w-3 h-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                                @if(($restaurant->ratings_count ?? 0) > 0)
+                                                    {{ number_format($restaurant->ratings_avg_rating ?? 0, 1) }}
+                                                @else
+                                                    New
+                                                @endif
+                                            </div>
+                                            <div class="bg-white/20 backdrop-blur-md text-white font-bold px-3 py-1 rounded-full text-xs shadow-lg">
+                                                {{ $restaurant->menu_categories_count }} Categories
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex-auto p-6 relative">
+                                        <h6 class="text-xl md:text-2xl font-black outfit text-gray-900 dark:text-white mt-2 group-hover:text-emerald-500 transition-colors">{{ $restaurant->name }}</h6>
+                                        <p class="mt-2 mb-4 text-gray-500 dark:text-gray-400 font-medium line-clamp-2">
+                                            {{ $restaurant->description ?? 'Amazing food, cooked with perfection and delivered straight to you.' }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="w-full py-20 text-center scroll-reveal"
+                     x-data="scrollReveal(80, 30)"
+                     x-intersect.once.margin.-60px.0.0.0="reveal()"
+                     :class="{ 'is-visible': shown }">
+                    <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-emerald-100 text-emerald-500 mb-6 group hover:rotate-12 transition-transform">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl md:text-3xl font-black outfit text-gray-900 mb-2">No restaurants around yet!</h3>
+                    <p class="text-gray-500 text-lg font-medium">Be the first to partner with us or come back later.</p>
+
+                    <a href="{{ route('register') }}" class="inline-block mt-8 font-bold px-8 py-4 rounded-full bg-gray-900 text-white hover:bg-emerald-500 hover:shadow-xl hover:shadow-emerald-500/40 transition-all transform hover:-translate-y-1">Open Your Store</a>
+                </div>
+            @endif
+
+            <!-- Most Ordered Section -->
+            @if(isset($trendingMeals) && $trendingMeals->isNotEmpty())
+                <div class="flex flex-wrap justify-between items-end mb-8 mt-24 px-4 scroll-reveal"
+                     x-data="scrollReveal(0, 24)"
+                     x-intersect.once.margin.-80px.0.0.0="reveal()"
+                     :class="{ 'is-visible': shown }">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">Most Ordered</h2>
+                    </div>
+                </div>
+
+                <div class="relative w-full overflow-hidden scroll-reveal pt-2 pb-10"
+                     x-data="scrollReveal(0, 20)"
+                     x-intersect.once.margin.-60px.0.0.0="reveal()"
+                     :class="{ 'is-visible': shown }">
+                    <div class="px-4" x-data="{ initMealsSwiper() {
+                            new Swiper('.meals-swiper', {
+                                slidesPerView: 1.2,
+                                spaceBetween: 16,
+                                loop: false,
+                                watchOverflow: true,
+                                breakpoints: {
+                                    480: { slidesPerView: 2.2, spaceBetween: 16 },
+                                    768: { slidesPerView: 3.2, spaceBetween: 20 },
+                                    1024: { slidesPerView: 4, spaceBetween: 24 }
+                                }
+                            });
+                        } }" x-init="initMealsSwiper()">
+                        <div class="swiper meals-swiper pb-48 -mb-40 relative z-20">
+                            <div class="swiper-wrapper">
+                                @foreach($trendingMeals as $meal)
+                                    <div class="swiper-slide h-auto"
+                                         :class="{ 'z-[60] relative': variantDropdownOpen, 'z-0': !variantDropdownOpen }"
+                                         x-data="{
+                                                adding: false,
+                                                basePrice: parseFloat('{{ $meal->price }}'),
+                                                isOnSale: {{ $meal->is_on_sale ? 'true' : 'false' }},
+                                                salePrice: {{ Js::from($meal->sale_price) }},
+                                                discountPercentage: {{ Js::from($meal->saleDiscountPercentage()) }},
+                                                variantGroups: (() => {
+                                                    const v = @js($meal->variants);
+                                                    if (v && Array.isArray(v.groups) && v.groups.length > 0) {
+                                                        return v.groups.map((group) => ({
+                                                            type: group.type || 'Option',
+                                                            required: group.required !== false,
+                                                            mode: 'addon',
+                                                            options: Array.isArray(group.options) ? group.options : []
+                                                        })).filter((group) => group.options.length > 0);
+                                                    }
+                                                    if (v && Array.isArray(v.options) && v.options.length > 0) {
+                                                        return [{
+                                                            type: v.type || 'Option',
+                                                            required: true,
+                                                            mode: 'absolute',
+                                                            options: v.options
+                                                        }];
+                                                    }
+                                                    return [];
+                                                })(),
+                                                selectedOptions: [],
+                                                variantDropdownOpen: false,
+                                                init() {
+                                                    this.selectedOptions = this.variantGroups.map((group) => group.required ? 0 : []);
+                                                },
+                                                get hasVariants() {
+                                                    return this.variantGroups.some((group) => group.options && group.options.length > 0);
+                                                },
+                                                formatCurrency(value) {
+                                                    const numericValue = parseFloat(value);
+                                                    return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Number.isNaN(numericValue) ? 0 : numericValue) + ' LBP';
+                                                },
+                                                calculateDiscountedPrice(price) {
+                                                    const numericPrice = parseFloat(price);
+                                                    if (Number.isNaN(numericPrice)) {
+                                                        return this.basePrice;
+                                                    }
+
+                                                    if (this.discountPercentage !== null && this.discountPercentage !== '' && !Number.isNaN(parseFloat(this.discountPercentage))) {
+                                                        return Math.max(numericPrice * (1 - (parseFloat(this.discountPercentage) / 100)), 0);
+                                                    }
+
+                                                    if (!this.hasVariants && this.salePrice !== null && this.salePrice !== '' && !Number.isNaN(parseFloat(this.salePrice)) && parseFloat(this.salePrice) < this.basePrice) {
+                                                        return parseFloat(this.salePrice);
+                                                    }
+
+                                                    return numericPrice;
+                                                },
+                                                get hasActiveSale() {
+                                                    return this.isOnSale && (
+                                                        (this.discountPercentage !== null && this.discountPercentage !== '' && !Number.isNaN(parseFloat(this.discountPercentage)) && parseFloat(this.discountPercentage) > 0)
+                                                        || (!this.hasVariants && this.salePrice !== null && this.salePrice !== '' && !Number.isNaN(parseFloat(this.salePrice)) && parseFloat(this.salePrice) < this.basePrice)
+                                                    );
+                                                },
+                                                get currentSelections() {
+                                                    if (!this.hasVariants) return [];
+
+                                                    return this.variantGroups.flatMap((group, groupIndex) => {
+                                                        const selectedValue = this.selectedOptions[groupIndex];
+
+                                                        if (!group.required) {
+                                                            return (Array.isArray(selectedValue) ? selectedValue : [])
+                                                                .map((optionIndex) => ({
+                                                                    group,
+                                                                    option: group.options[optionIndex],
+                                                                }))
+                                                                .filter((selection) => selection.option);
+                                                        }
+
+                                                        return [{
+                                                            group,
+                                                            option: group.options[selectedValue ?? 0] || group.options[0],
+                                                        }];
+                                                    }).filter((selection) => selection && selection.option);
+                                                },
+                                                get baseDiscountAmount() {
+                                                    const percentage = this.discountPercentage !== null ? parseFloat(this.discountPercentage) : NaN;
+                                                    if (Number.isNaN(percentage) || percentage <= 0) {
+                                                        return 0;
+                                                    }
+
+                                                    return Math.max(this.basePrice * (percentage / 100), 0);
+                                                },
+                                                get currentOriginalPrice() {
+                                                    if (!this.hasVariants) return this.basePrice;
+
+                                                    if (this.variantGroups.length === 1 && this.variantGroups[0].mode === 'absolute') {
+                                                        const value = parseFloat(this.currentSelections[0]?.option?.price);
+                                                        return Number.isNaN(value) ? this.basePrice : value;
+                                                    }
+
+                                                    return this.currentSelections.reduce((total, selection) => {
+                                                        const value = parseFloat(selection.option?.price);
+                                                        return total + (Number.isNaN(value) ? 0 : value);
+                                                    }, this.basePrice);
+                                                },
+                                                get currentPrice() {
+                                                    if (!this.hasActiveSale) {
+                                                        return this.currentOriginalPrice;
+                                                    }
+
+                                                    return Math.max(this.currentOriginalPrice - this.baseDiscountAmount, 0);
+                                                },
+                                                get originalPrice() {
+                                                    return this.hasActiveSale ? this.currentOriginalPrice : null;
+                                                },
+                                                get currentLabel() {
+                                                    if (this.variantGroups.length === 1 && this.variantGroups[0].mode === 'absolute') {
+                                                        return this.currentSelections[0]?.option?.label || null;
+                                                    }
+
+                                                    return this.currentSelections.length
+                                                        ? this.currentSelections.map((selection) => `${selection.group.type}: ${selection.option.label}`).join(' / ')
+                                                        : null;
+                                                },
+                                                get formattedPrice() {
+                                                    return this.formatCurrency(this.currentPrice);
+                                                },
+                                                get formattedOriginalPrice() {
+                                                    return this.originalPrice !== null ? this.formatCurrency(this.originalPrice) : '';
+                                                },
+                                                optionOriginalPrice(option) {
+                                                    const numericPrice = parseFloat(option?.price);
+                                                    return Number.isNaN(numericPrice) ? this.basePrice : numericPrice;
+                                                },
+                                                optionSalePrice(option) {
+                                                    return this.optionOriginalPrice(option);
+                                                },
+                                                formattedOptionOriginalPrice(option) {
+                                                    return this.formatCurrency(this.optionOriginalPrice(option));
+                                                },
+                                                formattedOptionSalePrice(option) {
+                                                    return this.formatCurrency(this.optionSalePrice(option));
+                                                },
+                                                optionAddonPrice(option) {
+                                                    const numericPrice = parseFloat(option?.price);
+                                                    return Number.isNaN(numericPrice) ? 0 : numericPrice;
+                                                },
+                                                formattedOptionAddonPrice(option) {
+                                                    const price = this.optionAddonPrice(option);
+                                                    return price > 0 ? `+${this.formatCurrency(price)}` : this.formatCurrency(0);
+                                                },
+                                                selectVariant(groupIndex, optionIndex) {
+                                                    this.selectedOptions[groupIndex] = optionIndex;
+                                                },
+                                                isVariantSelected(groupIndex, optionIndex) {
+                                                    const selectedValue = this.selectedOptions[groupIndex];
+
+                                                    return Array.isArray(selectedValue)
+                                                        ? selectedValue.includes(optionIndex)
+                                                        : selectedValue === optionIndex;
+                                                },
+                                                toggleVariant(groupIndex, optionIndex) {
+                                                    if (this.variantGroups[groupIndex]?.required) {
+                                                        this.selectVariant(groupIndex, optionIndex);
+                                                        return;
+                                                    }
+
+                                                    const selectedValue = Array.isArray(this.selectedOptions[groupIndex])
+                                                        ? [...this.selectedOptions[groupIndex]]
+                                                        : [];
+                                                    const existingIndex = selectedValue.indexOf(optionIndex);
+
+                                                    if (existingIndex >= 0) {
+                                                        selectedValue.splice(existingIndex, 1);
+                                                    } else {
+                                                        selectedValue.push(optionIndex);
+                                                    }
+
+                                                    this.selectedOptions[groupIndex] = selectedValue;
+                                                },
+                                                async addToCart(itemId) {
+                                                    if (this.adding) return;
+                                                    this.adding = true;
+                                                    const token = document.querySelector('meta[name=csrf-token]')?.content;
+                                                    try {
+                                                        const payload = { menu_item_id: itemId, quantity: 1 };
+                                                        if (this.currentLabel) {
+                                                            payload.variant_label = this.currentLabel;
+                                                            payload.variant_price = this.currentPrice;
+                                                        }
+                                                        const res = await fetch('{{ route('cart.add') }}', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'Content-Type': 'application/json',
+                                                                'Accept': 'application/json',
+                                                                'X-CSRF-TOKEN': token,
+                                                                'X-Requested-With': 'XMLHttpRequest'
+                                                            },
+                                                            body: JSON.stringify(payload)
+                                                        });
+                                                        const data = await res.json();
+                                                        if (res.ok) {
+                                                            window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+                                                            window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: data.message || 'Added to cart!', type: 'success' } }));
+                                                        } else {
+                                                            window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: data.message || 'Could not add item.', type: 'error' } }));
+                                                        }
+                                                    } catch (e) {
+                                                        window.dispatchEvent(new CustomEvent('show-toast', { detail: { message: 'Network error. Please try again.', type: 'error' } }));
+                                                    } finally {
+                                                        this.adding = false;
+                                                    }
+                                                }
+                                             }">
+                                        <div class="group relative h-full bg-white dark:bg-gray-850 rounded-3xl border border-gray-100 dark:border-gray-750 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col p-4 justify-between" 
+                                             id="browse-card-[homemeal]-{{ $meal->id }}">
+                                            
+                                            <div class="flex gap-4">
+                                                <!-- Meal Image -->
+                                                <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="w-24 h-24 flex-shrink-0">
+                                                    <div class="w-24 h-24 flex-shrink-0 bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden relative" id="browse-img-[homemeal]-{{ $meal->id }}">
+                                                        @if($meal->image)
+                                                            <img alt="{{ $meal->name }}" src="{{ Storage::url($meal->image) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                                                        @else
+                                                            <div class="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
+                                                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                            </div>
+                                                        @endif
+                                                        @if(!$meal->is_available)
+                                                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
+                                                                <span class="text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-gray-900/80 rounded border border-gray-700">Sold out</span>
+                                                            </div>
+                                                        @elseif(!$meal->menuCategory->restaurant->isOpenNow())
+                                                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
+                                                                <span class="text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-red-900/80 rounded border border-red-700">Closed</span>
+                                                            </div>
+                                                        @endif
+
+                                                        <!-- Restaurant Mini Badge Overlay -->
+                                                        <div class="absolute bottom-1 left-1 flex items-center gap-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md pl-1 pr-1.5 py-0.5 rounded-full shadow-md z-10 pointer-events-none">
+                                                            <div class="w-4 h-4 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0 border border-white dark:border-gray-850">
+                                                                @if($meal->menuCategory->restaurant->logo)
+                                                                    <img src="{{ Storage::url($meal->menuCategory->restaurant->logo) }}" class="w-full h-full object-cover">
+                                                                @else
+                                                                    <div class="w-full h-full flex items-center justify-center bg-emerald-100 text-emerald-600 text-[8px] font-bold">{{ substr($meal->menuCategory->restaurant->name, 0, 1) }}</div>
+                                                                @endif
+                                                            </div>
+                                                            <span class="text-[8px] font-bold text-gray-900 dark:text-gray-100 truncate max-w-[50px]">{{ $meal->menuCategory->restaurant->name }}</span>
+                                                        </div>
+                                                    </div>
+                                                </a>
+
+                                                <!-- Details -->
+                                                <div class="flex-1 min-w-0">
+                                                    <div>
+                                                        <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
+                                                            <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="min-w-0 flex-1">
+                                                                <h4 class="font-bold text-base text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors leading-tight break-words block">
+                                                                    {{ $meal->name }}
+                                                                </h4>
+                                                                @if($meal->is_featured)
+                                                                    <div class="mt-1 flex block">
+                                                                        <span class="inline-flex items-center text-amber-500 bg-amber-50 dark:bg-amber-955/20 px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-widest border border-amber-100 dark:border-amber-900/30 whitespace-nowrap">Featured</span>
+                                                                    </div>
+                                                                @endif
+                                                                <div class="hidden sm:flex items-center gap-1.5 mt-1">
+                                                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ $meal->menuCategory->name }}</span>
+                                                                </div>
+                                                            </a>
+                                                        </div>
+                                                        @if($meal->description)
+                                                            <p class="text-xs text-gray-500 font-medium line-clamp-2 mt-2 break-words">{{ $meal->description }}</p>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>                                            <div x-show="hasVariants" x-cloak class="basis-full w-full mt-3">
+                                                <div class="relative" @click.outside="variantDropdownOpen = false">
+                                                    <button
+                                                        type="button"
+                                                        @click="variantDropdownOpen = !variantDropdownOpen"
+                                                        :aria-expanded="variantDropdownOpen.toString()"
+                                                        class="w-full cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-left shadow-sm transition-all hover:border-emerald-200 dark:hover:border-emerald-800 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                                        <span class="flex items-center justify-between gap-3">
+                                                            <span class="min-w-0">
+                                                                <span class="mb-0.5 block text-[10px] font-black uppercase tracking-widest text-emerald-500">Choose options</span>
+                                                                <span class="block truncate text-sm font-black text-gray-800 dark:text-gray-200" x-text="currentLabel || 'Choose options'"></span>
+                                                            </span>
+                                                            <span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-500 transition-transform" :class="{ 'rotate-180': variantDropdownOpen }">
+                                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                                                            </span>
+                                                        </span>
+                                                    </button>
+                                                    <div
+                                                        x-show="variantDropdownOpen"
+                                                        x-transition:enter="transition ease-out duration-150"
+                                                        x-transition:enter-start="opacity-0 -translate-y-1"
+                                                        x-transition:enter-end="opacity-100 translate-y-0"
+                                                        x-transition:leave="transition ease-in duration-100"
+                                                        x-transition:leave-start="opacity-100 translate-y-0"
+                                                        x-transition:leave-end="opacity-0 -translate-y-1"
+                                                        class="absolute left-0 right-0 top-full z-[70] mt-1 max-h-48 overflow-y-auto rounded-xl border border-gray-150 dark:border-gray-700 bg-white dark:bg-gray-850 p-2 shadow-xl shadow-gray-900/10">
+                                                        <template x-for="(group, groupIndex) in variantGroups" :key="groupIndex">
+                                                            <div class="py-1.5" :class="groupIndex > 0 ? 'border-t border-gray-100 dark:border-gray-700' : ''">
+                                                                <p class="px-2 pb-1 text-[11px] font-black uppercase tracking-widest text-gray-400" x-text="group.type"></p>
+                                                                <template x-for="(opt, idx) in group.options" :key="idx">
+                                                                    <button
+                                                                        type="button"
+                                                                        @click="toggleVariant(groupIndex, idx)"
+                                                                        class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
+                                                                        :class="isVariantSelected(groupIndex, idx) ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400' : 'text-gray-700 dark:text-gray-300'">
+                                                                        <span class="flex min-w-0 items-center gap-2">
+                                                                            <span class="flex h-4 w-4 flex-shrink-0 items-center justify-center border" :class="[group.required ? 'rounded-full' : 'rounded', isVariantSelected(groupIndex, idx) ? 'border-emerald-500 bg-emerald-500' : 'border-gray-300 dark:border-gray-650 bg-white dark:bg-gray-700']">
+                                                                                <span class="h-2 w-2 rounded-full bg-white" x-show="group.required && isVariantSelected(groupIndex, idx)"></span>
+                                                                                <svg x-show="!group.required && isVariantSelected(groupIndex, idx)" class="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                                                            </span>
+                                                                            <span class="block truncate text-sm font-bold" x-text="opt.label"></span>
+                                                                        </span>
+                                                                        <span class="flex-shrink-0 text-sm font-black" :class="isVariantSelected(groupIndex, idx) ? 'text-emerald-600' : 'text-gray-900 dark:text-gray-150'" x-text="group.mode === 'absolute' ? formattedOptionOriginalPrice(opt) : formattedOptionAddonPrice(opt)"></span>
+                                                                    </button>
+                                                                </template>
+                                                            </div>
+                                                        </template>
+                                                        <div class="mt-1 border-t border-gray-100 dark:border-gray-700 px-2 pt-2 text-right text-sm font-black text-emerald-600 dark:text-emerald-400" x-text="`Total ${formattedPrice}`"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-4 flex items-center justify-between pt-1 w-full">
+                                                <div class="min-w-0 flex flex-col items-start justify-center">
+                                                    <span class="font-black text-emerald-500 whitespace-nowrap text-base" x-text="formattedPrice">{{ number_format($meal->price, 0) }} LBP</span>
+                                                    <span x-show="hasActiveSale" x-cloak class="text-[10px] font-bold text-gray-400 line-through leading-none mt-0.5" x-text="formattedOriginalPrice"></span>
+                                                </div>
+
+                                                @if(!$meal->is_available || !$meal->menuCategory->restaurant->isOpenNow())
+                                                    <span class="text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-700">
+                                                        {{ !$meal->is_available ? 'Sold out' : 'Closed' }}
+                                                    </span>
+                                                @elseif(Auth::id() === ($meal->menuCategory->restaurant->user_id ?? null))
+                                                    <span class="text-[10px] font-bold text-amber-500 bg-amber-50 dark:bg-amber-955/20 px-2.5 py-1 rounded-full border border-amber-100 dark:border-amber-900/30">Own Restaurant</span>
+                                                @else
+                                                    <button
+                                                        type="button"
+                                                        @click="addToCart({{ $meal->id }})"
+                                                        :disabled="adding"
+                                                        class="bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 shadow-sm hover:shadow-lg hover:shadow-emerald-500/30 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                        <svg x-show="!adding" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
+                                                        <svg x-show="adding" x-cloak class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <div class="mt-20">
+                @include('partials.restaurant-globe', ['restaurants' => $globeRestaurants ?? $restaurants ?? collect()])
+            </div>
+
+            <div class="mt-28"
+                 x-data="allStoresFeed({
+                    items: @js($initialAllStores ?? []),
+                    nextPage: @js($allStoresNextPage ?? null),
+                    endpoint: '{{ route('home.stores') }}',
+                    currentUserId: {{ auth()->id() ?? 'null' }}
+                 })">
+                <div class="flex flex-wrap justify-between items-end mb-12 px-4 scroll-reveal"
+                     x-data="scrollReveal(0, 24)"
+                     x-intersect.once.margin.-80px.0.0.0="reveal()"
+                     :class="{ 'is-visible': shown }">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">All Stores</h2>
+
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+                    <template x-for="(store, index) in stores" :key="store.id">
+                        <article class="group bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300"
+                                 x-intersect.margin.250px="handleLastVisible(index)">
+                            <a :href="store.url" class="block h-full">
+                                <div class="relative h-52 bg-gray-100 overflow-hidden">
+                                    <template x-if="store.logo_url">
+                                        <img :src="store.logo_url" :alt="store.name" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                                    </template>
+                                    <template x-if="!store.logo_url">
+                                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 text-white text-6xl font-black outfit">
+                                            <span x-text="store.name.charAt(0)"></span>
+                                        </div>
+                                    </template>
+
+                                    <div class="absolute inset-0 bg-gradient-to-t from-gray-900/75 via-gray-900/20 to-transparent"></div>
+
+                                    <div class="absolute top-4 right-4 flex flex-col items-end gap-2">
+                                        <div class="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold shadow-lg backdrop-blur-md"
+                                             :class="store.is_open_now ? 'bg-white/90 text-gray-900' : 'bg-red-50/90 text-red-600'">
+                                            <div class="h-2 w-2 rounded-full" :class="store.is_open_now ? 'bg-emerald-500' : 'bg-red-500'"></div>
+                                            <span x-text="store.is_open_now ? 'Open Now' : 'Closed'"></span>
+                                        </div>
+
+                                        <template x-if="currentUserId && store.user_id == currentUserId">
+                                            <div class="bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg border border-amber-400/50">
+                                                Own Store
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <div class="absolute bottom-4 left-4 flex items-center gap-2">
+                                        <div class="rounded-full bg-white px-3 py-1 text-xs font-bold text-gray-900 shadow-lg flex items-center gap-1">
+                                            <svg class="w-3 h-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                            <span x-text="store.rating ?? 'New'"></span>
+                                        </div>
+                                        <div class="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white shadow-lg backdrop-blur-md">
+                                            <span x-text="`${store.menu_categories_count} Categories`"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-6">
+                                    <h3 class="text-2xl font-black outfit text-gray-900 dark:text-white group-hover:text-emerald-500 transition-colors" x-text="store.name"></h3>
+                                    <template x-if="store.address">
+                                        <div class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-400 font-bold mt-1.5">
+                                            <svg class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                            <span class="truncate" x-text="store.address.split(',')[0].trim()"></span>
+                                        </div>
+                                    </template>
+                                    <p class="mt-3 text-sm text-gray-500 font-medium line-clamp-2 min-h-[2.75rem]"
+                                       x-text="store.description || 'Fresh food, signature flavors, and a storefront ready to explore.'"></p>
+                                </div>
+                            </a>
+                        </article>
+                    </template>
+                </div>
+
+                <!-- Loading Spinner & Intersection Trigger -->
+                <div x-show="nextPage" x-intersect.full="loadMore()" class="mt-8">
+                    <div x-show="loading" x-cloak class="flex items-center justify-center py-8">
+                        <svg class="h-8 w-8 animate-spin text-emerald-500" viewBox="0 0 24 24" fill="none" aria-label="Loading more stores">
+                            <circle class="opacity-20" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"></circle>
+                            <path class="opacity-90" stroke="currentColor" stroke-linecap="round" stroke-width="3" d="M21 12a9 9 0 0 0-9-9"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <div x-show="!stores.length" x-cloak class="px-4">
+                    <div class="rounded-3xl border border-dashed border-gray-200 bg-white/80 p-8 text-center text-gray-500 font-medium">
+                        No stores are available right now.
+                    </div>
+                </div>
+            </div>
+
+            @if(!auth()->check() || !auth()->user()->restaurant)
+                <div class="mt-28 hidden w-full lg:block" x-data="{
+                    hasCounted: false,
+                    revealed: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+                    menuReady: 0,
+                    reach: 0,
+                    profileProgress: 0,
+                    animateCounter(key, target, duration = 1400) {
+                        const start = performance.now();
+                        const step = (now) => {
+                            const progress = Math.min((now - start) / duration, 1);
+                            this[key] = Math.floor(progress * target);
+                            if (progress < 1) {
+                                requestAnimationFrame(step);
+                            } else {
+                                this[key] = target;
+                            }
+                        };
+                        requestAnimationFrame(step);
+                    },
+                    startCounters() {
+                        if (this.hasCounted) return;
+                        this.hasCounted = true;
+                        this.animateCounter('menuReady', 48, 1400);
+                        this.animateCounter('reach', 320, 1600);
+                        this.animateCounter('profileProgress', 88, 1500);
+                    },
+                    revealSection() {
+                        this.revealed = true;
+                        this.startCounters();
+                    }
+                }"
+                x-intersect.once.margin.-80px.0.0.0="revealSection()"
+                class="scroll-reveal"
+                style="--reveal-delay: 40ms; --reveal-distance: 34px;"
+                :class="{ 'is-visible': revealed }">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center rounded-[2.5rem] border border-emerald-100 bg-white shadow-[0_30px_80px_-30px_rgba(16,185,129,0.25)] overflow-hidden">
+                        <div class="p-8 md:p-12 lg:p-14">
+                            <p class="text-xs font-black uppercase tracking-[0.35em] text-emerald-500 mb-4">Partner With Us</p>
+                            <h2 class="text-2xl md:text-4xl lg:text-5xl outfit font-black text-gray-900 tracking-tight leading-tight">
+                                Turn your kitchen into the next favorite spot in town.
+                            </h2>
+                            <p class="mt-5 text-gray-500 font-medium text-lg leading-relaxed max-w-xl">
+                                Join AnsarEats to reach more customers, manage orders with ease, and grow your brand with a storefront built for fast discovery, smooth menu updates, and reliable delivery-ready operations.
+                            </p>
+
+                            <div class="mt-8">
+                                <a href="{{ auth()->check() ? route('partner.with.us') : route('register') }}" class="inline-flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-gray-900 text-white font-black hover:bg-emerald-500 transition-all hover:shadow-xl hover:shadow-emerald-500/20 transform hover:-translate-y-0.5 active:scale-95">
+                                    <span>Start your restaurant</span>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="relative min-h-[460px] md:min-h-[420px] bg-gradient-to-br from-emerald-100 via-white to-cyan-100 p-6 sm:p-8 md:p-12 overflow-hidden">
+                            <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-emerald-300/30 blur-3xl"></div>
+                            <div class="absolute -bottom-16 -left-10 w-56 h-56 rounded-full bg-cyan-300/30 blur-3xl"></div>
+
+                            <div class="relative h-full flex items-center justify-center">
+                                <div class="w-full max-w-2xl">
+                                    <div class="grid grid-cols-1 gap-6 items-stretch">
+                                        <div class="rounded-[2rem] bg-white/75 backdrop-blur-md shadow-[0_20px_50px_-25px_rgba(15,23,42,0.35)] p-4 sm:p-5 flex flex-col">
+                                            <div class="mb-3">
+                                                <p class="text-xs font-black uppercase tracking-[0.3em] text-emerald-600">Watch Your Metrics</p>
+                                                <h3 class="mt-2 text-xl font-black outfit text-gray-900">Track growth as your restaurant scales.</h3>
+                                            </div>
+                                            <dotlottie-player src="https://lottie.host/ac464139-d495-41a2-95b6-62404745f9d8/BwZr3VLDTK.lottie" background="transparent" speed="1" class="w-full h-[260px] sm:h-[300px] md:h-[320px]" loop autoplay></dotlottie-player>
+                                        </div>
+
+                                        <div class="relative">
+                                            <div class="absolute -left-4 top-10 w-24 h-24 rounded-[2rem] bg-white/80 backdrop-blur-md shadow-lg rotate-[-8deg] flex items-center justify-center">
+                                                <svg class="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 3l7 4v5c0 5-3.5 7.5-7 9-3.5-1.5-7-4-7-9V7l7-4z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4"></path></svg>
+                                            </div>
+
+                                            <div class="relative rounded-[2.5rem] bg-white shadow-[0_25px_60px_-20px_rgba(15,23,42,0.28)] p-5 sm:p-6">
+                                                <div class="flex items-center justify-between mb-6">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-14 h-14 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-lg">
+                                                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 7h16M7 7V6a3 3 0 013-3h4a3 3 0 013 3v1M7 11h10M8 15h3"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M7 21h10a2 2 0 002-2V7H5v12a2 2 0 002 2z"></path></svg>
+                                                        </div>
+                                                        <div>
+                                                            <p class="font-black text-gray-900">Create Restaurant</p>
+                                                            <p class="text-sm font-medium text-gray-500">Launch your digital storefront</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-600 text-xs font-black uppercase tracking-widest">Simple Setup</div>
+                                                </div>
+
+                                                <div class="space-y-4">
+                                                    <div class="rounded-2xl border border-gray-100 p-4 bg-gray-50">
+                                                        <div class="flex items-center justify-between mb-2">
+                                                            <span class="text-xs font-black uppercase tracking-widest text-gray-400">Restaurant Profile</span>
+                                                            <span class="text-xs font-bold text-emerald-600">Ready</span>
+                                                        </div>
+                                                        <div class="h-3 rounded-full bg-gray-200 overflow-hidden">
+                                                            <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-[width] duration-200" :style="`width: ${profileProgress}%`"></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="grid grid-cols-2 gap-4">
+                                                        <div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-4">
+                                                            <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600">Menu Ready</p>
+                                                            <p class="mt-3 text-xl md:text-2xl font-black outfit text-gray-900" x-text="menuReady">0</p>
+                                                            <p class="text-xs font-medium text-gray-500">items prepared</p>
+                                                        </div>
+                                                        <div class="rounded-2xl bg-cyan-50 border border-cyan-100 p-4">
+                                                            <p class="text-[10px] font-black uppercase tracking-widest text-cyan-600">Reach</p>
+                                                            <p class="mt-3 text-xl md:text-2xl font-black outfit text-gray-900" x-text="'+' + reach + '%'">+0%</p>
+                                                            <p class="text-xs font-medium text-gray-500">more discovery</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="rounded-[2rem] bg-gray-900 p-5 text-white">
+                                                        <div class="flex items-center gap-3">
+                                                            <div class="w-11 h-11 rounded-2xl bg-white/10 flex items-center justify-center">
+                                                                <svg class="w-5 h-5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 17l6-6 4 4 7-7"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M14 8h6v6"></path></svg>
+                                                            </div>
+                                                            <div>
+                                                                <p class="font-black">Built to help restaurants grow</p>
+                                                                <p class="text-sm text-white/65 font-medium">Requests, approvals, menu control, and order tracking in one flow.</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </section>
+@endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('alpine:init', () => {
+            if (window.homeScrollRevealRegistered) {
+                return;
+            }
+
+            window.homeScrollRevealRegistered = true;
+
+            Alpine.data('scrollReveal', (delay = 0, distance = 36) => ({
+                shown: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+                init() {
+                    this.$el.style.setProperty('--reveal-delay', `${delay}ms`);
+                    this.$el.style.setProperty('--reveal-distance', `${distance}px`);
+                },
+                reveal() {
+                    this.shown = true;
+                },
+            }));
+
+            Alpine.data('allStoresFeed', ({ items = [], nextPage = null, endpoint, currentUserId = null }) => ({
+                stores: items,
+                nextPage,
+                endpoint,
+                currentUserId,
+                loading: false,
+                async loadMore() {
+                    if (this.loading || !this.nextPage) {
+                        return;
+                    }
+
+                    this.loading = true;
+
+                    try {
+                        const response = await fetch(`${this.endpoint}?page=${this.nextPage}`, {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Unable to load more stores.');
+                        }
+
+                        const payload = await response.json();
+                        this.stores = [...this.stores, ...(payload.data || [])];
+                        this.nextPage = payload.next_page;
+                    } catch (error) {
+                        console.error(error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                handleLastVisible(index) {
+                    if (index === this.stores.length - 1) {
+                        this.loadMore();
+                    }
+                },
+            }));
+        });
+    </script>
+@endpush

@@ -1,0 +1,624 @@
+@extends('layouts.app')
+
+@section('skeleton')
+
+
+<!-- Main Area -->
+<div class="pt-6 pb-12 bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4">
+        <div class="w-full h-16 bg-gray-200 rounded-2xl mb-8 animate-pulse"></div>
+        <!-- Top Filters Bar -->
+        <div class="mb-8 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 overflow-visible h-5">
+            <div class="w-32 h-4 bg-gray-200 rounded animate-pulse"></div> <!-- Count Skeleton -->
+            <div class="flex w-full md:w-auto items-center justify-end gap-4 md:gap-6 overflow-visible relative">
+                <!-- Sort fake button -->
+                <div class="flex items-center gap-2">
+                    <div class="w-20 h-5 bg-gray-200 rounded hidden md:block animate-pulse"></div>
+                </div>
+                <!-- Location fake button -->
+                <div class="flex items-center gap-2">
+                    <div class="w-20 h-5 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Listing Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            @for ($i = 0; $i < 6; $i++)
+            <article class="bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/40 overflow-hidden animate-pulse">
+                <div class="h-52 w-full bg-gray-200 dark:bg-gray-800"></div>
+                <div class="p-6 space-y-4">
+                    <div class="h-6 bg-gray-200 dark:bg-gray-800 rounded w-3/4"></div>
+                    <div class="space-y-2">
+                        <div class="h-3 bg-gray-200 dark:bg-gray-800 rounded w-full"></div>
+                        <div class="h-3 bg-gray-200 dark:bg-gray-800 rounded w-5/6"></div>
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="h-5 bg-gray-200 dark:bg-gray-800 rounded-full w-16"></div>
+                        <div class="h-5 bg-gray-200 dark:bg-gray-800 rounded-full w-20"></div>
+                    </div>
+                </div>
+            </article>
+            @endfor
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('content')
+<style>
+    .placeholder-ticker-container {
+        position: absolute;
+        left: 3rem;
+        right: 3rem;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 1.5rem;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .placeholder-slide-up-enter-active,
+    .placeholder-slide-up-leave-active {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .placeholder-slide-up-enter-from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    .placeholder-slide-up-leave-to {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+</style>
+<div class="pt-6 pb-12 bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4">
+        @php
+            $searchBaseParams = array_filter([
+                'location' => request('location'),
+                'sort' => request('sort'),
+            ]);
+            $activeSort = in_array($currentSort ?? request('sort'), ['rating_desc', 'rating_asc'], true)
+                ? ($currentSort ?? request('sort'))
+                : null;
+            $sortLabels = [
+                'rating_desc' => 'Highest Rated',
+                'rating_asc' => 'Lowest Rated',
+            ];
+            $sortBaseParams = array_filter([
+                'q' => request('q'),
+                'location' => request('location'),
+            ]);
+        @endphp
+
+        <div class="mb-8 md:mb-10">
+            <div class="w-full" x-data="{
+                    query: @js((string) request('q', '')),
+                    results: { restaurants: [], meals: [] },
+                    recentSearches: [],
+                    show: false,
+                    loading: false,
+                    recentSearchKey: 'ansareats-recent-searches',
+                    search() {
+                        const normalized = this.query ? this.query.trim() : '';
+                        const url = new URL(@js(route('restaurants.index')), window.location.origin);
+                        const params = new URLSearchParams(@js($searchBaseParams));
+
+                        if (normalized.length) {
+                            params.set('q', normalized);
+                        } else {
+                            params.delete('q');
+                        }
+
+                        const fallbackRecent = this.results.restaurants.find((restaurant) =>
+                            restaurant.name.toLowerCase() === normalized.toLowerCase()
+                        ) ?? this.results.meals.find((meal) =>
+                            meal.name.toLowerCase() === normalized.toLowerCase()
+                        );
+
+                        if (fallbackRecent) {
+                            this.saveRecentSearch(fallbackRecent);
+                        }
+
+                        url.search = params.toString();
+                        window.location.href = url.toString();
+                    },
+                    loadRecentSearches() {
+                        try {
+                            const stored = window.localStorage.getItem(this.recentSearchKey);
+                            this.recentSearches = stored ? JSON.parse(stored) : [];
+                        } catch (e) {
+                            this.recentSearches = [];
+                        }
+                    },
+                    saveRecentSearch(item) {
+                        if (!item || !item.url || !item.name) {
+                            return;
+                        }
+
+                        const normalizedItem = {
+                            id: item.id,
+                            type: item.type,
+                            name: item.name,
+                            image: item.logo ?? item.image ?? null,
+                            url: item.url,
+                            subtitle: item.type === 'restaurant' ? 'Restaurant' : item.restaurant_name,
+                        };
+
+                        const filtered = this.recentSearches.filter((entry) => entry.url !== normalizedItem.url);
+                        this.recentSearches = [normalizedItem, ...filtered].slice(0, 10);
+
+                        try {
+                            window.localStorage.setItem(this.recentSearchKey, JSON.stringify(this.recentSearches));
+                        } catch (e) {
+                            console.error('Unable to store recent searches:', e);
+                        }
+                    },
+                    useRecentSearch(item) {
+                        this.saveRecentSearch(item);
+                        window.location.href = item.url;
+                    },
+                    handleFocus() {
+                        if (this.query.length >= 2) {
+                            this.show = true;
+                            return;
+                        }
+
+                        this.show = this.recentSearches.length > 0;
+                    },
+                    async fetchSuggestions() {
+                        if (this.query.length < 2) {
+                            this.results = { restaurants: [], meals: [] };
+                            this.show = this.recentSearches.length > 0;
+                            return;
+                        }
+                        this.loading = true;
+                        try {
+                            const response = await fetch(`/search/suggestions?q=${encodeURIComponent(this.query)}`);
+                            this.results = await response.json();
+                            this.show = true;
+                        } catch (e) {
+                            console.error('Search error:', e);
+                        } finally {
+                            this.loading = false;
+                        }
+                    },
+                    ticker: [
+                        'Search &quot;Burgers&quot;',
+                        'Search &quot;Desserts&quot;',
+                        'Search &quot;Pizza&quot;',
+                        'Search &quot;Sushi&quot;',
+                        'Search &quot;Tacos&quot;',
+                        'Search &quot;Pasta&quot;',
+                        'Search &quot;Ice Cream&quot;'
+                    ],
+                    tickerIndex: 0,
+                    init() {
+                        this.loadRecentSearches();
+                        setInterval(() => {
+                            this.tickerIndex = (this.tickerIndex + 1) % this.ticker.length;
+                        }, 3000);
+                    }
+                 }" @click.away="show = false">
+
+                <div class="relative w-full group z-30">
+                    <div class="relative flex items-center">
+                        <input type="text" x-model="query" name="q" @input.debounce.300ms="fetchSuggestions()"
+                            @focus="handleFocus()" @keydown.enter.prevent="search()"
+                            placeholder=""
+                            class="w-full pl-12 pr-12 py-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-emerald-500/20 rounded-2xl font-bold text-gray-900 dark:text-white placeholder-transparent shadow-sm transition-all text-lg">
+
+                        <div class="placeholder-ticker-container" x-show="!query.length">
+                            <template x-for="(text, index) in ticker" :key="index">
+                                <div x-show="tickerIndex === index"
+                                    x-transition:enter="placeholder-slide-up-enter-active"
+                                    x-transition:enter-start="placeholder-slide-up-enter-from"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="placeholder-slide-up-leave-active"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="placeholder-slide-up-leave-to"
+                                    class="absolute inset-0 flex items-center text-gray-400 font-bold text-lg whitespace-nowrap">
+                                    <span x-text="text"></span>
+                                </div>
+                            </template>
+                        </div>
+
+                        <button type="button" @click="search()" aria-label="Search restaurants"
+                            class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-2xl text-emerald-500 dark:text-emerald-300 hover:text-emerald-500 transition-colors duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            :disabled="!query.trim().length">
+                            <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </button>
+
+                        <div x-show="loading" class="absolute right-4 top-1/2 -translate-y-1/2">
+                            <svg class="animate-spin h-5 w-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div x-show="show && (recentSearches.length > 0 || results.restaurants.length > 0 || results.meals.length > 0)"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 translate-y-2"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-150"
+                        x-transition:leave-start="opacity-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 translate-y-2"
+                        class="absolute left-0 right-0 mt-3 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-[100]"
+                        x-cloak>
+
+                        <div class="h-80 md:h-96 overflow-y-scroll overscroll-contain no-scrollbar pb-4"
+                            style="-webkit-overflow-scrolling: touch; touch-action: pan-y;">
+                            <template x-if="recentSearches.length > 0 && query.length < 2">
+                                <div>
+                                    <div
+                                        class="px-5 py-3 bg-gray-50/50 dark:bg-gray-900/50 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-50 dark:border-gray-700">
+                                        Recent Searches</div>
+                                    <div class="py-2">
+                                        <template x-for="recent in recentSearches" :key="recent.url">
+                                            <button type="button" @click="useRecentSearch(recent)"
+                                                class="flex w-full items-center gap-4 px-5 py-3 text-left hover:bg-emerald-50 transition-colors group">
+                                                <div
+                                                    class="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                                    <template x-if="recent.image">
+                                                        <img :src="recent.image" class="w-full h-full object-cover">
+                                                    </template>
+                                                    <template x-if="!recent.image">
+                                                        <span class="text-lg font-black text-gray-400"
+                                                            x-text="recent.name.charAt(0)"></span>
+                                                    </template>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors truncate"
+                                                        x-text="recent.name"></div>
+                                                    <div class="text-xs text-gray-500 font-medium truncate"
+                                                        x-text="recent.subtitle"></div>
+                                                </div>
+                                                <svg class="w-4 h-4 text-gray-300 group-hover:text-emerald-500 transition-colors" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4"
+                                                        d="M5 12h14m-6-6 6 6-6 6"></path>
+                                                </svg>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template x-if="results.restaurants.length > 0">
+                                <div>
+                                    <div
+                                        class="px-5 py-3 bg-gray-50/50 dark:bg-gray-900/50 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-50 dark:border-gray-700">
+                                        Restaurants</div>
+                                    <div class="py-2">
+                                        <template x-for="r in results.restaurants" :key="r.id">
+                                            <a :href="r.url" @click="saveRecentSearch(r)"
+                                                class="flex items-center gap-4 px-5 py-3 hover:bg-emerald-50 transition-colors group">
+                                                <div
+                                                    class="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                                    <template x-if="r.logo">
+                                                        <img :src="r.logo" class="w-full h-full object-cover">
+                                                    </template>
+                                                    <template x-if="!r.logo">
+                                                        <span class="text-lg font-black text-gray-400"
+                                                            x-text="r.name.charAt(0)"></span>
+                                                    </template>
+                                                </div>
+                                                <div>
+                                                    <div class="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors"
+                                                        x-text="r.name"></div>
+                                                    <div class="text-xs text-gray-500 font-medium">Restaurant</div>
+                                                </div>
+                                            </a>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template x-if="results.meals.length > 0">
+                                <div class="border-t border-gray-50">
+                                    <div
+                                        class="px-5 py-3 bg-gray-50/50 dark:bg-gray-900/50 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-50 dark:border-gray-700">
+                                        Popular Meals</div>
+                                    <div class="py-2">
+                                        <template x-for="m in results.meals" :key="m.id">
+                                            <a :href="m.url" @click="saveRecentSearch(m)"
+                                                class="flex items-center gap-4 px-5 py-3 hover:bg-emerald-50 transition-colors group">
+                                                <div
+                                                    class="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                                    <template x-if="m.image">
+                                                        <img :src="m.image" class="w-full h-full object-cover">
+                                                    </template>
+                                                    <template x-if="!m.image">
+                                                        <svg class="w-6 h-6 text-gray-300" fill="none"
+                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6">
+                                                            </path>
+                                                        </svg>
+                                                    </template>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <div class="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors"
+                                                        x-text="m.name"></div>
+                                                    <div class="text-xs text-gray-500 font-medium"
+                                                        x-text="m.restaurant_name"></div>
+                                                </div>
+                                                <div class="font-black text-emerald-500 text-sm"
+                                                    x-text="'$' + m.price"></div>
+                                            </a>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Filters Bar -->
+        <div class="mb-8 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 overflow-visible">
+            <div class="text-sm font-bold text-gray-400">
+                {{ $restaurants->total() }} {{ $restaurants->total() === 1 ? 'place' : 'places' }} found
+            </div>
+            <div class="flex w-full md:w-auto items-center justify-end gap-4 md:gap-6 overflow-visible relative z-20">
+                <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                    <button @click="open = !open"
+                            type="button"
+                            class="inline-flex items-center justify-end gap-2 text-sm font-semibold transition-colors {{ $activeSort ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 6h18M6 12h12M10 18h4"></path></svg>
+                        <span>{{ $sortLabels[$activeSort] ?? 'Sort By' }}</span>
+                        <svg class="w-3.5 h-3.5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                         x-cloak
+                         class="absolute left-0 mt-3 w-56 max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 py-2 z-50 overflow-hidden">
+                        <p class="px-4 pt-2 pb-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Sort By</p>
+                        <a href="{{ route('restaurants.index', array_filter($sortBaseParams + ['sort' => 'rating_desc'])) }}"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ $activeSort === 'rating_desc' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-600 hover:bg-gray-50' }}">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 17l-5 3 1-5.5L4 10l5.6-.8L12 4l2.4 5.2L20 10l-4 4.5 1 5.5-5-3z"></path></svg>
+                            Highest Rated
+                            @if($activeSort === 'rating_desc')
+                                <svg class="w-4 h-4 ml-auto text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            @endif
+                        </a>
+                        <a href="{{ route('restaurants.index', array_filter($sortBaseParams + ['sort' => 'rating_asc'])) }}"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors {{ $activeSort === 'rating_asc' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-600 hover:bg-gray-50' }}">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>
+                            Lowest Rated
+                            @if($activeSort === 'rating_asc')
+                                <svg class="w-4 h-4 ml-auto text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            @endif
+                        </a>
+                        @if($activeSort)
+                            <div class="mx-3 my-1.5 border-t border-gray-100"></div>
+                            <a href="{{ route('restaurants.index', $sortBaseParams) }}"
+                               class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                Clear Sort
+                            </a>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="relative" x-data="restaurantLocationFilter(@js($locations))" @click.outside="close()">
+                    <button @click="toggle()"
+                            type="button"
+                            class="inline-flex items-center justify-end gap-2 text-sm font-semibold transition-colors {{ request('location') ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <span class="truncate max-w-[9rem] md:max-w-[10rem]">{{ request('location') ?: 'Location' }}</span>
+                        <svg class="w-3.5 h-3.5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+
+                    <div x-show="open"
+                         x-effect="if (open) { $nextTick(() => $refs.locationSearch?.focus()); }"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                         x-cloak
+                         class="absolute right-0 mt-3 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 py-2 z-50 overflow-hidden">
+                        <p class="px-4 pt-2 pb-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Locations</p>
+                        <div class="px-3 pb-3">
+                            <label for="location-search" class="sr-only">Search locations</label>
+                            <div class="flex items-center gap-2 px-4 py-3 rounded-2xl border border-gray-100 bg-gray-50">
+                                <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <input id="location-search"
+                                       x-ref="locationSearch"
+                                       x-model="search"
+                                       @input="scheduleFilter()"
+                                       @keydown.escape.stop.prevent="close()"
+                                       type="text"
+                                       placeholder="Search locations..."
+                                       class="w-full bg-transparent border-none shadow-none focus:outline-none focus:ring-0 focus:border-transparent focus:shadow-none text-sm font-bold text-gray-900 placeholder:text-gray-400 p-0"
+                                       style="outline: none !important; box-shadow: none !important; -webkit-box-shadow: none !important;">
+                            </div>
+                        </div>
+
+                        <div class="max-h-72 overflow-y-auto overscroll-contain px-2 pb-2">
+                            <a href="{{ route('restaurants.index', array_filter(['q' => request('q'), 'sort' => request('sort')])) }}"
+                               class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ !request('location') ? 'bg-emerald-50 text-emerald-600' : 'text-gray-600 hover:bg-gray-50' }}">
+                                <span>All Locations</span>
+                                @if(!request('location'))
+                                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                @endif
+                            </a>
+
+                            <template x-if="filteredLocations.length">
+                                <div class="space-y-1">
+                                    <template x-for="location in filteredLocations" :key="location">
+                                        <a :href="locationUrl(location)"
+                                           class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                                           :class="selectedLocation === location ? 'bg-emerald-50 text-emerald-600' : 'text-gray-600 hover:bg-gray-50'">
+                                            <span x-text="location"></span>
+                                            <svg x-show="selectedLocation === location"
+                                                 x-cloak
+                                                 class="w-4 h-4 text-emerald-500"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </a>
+                                    </template>
+                                </div>
+                            </template>
+
+                            <p x-show="!filteredLocations.length"
+                               class="px-4 py-5 text-sm font-bold text-gray-400 text-center"
+                               x-cloak>
+                                No locations match your search.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Listing -->
+        <div x-data="{
+                restaurants: [],
+                page: 1,
+                hasMore: {{ $restaurants->hasMorePages() ? 'true' : 'false' }},
+                loading: false,
+                init() {
+                    // Page 1 is already rendered via Blade
+                },
+                async loadMore() {
+                    if (this.loading || !this.hasMore) return;
+                    
+                    this.loading = true;
+                    const nextPage = this.page + 1;
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('page', nextPage);
+
+                    try {
+                        const response = await fetch(url, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+                        const data = await response.json();
+                        
+                        // Append HTML to the grid
+                        const grid = document.getElementById('restaurant-grid');
+                        grid.insertAdjacentHTML('beforeend', data.html);
+                        
+                        this.page = nextPage;
+                        this.hasMore = data.hasMore;
+                    } catch (error) {
+                        console.error('Error loading more restaurants:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }">
+            <div id="restaurant-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                @forelse($restaurants as $restaurant)
+                    @include('restaurant.partials.list', ['restaurants' => [$restaurant]])
+                @empty
+                    <div class="col-span-full py-20 text-center">
+                        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        </div>
+                        <h3 class="text-3xl font-black outfit text-gray-900 mb-2">No results found</h3>
+                        <p class="text-gray-500 text-lg font-medium">Try adjusting your filters or search for something else.</p>
+                        <a href="{{ route('restaurants.index') }}" class="inline-block mt-8 font-bold px-8 py-4 bg-gray-900 text-white rounded-2xl hover:bg-emerald-500 transition-all">View All Places</a>
+                    </div>
+                @endforelse
+            </div>
+
+            <!-- Loading Skeleton & Intersection Observer -->
+            <div x-show="hasMore" x-intersect.full="loadMore()" class="mt-8">
+                <div x-show="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 py-4">
+                    @for ($i = 0; $i < 3; $i++)
+                    <article class="bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/40 overflow-hidden animate-pulse">
+                        <div class="h-52 w-full bg-gray-200"></div>
+                        <div class="p-6 space-y-4">
+                            <div class="h-6 bg-gray-200 rounded w-3/4"></div>
+                            <div class="space-y-2">
+                                <div class="h-3 bg-gray-200 rounded w-full"></div>
+                                <div class="h-3 bg-gray-200 rounded w-5/6"></div>
+                            </div>
+                            <div class="flex gap-2">
+                                <div class="h-5 bg-gray-200 rounded-full w-16"></div>
+                                <div class="h-5 bg-gray-200 rounded-full w-20"></div>
+                            </div>
+                        </div>
+                    </article>
+                    @endfor
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+    window.restaurantLocationFilter = function(locations) {
+        return {
+            open: false,
+            search: '',
+            filteredLocations: [...locations],
+            selectedLocation: @js(request('location')),
+            debounceTimer: null,
+            queryParams: @js(array_filter(['q' => request('q'), 'sort' => request('sort')])),
+            toggle() {
+                if (this.open) {
+                    this.close();
+                    return;
+                }
+
+                this.open = true;
+                this.filteredLocations = [...locations];
+            },
+            close() {
+                this.open = false;
+                this.search = '';
+                clearTimeout(this.debounceTimer);
+                this.filteredLocations = [...locations];
+            },
+            scheduleFilter() {
+                clearTimeout(this.debounceTimer);
+                this.debounceTimer = setTimeout(() => {
+                    const term = this.search.trim().toLowerCase();
+
+                    this.filteredLocations = !term
+                        ? [...locations]
+                        : locations.filter((location) => location.toLowerCase().includes(term));
+                }, 250);
+            },
+            locationUrl(location) {
+                const url = new URL(@js(route('restaurants.index')), window.location.origin);
+                const params = new URLSearchParams(this.queryParams);
+
+                params.set('location', location);
+                url.search = params.toString();
+
+                return url.toString();
+            },
+        };
+    };
+</script>
+@endpush

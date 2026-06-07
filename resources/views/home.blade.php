@@ -414,35 +414,33 @@
                     $homeCategories = array_filter($homeCategories, fn($c) => $c['slug'] !== 'all');
                 @endphp
 
-                <div class="px-4">
-                    <nav class="-mx-4 flex overflow-x-auto overscroll-contain no-scrollbar px-4 pb-2"
-                         aria-label="Browse categories">
-                        <div class="flex items-start gap-3 sm:gap-4">
-                            @foreach($homeCategories as $cat)
-                                <a href="{{ route('browse.index', ['category' => $cat['slug']]) }}"
-                                   class="group flex w-20 sm:w-24 lg:w-28 shrink-0 flex-col items-center text-center">
-                                    <div class="w-full aspect-square overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-md">
-                                        @if(!empty($cat['image']))
-                                            <img
-                                                src="{{ $cat['image'] }}"
-                                                alt="{{ $cat['label'] }}"
-                                                loading="lazy"
-                                                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                            >
-                                        @else
-                                            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 text-2xl font-black text-gray-400">
-                                                {{ $cat['emoji'] ?? '•' }}
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <span class="mt-2 block text-[11px] sm:text-xs font-black leading-tight text-gray-900 dark:text-gray-300 transition-colors group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
-                                        {{ $cat['label'] }}
-                                    </span>
-                                </a>
-                            @endforeach
-                        </div>
-                    </nav>
-                </div>
+                <nav class="-mx-4 flex overflow-x-auto overscroll-contain no-scrollbar px-4 pb-2"
+                     aria-label="Browse categories">
+                    <div class="flex items-start gap-3 sm:gap-4">
+                        @foreach($homeCategories as $cat)
+                            <a href="{{ route('browse.index', ['category' => $cat['slug']]) }}"
+                               class="group flex w-20 sm:w-24 lg:w-28 shrink-0 flex-col items-center text-center">
+                                <div class="w-full aspect-square overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-md">
+                                    @if(!empty($cat['image']))
+                                        <img
+                                            src="{{ $cat['image'] }}"
+                                            alt="{{ $cat['label'] }}"
+                                            loading="lazy"
+                                            class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                        >
+                                    @else
+                                        <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 text-2xl font-black text-gray-400">
+                                            {{ $cat['emoji'] ?? '•' }}
+                                        </div>
+                                    @endif
+                                </div>
+                                <span class="mt-2 block text-[11px] sm:text-xs font-black leading-tight text-gray-900 dark:text-gray-300 transition-colors group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
+                                    {{ $cat['label'] }}
+                                </span>
+                            </a>
+                        @endforeach
+                    </div>
+                </nav>
             </div>
 
             <div class="flex flex-wrap justify-between items-end mb-12 px-4 scroll-reveal"

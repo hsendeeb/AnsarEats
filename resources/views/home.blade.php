@@ -611,6 +611,7 @@
                 </div>
             @endif
 
+<<<<<<< HEAD
             <!-- Most Ordered Section -->
             @if(isset($trendingMeals) && $trendingMeals->isNotEmpty())
                 <div class="flex flex-wrap justify-between items-end mb-8 mt-24 px-4 scroll-reveal"
@@ -645,11 +646,73 @@
                                     <div class="swiper-slide h-auto"
                                          :class="{ 'z-[60] relative': variantDropdownOpen, 'z-0': !variantDropdownOpen }"
                                          x-data="{
+=======
+
+
+            <!-- Trending Meals Section -->
+            @if(isset($trendingMeals) && $trendingMeals->count() > 0)
+                <div class="mt-16 w-full scroll-reveal"
+                     x-data="scrollReveal(0, 24)"
+                     x-intersect.once.margin.-80px.0.0.0="reveal()"
+                     :class="{ 'is-visible': shown }">
+
+                    <div class="max-w-7xl mx-auto px-4 mb-10 text-left ">
+                        <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight">Most Ordered</h2>
+                    </div>
+
+                    <div x-data="{
+                        initMealSwiper() {
+                            if (typeof Swiper !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
+                                new Swiper('.most-ordered-swiper', {
+                                    slidesPerView: 1,
+                                    spaceBetween: 16,
+                                    loop: {{ (isset($trendingMeals) && $trendingMeals->chunk(2)->count() >= 3) ? 'true' : 'false' }},
+                                    autoplay: { delay: 4500, disableOnInteraction: false },
+                                    pagination: {
+                                        el: '.swiper-pagination-meals',
+                                        clickable: true,
+                                    }
+                                });
+                            }
+                        }
+                    }" x-init="initMealSwiper()" class="relative w-full">
+
+                        <div class="swiper most-ordered-swiper !pb-8 !px-1.5 !pt-1.5 md:!overflow-visible" style="overflow: visible;">
+                            <div class="swiper-wrapper md:!flex md:!flex-wrap md:!gap-6 md:!transform-none md:!h-auto">
+                                @foreach($trendingMeals->chunk(2) as $mealPair)
+                                    <div class="swiper-slide h-auto flex flex-col gap-4 md:!w-[calc(50%-0.75rem)] xl:!w-[calc(33.333%-1rem)] md:!mr-0">
+                                        @foreach($mealPair as $meal)
+                                            @php
+                                                $homeVariantGroups = collect(data_get($meal->variants, 'groups', []))
+                                                    ->map(fn ($group) => [
+                                                        'type' => data_get($group, 'type', 'Option'),
+                                                        'required' => data_get($group, 'required', true) !== false,
+                                                        'mode' => 'addon',
+                                                        'options' => data_get($group, 'options', []),
+                                                    ])
+                                                    ->filter(fn ($group) => ! empty($group['options']))
+                                                    ->values()
+                                                    ->all();
+
+                                                if (empty($homeVariantGroups) && ! empty(data_get($meal->variants, 'options', []))) {
+                                                    $homeVariantGroups = [[
+                                                        'type' => data_get($meal->variants, 'type', 'Option'),
+                                                        'required' => true,
+                                                        'mode' => 'absolute',
+                                                        'options' => data_get($meal->variants, 'options', []),
+                                                    ]];
+                                                }
+                                            @endphp
+                                                    <div class="group relative h-full" id="browse-card-[homemeal]-{{ $meal->id }}" x-data="{ variantDropdownOpen: false }" :class="{ 'z-50': variantDropdownOpen, 'z-0': !variantDropdownOpen }">
+                                                        <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex flex-col gap-4 hover:shadow-2xl transition-all duration-300 relative h-full group-hover:-translate-y-1"
+                                             x-data="{
+>>>>>>> e22089965735bf1ed25c56951fda1a7dfb41857e
                                                 adding: false,
                                                 basePrice: parseFloat('{{ $meal->price }}'),
                                                 isOnSale: {{ $meal->is_on_sale ? 'true' : 'false' }},
                                                 salePrice: {{ Js::from($meal->sale_price) }},
                                                 discountPercentage: {{ Js::from($meal->saleDiscountPercentage()) }},
+<<<<<<< HEAD
                                                 variantGroups: (() => {
                                                     const v = @js($meal->variants);
                                                     if (v && Array.isArray(v.groups) && v.groups.length > 0) {
@@ -675,6 +738,10 @@
                                                 init() {
                                                     this.selectedOptions = this.variantGroups.map((group) => group.required ? 0 : []);
                                                 },
+=======
+                                                variantGroups: @js($homeVariantGroups),
+                                                selectedOptions: @js(collect($homeVariantGroups)->map(fn ($group) => data_get($group, 'required', true) ? 0 : [])->values()->all()),
+>>>>>>> e22089965735bf1ed25c56951fda1a7dfb41857e
                                                 get hasVariants() {
                                                     return this.variantGroups.some((group) => group.options && group.options.length > 0);
                                                 },
@@ -855,6 +922,7 @@
                                                     }
                                                 }
                                              }">
+<<<<<<< HEAD
                                         <div class="group relative h-full bg-white dark:bg-gray-850 rounded-3xl border border-gray-100 dark:border-gray-750 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col p-4 justify-between" 
                                              id="browse-card-[homemeal]-{{ $meal->id }}">
                                             
@@ -866,6 +934,16 @@
                                                             <img alt="{{ $meal->name }}" src="{{ Storage::url($meal->image) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
                                                         @else
                                                             <div class="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
+=======
+                                            <div class="flex gap-4">
+                                                <!-- Meal Image -->
+                                                <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="w-24 h-24 flex-shrink-0">
+                                                    <div class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative" id="browse-img-[homemeal]-{{ $meal->id }}">
+                                                        @if($meal->image)
+                                                            <img alt="{{ $meal->name }}" src="{{ Storage::url($meal->image) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                                                        @else
+                                                            <div class="w-full h-full flex items-center justify-center text-gray-300">
+>>>>>>> e22089965735bf1ed25c56951fda1a7dfb41857e
                                                                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                                             </div>
                                                         @endif
@@ -880,15 +958,24 @@
                                                         @endif
 
                                                         <!-- Restaurant Mini Badge Overlay -->
+<<<<<<< HEAD
                                                         <div class="absolute bottom-1 left-1 flex items-center gap-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md pl-1 pr-1.5 py-0.5 rounded-full shadow-md z-10 pointer-events-none">
                                                             <div class="w-4 h-4 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0 border border-white dark:border-gray-850">
+=======
+                                                        <div class="absolute bottom-1 left-1 flex items-center gap-1 bg-white/90 backdrop-blur-md pl-1 pr-1.5 py-0.5 rounded-full shadow-md z-10 pointer-events-none">
+                                                            <div class="w-4 h-4 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-white">
+>>>>>>> e22089965735bf1ed25c56951fda1a7dfb41857e
                                                                 @if($meal->menuCategory->restaurant->logo)
                                                                     <img src="{{ Storage::url($meal->menuCategory->restaurant->logo) }}" class="w-full h-full object-cover">
                                                                 @else
                                                                     <div class="w-full h-full flex items-center justify-center bg-emerald-100 text-emerald-600 text-[8px] font-bold">{{ substr($meal->menuCategory->restaurant->name, 0, 1) }}</div>
                                                                 @endif
                                                             </div>
+<<<<<<< HEAD
                                                             <span class="text-[8px] font-bold text-gray-900 dark:text-gray-100 truncate max-w-[50px]">{{ $meal->menuCategory->restaurant->name }}</span>
+=======
+                                                            <span class="text-[8px] font-bold text-gray-900 truncate max-w-[50px]">{{ $meal->menuCategory->restaurant->name }}</span>
+>>>>>>> e22089965735bf1ed25c56951fda1a7dfb41857e
                                                         </div>
                                                     </div>
                                                 </a>
@@ -898,12 +985,20 @@
                                                     <div>
                                                         <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
                                                             <a href="{{ route('restaurant.show', $meal->menuCategory->restaurant) }}#meal-{{ $meal->id }}" class="min-w-0 flex-1">
+<<<<<<< HEAD
                                                                 <h4 class="font-bold text-base text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors leading-tight break-words block">
+=======
+                                                                <h4 class="font-bold text-lg text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors leading-tight break-words block">
+>>>>>>> e22089965735bf1ed25c56951fda1a7dfb41857e
                                                                     {{ $meal->name }}
                                                                 </h4>
                                                                 @if($meal->is_featured)
                                                                     <div class="mt-1 flex block">
+<<<<<<< HEAD
                                                                         <span class="inline-flex items-center text-amber-500 bg-amber-50 dark:bg-amber-955/20 px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-widest border border-amber-100 dark:border-amber-900/30 whitespace-nowrap">Featured</span>
+=======
+                                                                        <span class="inline-flex items-center text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-widest border border-amber-100 whitespace-nowrap">Featured</span>
+>>>>>>> e22089965735bf1ed25c56951fda1a7dfb41857e
                                                                     </div>
                                                                 @endif
                                                                 <div class="hidden sm:flex items-center gap-1.5 mt-1">
@@ -912,6 +1007,7 @@
                                                             </a>
                                                         </div>
                                                         @if($meal->description)
+<<<<<<< HEAD
                                                             <p class="text-xs text-gray-500 font-medium line-clamp-2 mt-2 break-words">{{ $meal->description }}</p>
                                                         @endif
                                                     </div>
@@ -996,6 +1092,98 @@
                                 @endforeach
                             </div>
                         </div>
+=======
+                                                            <p class="text-sm text-gray-500 font-medium line-clamp-2 mt-2 break-words">{{ $meal->description }}</p>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                                <div x-show="hasVariants" x-cloak class="basis-full w-full">
+                                                    <div class="relative" @click.outside="variantDropdownOpen = false">
+                                                        <button
+                                                            type="button"
+                                                            @click="variantDropdownOpen = !variantDropdownOpen"
+                                                            :aria-expanded="variantDropdownOpen.toString()"
+                                                            class="w-full cursor-pointer rounded-xl border border-gray-200 bg-white px-3 py-2 text-left shadow-sm transition-all hover:border-emerald-200 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                                            <span class="flex items-center justify-between gap-3">
+                                                                <span class="min-w-0">
+                                                                    <span class="mb-0.5 block text-[10px] font-black uppercase tracking-widest text-emerald-500">Choose options</span>
+                                                                    <span class="block truncate text-sm font-black text-gray-800" x-text="currentLabel || 'Choose options'"></span>
+                                                                </span>
+                                                                <span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500 transition-transform" :class="{ 'rotate-180': variantDropdownOpen }">
+                                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                                                                </span>
+                                                            </span>
+                                                        </button>
+                                                        <div
+                                                            x-show="variantDropdownOpen"
+                                                            x-transition:enter="transition ease-out duration-150"
+                                                            x-transition:enter-start="opacity-0 -translate-y-1"
+                                                            x-transition:enter-end="opacity-100 translate-y-0"
+                                                            x-transition:leave="transition ease-in duration-100"
+                                                            x-transition:leave-start="opacity-100 translate-y-0"
+                                                            x-transition:leave-end="opacity-0 -translate-y-1"
+                                                            class="absolute left-0 right-0 top-full z-[70] mt-1 max-h-72 overflow-y-auto rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-gray-900/10">
+                                                            <template x-for="(group, groupIndex) in variantGroups" :key="groupIndex">
+                                                                <div class="py-1.5" :class="groupIndex > 0 ? 'border-t border-gray-100' : ''">
+                                                                    <p class="px-2 pb-1 text-[11px] font-black uppercase tracking-widest text-gray-400" x-text="group.type"></p>
+                                                                    <template x-for="(opt, idx) in group.options" :key="idx">
+                                                                        <button
+                                                                            type="button"
+                                                                            @click="toggleVariant(groupIndex, idx)"
+                                                                            class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-emerald-50"
+                                                                            :class="isVariantSelected(groupIndex, idx) ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'">
+                                                                            <span class="flex min-w-0 items-center gap-2">
+                                                                                <span class="flex h-4 w-4 flex-shrink-0 items-center justify-center border" :class="[group.required ? 'rounded-full' : 'rounded', isVariantSelected(groupIndex, idx) ? 'border-emerald-500 bg-emerald-500' : 'border-gray-300 bg-white']">
+                                                                                    <span class="h-2 w-2 rounded-full bg-white" x-show="group.required && isVariantSelected(groupIndex, idx)"></span>
+                                                                                    <svg x-show="!group.required && isVariantSelected(groupIndex, idx)" class="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                                                                </span>
+                                                                                <span class="block truncate text-sm font-bold" x-text="opt.label"></span>
+                                                                            </span>
+                                                                            <span class="flex-shrink-0 text-sm font-black" :class="isVariantSelected(groupIndex, idx) ? 'text-emerald-600' : 'text-gray-900'" x-text="group.mode === 'absolute' ? formattedOptionOriginalPrice(opt) : formattedOptionAddonPrice(opt)"></span>
+                                                                        </button>
+                                                                    </template>
+                                                                </div>
+                                                            </template>
+                                                            <div class="mt-1 border-t border-gray-100 px-2 pt-2 text-right text-sm font-black text-emerald-600" x-text="`Total ${formattedPrice}`"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-auto basis-full flex items-center justify-between pt-1">
+                                                    <div class="min-w-0 flex flex-col items-start justify-center">
+                                                        <span class="font-black text-emerald-500 whitespace-nowrap" x-text="formattedPrice">{{ number_format($meal->price, 0) }} LBP</span>
+                                                        <span x-show="hasActiveSale" x-cloak class="text-[10px] font-bold text-gray-400 line-through leading-none mt-0.5" x-text="formattedOriginalPrice"></span>
+                                                    </div>
+
+                                                    @if(!$meal->is_available || !$meal->menuCategory->restaurant->isOpenNow())
+                                                        <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200">
+                                                            {{ !$meal->is_available ? 'Sold out' : 'Closed' }}
+                                                        </span>
+                                                    @elseif(Auth::id() === ($meal->menuCategory->restaurant->user_id ?? null))
+                                                        <span class="text-[10px] font-bold text-amber-500 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100">Own Restaurant</span>
+                                                    @else
+                                                        <button
+                                                            type="button"
+                                                            @click="addToCart({{ $meal->id }})"
+                                                            :disabled="adding"
+                                                            class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 shadow-sm hover:shadow-lg hover:shadow-emerald-500/30 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                            <svg x-show="!adding" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
+                                                            <svg x-show="adding" x-cloak class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endforeach
+                            </div>
+                            <!-- Pagination dots removed from inside Swiper absolute flow -->
+                        </div>
+
+                        <!-- Pagination Dots physically placed UNDER the cards -->
+                        <div class="swiper-pagination-meals flex md:hidden justify-center items-center gap-1.5 mt-10 w-full text-emerald-500"></div>
+>>>>>>> e22089965735bf1ed25c56951fda1a7dfb41857e
                     </div>
                 </div>
             @endif

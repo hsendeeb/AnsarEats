@@ -55,7 +55,7 @@ class HomeController extends Controller
                 ->has('orderItems')
                 ->withCount('orderItems')
                 ->orderByDesc('order_items_count')
-                ->take(10)
+                ->take(6)
                 ->get()
         );
 

@@ -7,9 +7,6 @@ deployment:
     - export PUBLICPATH=/home/tojjwrtk/public_html/
     - /bin/rsync -avz --exclude 'index.php' public/* $PUBLICPATH
 
-    # Install composer dependencies on production
-    - /usr/local/bin/php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction --working-dir=/home/tojjwrtk/ansar-eats/
-
     # Run production optimizations
     - /usr/local/bin/php /home/tojjwrtk/ansar-eats/artisan migrate --force
     - /usr/local/bin/php /home/tojjwrtk/ansar-eats/artisan optimize

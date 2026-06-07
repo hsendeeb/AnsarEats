@@ -2,12 +2,14 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/tojjwrtk/ansar-eats/
     - /bin/rsync -avz --exclude '.git' --exclude 'node_modules' --exclude 'vendor' --exclude '.env' --exclude 'project_release.zip' * $DEPLOYPATH
-    
+
     # Move public files to public_html (keep index.php safe)
     - export PUBLICPATH=/home/tojjwrtk/public_html/
     - /bin/rsync -avz --exclude 'index.php' public/* $PUBLICPATH
-    
+
+    # Install composer dependencies on production
+    - /usr/local/bin/php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction --working-dir=/home/tojjwrtk/ansar-eats/
+
     # Run production optimizations
-    - cd $DEPLOYPATH
-    - /usr/local/bin/php artisan migrate --force
-    - /usr/local/bin/php artisan optimize
+    - /usr/local/bin/php /home/tojjwrtk/ansar-eats/artisan migrate --force
+    - /usr/local/bin/php /home/tojjwrtk/ansar-eats/artisan optimize

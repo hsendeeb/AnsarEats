@@ -35,6 +35,12 @@ class SendNotification extends Page implements HasForms
     {
         return $schema
             ->schema([
+                TextInput::make('url')
+                    ->label('Link URL')
+                    ->helperText('URL users land on when they click the notification (e.g. /orders, /browse, /owner/orders)')
+                    ->default('/browse')
+                    ->required()
+                    ->maxLength(500),
                 TextInput::make('title')
                     ->label('Notification Title')
                     ->required()
@@ -62,9 +68,10 @@ class SendNotification extends Page implements HasForms
         $this->validate();
 
         SendBulkNotification::dispatch(
-            $this->data['title'],
-            $this->data['body'],
-            $this->data['target'] ?: null,
+            title: $this->data['title'],
+            body: $this->data['body'],
+            url: $this->data['url'],
+            targetRole: $this->data['target'] ?: null,
         );
 
         Notification::make()

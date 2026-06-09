@@ -18,6 +18,7 @@ class SendBulkNotification implements ShouldQueue
     public function __construct(
         public string $title,
         public string $body,
+        public string $url,
         public ?string $targetRole = null,
     ) {
         $this->onQueue('default');
@@ -38,6 +39,8 @@ class SendBulkNotification implements ShouldQueue
                     [
                         'title' => $this->title,
                         'body' => $this->body,
+                        'url' => $this->url,
+                        'audience' => $this->targetRole,
                     ]
                 );
             }

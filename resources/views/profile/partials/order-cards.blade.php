@@ -4,35 +4,39 @@
      data-order-id="{{ $order->id }}"
      data-order-status="{{ $order->status }}">
     
-    <div @click="openDetails = !openDetails" class="p-6 flex items-center justify-between cursor-pointer transition-colors select-none group">
-        <div class="flex items-center gap-4 border-b-0">
-            <div class="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100 transition-colors">
-                @if($order->restaurant->logo)
-                    <img src="{{ Storage::url($order->restaurant->logo) }}" class="w-full h-full object-cover">
-                @else
-                    <span class="text-lg font-black text-emerald-500">{{ substr($order->restaurant->name, 0, 1) }}</span>
-                @endif
+    <div @click="openDetails = !openDetails" class="p-6 flex flex-col gap-2 cursor-pointer transition-colors select-none group">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4 min-w-0">
+                <div class="shrink-0 w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100 transition-colors">
+                    @if($order->restaurant->logo)
+                        <img src="{{ Storage::url($order->restaurant->logo) }}" class="w-full h-full object-cover">
+                    @else
+                        <span class="text-lg font-black text-emerald-500">{{ substr($order->restaurant->name, 0, 1) }}</span>
+                    @endif
+                </div>
+                <div class="min-w-0">
+                    <h3 class="font-extrabold text-gray-900 transition-colors truncate">{{ $order->restaurant->name }}</h3>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-tighter">{{ $order->created_at->format('M d, Y • h:i A') }}</p>
+                </div>
             </div>
-            <div>
-                <h3 class="font-extrabold text-gray-900 transition-colors">{{ $order->restaurant->name }}</h3>
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-tighter">{{ $order->created_at->format('M d, Y • h:i A') }}</p>
+            <div class="flex items-center gap-6 shrink-0">
+                <div class="flex flex-col items-end space-y-2">
+                    <span class="inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest status-badge-{{ $order->id }}"
+                          :class="getStatusClass(getStatus({{ $order->id }}, '{{ $order->status }}'))">
+                        <span x-text="formatStatus(getStatus({{ $order->id }}, '{{ $order->status }}'))">{{ $order->status }}</span>
+                    </span>
+                    @if($order->discount_amount > 0)
+                        <div class="text-[10px] font-bold text-emerald-500 uppercase whitespace-nowrap">Saved {{ number_format($order->discount_amount, 0) }} LBP</div>
+                    @endif
+                </div>
+                <div class="w-8 h-8 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 transition-all duration-300 shrink-0" 
+                      :class="openDetails ? 'rotate-180 bg-emerald-50 text-emerald-600 border-emerald-100' : ''">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
             </div>
         </div>
-        <div class="flex items-center gap-6">
-            <div class="text-right">
-                <div class="font-black text-gray-900 leading-tight">{{ number_format($order->total, 2) }} LBP</div>
-                @if($order->discount_amount > 0)
-                    <div class="text-[10px] font-bold text-emerald-500 uppercase">Saved {{ number_format($order->discount_amount, 2) }} LBP</div>
-                @endif
-                <span class="inline-block mt-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest status-badge-{{ $order->id }}"
-                      :class="getStatusClass(getStatus({{ $order->id }}, '{{ $order->status }}'))">
-                    <span x-text="formatStatus(getStatus({{ $order->id }}, '{{ $order->status }}'))">{{ $order->status }}</span>
-                </span>
-            </div>
-            <div class="w-8 h-8 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 transition-all duration-300" 
-                 :class="openDetails ? 'rotate-180 bg-emerald-50 text-emerald-600 border-emerald-100' : ''">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-            </div>
+        <div class="flex justify-end items-center gap-3">
+            <div class="font-black text-gray-900 leading-tight text-right">{{ number_format($order->total, 0) }} LBP</div>
         </div>
     </div>
 
@@ -124,10 +128,10 @@
                                     <span class="text-gray-400 dark:text-gray-300 font-medium text-xs">({{ $item->variant_label }})</span>
                                 @endif
                             </span>
-                            <span class="text-[10px] font-black text-gray-400 dark:text-gray-300 uppercase tracking-widest">{{ $item->quantity }}x @ ${{ number_format($item->price, 2) }}</span>
+                            <span class="text-[10px] font-black text-gray-400 dark:text-gray-300 uppercase tracking-widest">{{ $item->quantity }}x {{ number_format($item->price, 0) }} LBP</span>
                         </div>
                     </div>
-                    <span class="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">${{ number_format($item->price * $item->quantity, 2) }}</span>
+                    <span class="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">{{ number_format($item->price * $item->quantity, 0) }} LBP</span>
                 </div>
                 @endforeach
             </div>

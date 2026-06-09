@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
 @section('skeleton')
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2">
         <!-- Search Bar Skeleton -->
-        <div class="w-full h-16 bg-gray-100 dark:bg-gray-800 rounded-3xl mb-12 animate-pulse"></div>
+        <div class="w-full h-10 bg-gray-100 dark:bg-gray-800 rounded-xl mb-12 animate-pulse"></div>
 
         <!-- Categories Row Skeleton -->
         <div class="mb-12 overflow-hidden">
@@ -119,7 +119,7 @@
             opacity: 0;
         }
     </style>
-    <div class="relative bg-white dark:bg-gray-900 transition-colors pt-6 md:pt-8 pb-0 overflow-x-clip z-[30]">
+    <div class="relative bg-white dark:bg-gray-900 transition-colors pt-2 md:pt-8 pb-0 overflow-x-clip z-[30]">
         <div class="container mx-auto px-4 relative z-10">
             <div class="flex flex-col items-center">
                 <!-- Left Content -->
@@ -234,7 +234,7 @@
                                 <input type="text" x-model="query" name="q" @input.debounce.300ms="fetchSuggestions()"
                                     @focus="handleFocus()" @keydown.enter.prevent="search()"
                                     placeholder=""
-                                    class="w-full pl-12 pr-12 py-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-emerald-500/20 rounded-2xl font-bold text-gray-900 dark:text-white placeholder-transparent shadow-sm transition-all text-lg">
+                                    class="w-full pl-12 pr-12 py-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-emerald-500/20 rounded-xl font-bold text-gray-900 dark:text-white placeholder-transparent shadow-sm transition-all text-lg">
 
                                 <!-- Animated Placeholder -->
                                 <div class="placeholder-ticker-container" x-show="!query.length">
@@ -253,7 +253,7 @@
                                 </div>
 
                                 <button type="button" @click="search()" aria-label="Search restaurants"
-                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-2xl text-emerald-500 dark:text-emerald-300 hover:text-emerald-500 transition-colors duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-2xl text-black dark:text-white hover:text-emerald-500 transition-colors duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                     :disabled="!query.trim().length">
                                     <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"

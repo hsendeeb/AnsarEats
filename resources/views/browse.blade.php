@@ -22,14 +22,13 @@
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
 
     <!-- Page Header -->
-    <div class="bg-white dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+    <div class="bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+        <div class="px-4 sm:px-6 lg:px-8 py-5">
 
             <!-- Horizontal Category Pills -->
-            <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1"
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar"
                  id="category-pills-container">
-                 
-         
+
                 @foreach($categories as $cat)
                     <button
                         onclick="selectCategory('{{ $cat['slug'] }}')"
@@ -37,11 +36,11 @@
                         class="category-pill flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-300 border whitespace-nowrap
                                {{ $category === $cat['slug']
                                   ? 'bg-emerald-500 text-white border-emerald-500'
-                                  : 'bg-white/95 text-gray-600 border-gray-200 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50/80 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:border-emerald-500/40 dark:hover:bg-emerald-500/10' }}">
-                        <span class="text-base transition-transform duration-300 {{ $category === $cat['slug'] ? 'scale-110' : '' }}">{{ $cat['emoji'] }}</span>
+                                  : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50/80 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:border-emerald-500/40 dark:hover:bg-emerald-500/10' }}">
+                        <span class="text-base">{{ $cat['emoji'] }}</span>
                         <span>{{ $cat['label'] }}</span>
                     </button>
-                    
+
                 @endforeach
             </div>
         </div>
@@ -736,20 +735,12 @@
         // Update pill styles
         document.querySelectorAll('.category-pill').forEach(function(pill) {
             pill.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-500');
-            pill.classList.add('bg-white/95', 'text-gray-600', 'border-gray-200', 'hover:border-emerald-300', 'hover:text-emerald-600', 'hover:bg-emerald-50/80');
-            var emoji = pill.querySelector('span');
-            if (emoji) {
-                emoji.classList.remove('scale-110');
-            }
+            pill.classList.add('bg-white', 'text-gray-600', 'border-gray-200', 'hover:border-emerald-300', 'hover:text-emerald-600', 'hover:bg-emerald-50/80');
         });
         var activePill = document.getElementById('pill-' + slug);
         if (activePill) {
-            activePill.classList.remove('bg-white/95', 'text-gray-600', 'border-gray-200', 'hover:border-emerald-300', 'hover:text-emerald-600', 'hover:bg-emerald-50/80');
+            activePill.classList.remove('bg-white', 'text-gray-600', 'border-gray-200', 'hover:border-emerald-300', 'hover:text-emerald-600', 'hover:bg-emerald-50/80');
             activePill.classList.add('bg-emerald-500', 'text-white', 'border-emerald-500');
-            var activeEmoji = activePill.querySelector('span');
-            if (activeEmoji) {
-                activeEmoji.classList.add('scale-110');
-            }
             activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
 

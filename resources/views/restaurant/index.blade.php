@@ -4,9 +4,9 @@
 
 
 <!-- Main Area -->
-<div class="pt-6 pb-12 bg-gray-50 min-h-screen">
+<div class="pt-2 pb-12 bg-gray-50 min-h-screen">
     <div class="container mx-auto px-4">
-        <div class="w-full h-16 bg-gray-200 rounded-2xl mb-8 animate-pulse"></div>
+        <div class="w-full h-10 bg-gray-200 rounded-xl mb-8 animate-pulse"></div>
         <!-- Top Filters Bar -->
         <div class="mb-8 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 overflow-visible h-5">
             <div class="w-32 h-4 bg-gray-200 rounded animate-pulse"></div> <!-- Count Skeleton -->
@@ -209,7 +209,7 @@
                         <input type="text" x-model="query" name="q" @input.debounce.300ms="fetchSuggestions()"
                             @focus="handleFocus()" @keydown.enter.prevent="search()"
                             placeholder=""
-                            class="w-full pl-12 pr-12 py-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-emerald-500/20 rounded-2xl font-bold text-gray-900 dark:text-white placeholder-transparent shadow-sm transition-all text-lg">
+                            class="w-full pl-12 pr-12 py-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-emerald-500/20 rounded-xl font-bold text-gray-900 dark:text-white placeholder-transparent shadow-sm transition-all text-lg">
 
                         <div class="placeholder-ticker-container" x-show="!query.length">
                             <template x-for="(text, index) in ticker" :key="index">
@@ -227,7 +227,7 @@
                         </div>
 
                         <button type="button" @click="search()" aria-label="Search restaurants"
-                            class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-2xl text-emerald-500 dark:text-emerald-300 hover:text-emerald-500 transition-colors duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl text-black dark:text-white hover:text-emerald-500 transition-colors duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                             :disabled="!query.trim().length">
                             <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"

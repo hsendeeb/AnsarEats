@@ -20,9 +20,9 @@
         </div>
         <div class="flex items-center gap-6">
             <div class="text-right">
-                <div class="font-black text-gray-900 leading-tight">${{ number_format($order->total, 2) }}</div>
+                <div class="font-black text-gray-900 leading-tight">{{ number_format($order->total, 2) }} LBP</div>
                 @if($order->discount_amount > 0)
-                    <div class="text-[10px] font-bold text-emerald-500 uppercase">Saved ${{ number_format($order->discount_amount, 2) }}</div>
+                    <div class="text-[10px] font-bold text-emerald-500 uppercase">Saved {{ number_format($order->discount_amount, 2) }} LBP</div>
                 @endif
                 <span class="inline-block mt-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest status-badge-{{ $order->id }}"
                       :class="getStatusClass(getStatus({{ $order->id }}, '{{ $order->status }}'))">

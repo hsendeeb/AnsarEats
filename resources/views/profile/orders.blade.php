@@ -103,7 +103,7 @@
                 <!-- Simple Merit Metrics -->
                 <div class="p-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl text-white shadow-xl shadow-emerald-500/20">
                     <p class="text-xs font-black uppercase tracking-widest opacity-80 mb-4">Total Spent</p>
-                    <p class="text-4xl font-extrabold outfit mb-1">${{ number_format($ordersSummary['total'] ?? 0, 2) }}</p>
+                    <p class="text-4xl font-extrabold outfit mb-1">{{ number_format($ordersSummary['total'] ?? 0, 2) }} LBP</p>
                     <p class="text-sm font-bold opacity-80 mb-6">{{ $ordersSummary['count'] ?? 0 }} total orders</p>
                     
                     @if(($ordersSummary['count'] ?? 0) > 0)

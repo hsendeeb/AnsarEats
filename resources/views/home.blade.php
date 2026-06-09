@@ -609,7 +609,7 @@
                 </div>
             @endif            <!-- Most Ordered Section -->
             @if(isset($trendingMeals) && $trendingMeals->isNotEmpty())
-                <div class="flex flex-wrap justify-between items-end mb-8 mt-24 px-4 scroll-reveal"
+                <div class="flex flex-wrap justify-between items-end mb-8 mt-8 px-4 scroll-reveal"
                      x-data="scrollReveal(0, 24)"
                      x-intersect.once.margin.-80px.0.0.0="reveal()"
                      :class="{ 'is-visible': shown }">

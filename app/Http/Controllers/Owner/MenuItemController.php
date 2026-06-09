@@ -183,6 +183,15 @@ class MenuItemController extends Controller
         $this->validateMenuItem($request);
 
         $data = $request->only('name', 'description', 'price');
+
+        if ($request->has('menu_category_id')) {
+            $category = MenuCategory::findOrFail($request->menu_category_id);
+            if ($category->restaurant->user_id != Auth::id()) {
+                abort(403, 'Unauthorized action.');
+            }
+            $data['menu_category_id'] = $category->id;
+        }
+
         $data['variants'] = $this->buildVariantsPayload($request);
         $data['tags'] = $request->input('tags', []);
         $this->applySaleFields($data, $request);

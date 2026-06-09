@@ -24,12 +24,7 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8" x-data="{ showClearModal: false }">
-    <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-        <div>
-            <h1 class="text-2xl font-extrabold text-gray-900 outfit tracking-tight mb-2">Order History</h1>
-            <p class="text-gray-500 font-medium">Review your past orders and metrics.</p>
-        </div>
-    </div>
+   
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- Sidebar Navigation & Filters -->

@@ -1519,6 +1519,16 @@
                 @csrf
                 @method('PUT')
                 <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Category</label>
+                    <select name="menu_category_id" x-ref="editCategorySelect" x-model="editingMenuItem.category_id" required class="block w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border-2 border-gray-200 dark:border-gray-700 rounded-2xl font-medium focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-4 focus:ring-indigo-500/10 transition-all">
+                        @if($restaurant)
+                            @foreach($restaurant->menuCategories as $cat)
+                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Item Name</label>
                     <input type="text" name="name" x-model="editingMenuItem.name" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="e.g. Shawarma Plate">
                 </div>

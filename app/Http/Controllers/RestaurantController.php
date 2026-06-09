@@ -17,16 +17,19 @@ class RestaurantController extends Controller
             $sort = null;
         }
 
+        $freeDelivery = $request->boolean('free_delivery');
+
         $restaurants = PerformanceCache::remember(
             'restaurants',
             json_encode([
                 'q' => (string) $request->get('q', ''),
                 'location' => (string) $request->get('location', ''),
                 'sort' => $sort ?? '',
+                'free_delivery' => $freeDelivery,
                 'page' => $request->get('page', 1),
             ]),
             now()->addSeconds(config('performance.cache_ttl.restaurants')),
-            function () use ($sort) {
+            function () use ($sort, $freeDelivery) {
                 $query = Restaurant::query();
 
                 if (request()->filled('q')) {
@@ -41,6 +44,13 @@ class RestaurantController extends Controller
 
                 if (request()->filled('location')) {
                     $query->where('address', 'like', '%' . request()->location . '%');
+                }
+
+                if ($freeDelivery) {
+                    $query->where(function ($q) {
+                        $q->whereNull('delivery_fee')
+                          ->orWhere('delivery_fee', '<=', 0);
+                    });
                 }
 
                 $query->withCount('menuCategories')

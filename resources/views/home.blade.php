@@ -443,6 +443,81 @@
                 </nav>
             </div>
 
+            <!-- Banner Carousel -->
+            <div class="mb-8 md:mb-10 scroll-reveal px-4"
+                 x-data="scrollReveal(0, 24)"
+                 x-intersect.once.margin.-80px.0.0.0="reveal()"
+                 :class="{ 'is-visible': shown }">
+                <div class="relative overflow-hidden rounded-2xl select-none"
+                     x-data="{
+                         slides: @js([
+                             ['images/banners/free_delivery_banner.png', 'Free Delivery', route('restaurants.index', ['free_delivery' => 1])],
+                             ['images/banners/daily_discounts_banner.png', 'Daily Discounts', route('browse.index', ['on_sale' => 1])],
+                         ]),
+                         current: 0,
+                         interval: null,
+                         dragging: false,
+                         startX: 0,
+                         dragOffset: 0,
+                         swiped: false,
+                         get total() { return this.slides.length; },
+                         get offset() { return -(this.current * 100) + (this.dragging ? this.dragOffset : 0); },
+                         get transitionStyle() {
+                             return this.dragging ? 'none' : 'transform 500ms cubic-bezier(0.4, 0, 0.2, 1)';
+                         },
+                         next() { this.current = (this.current + 1) % this.total; },
+                         prev() { this.current = (this.current - 1 + this.total) % this.total; },
+                         init() {
+                             this.interval = setInterval(() => { this.next(); }, 4000);
+                         },
+                         destroy() { clearInterval(this.interval); },
+                         pointerDown(e) {
+                             this.dragging = true;
+                             this.swiped = false;
+                             this.startX = e.touches ? e.touches[0].clientX : e.clientX;
+                             this.dragOffset = 0;
+                             clearInterval(this.interval);
+                         },
+                         pointerMove(e) {
+                             if (!this.dragging) return;
+                             const x = e.touches ? e.touches[0].clientX : e.clientX;
+                             this.dragOffset = ((x - this.startX) / this.$el.offsetWidth) * 100;
+                         },
+                         pointerUp() {
+                             if (!this.dragging) return;
+                             this.dragging = false;
+                             const absDrag = Math.abs(this.dragOffset);
+                             if (absDrag > 15) {
+                                 this.swiped = true;
+                                 this.dragOffset > 0 ? this.prev() : this.next();
+                             }
+                             this.dragOffset = 0;
+                             this.interval = setInterval(() => { this.next(); }, 4000);
+                         }
+                     }"
+                     @touchstart="pointerDown($event)"
+                     @touchmove="pointerMove($event)"
+                     @touchend="pointerUp($event)"
+                     @mousedown="pointerDown($event)"
+                     @mousemove="pointerMove($event)"
+                     @mouseup="pointerUp($event)"
+                     @mouseleave="pointerUp($event)">
+                    <div class="flex"
+                         :style="'transform: translateX(' + offset + '%); transition: ' + transitionStyle">
+                        <template x-for="(slide, i) in slides" :key="i">
+                            <a :href="slide[2]"
+                               class="block w-full flex-shrink-0 aspect-[7/3] group"
+                               @click="if (swiped) $event.preventDefault()">
+                                <img :src="'{{ asset('') }}' + slide[0]"
+                                     :alt="slide[1]"
+                                     loading="lazy"
+                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            </a>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
             <div class="flex flex-wrap justify-between items-end mb-12 px-4 scroll-reveal"
                  x-data="scrollReveal(0, 24)"
                  x-intersect.once.margin.-80px.0.0.0="reveal()"

@@ -32,10 +32,11 @@ class BrowseController extends Controller
     public function index(Request $request)
     {
         $category = $request->query('category', 'all');
+        $onSale = $request->boolean('on_sale');
         $page = max(1, (int) $request->query('page', 1));
         $categories = self::categories();
 
-        $items = $this->getItems($category, $page);
+        $items = $this->getItems($category, $onSale, $page);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -81,18 +82,22 @@ class BrowseController extends Controller
         return view('browse', compact('categories', 'category', 'items'));
     }
 
-    private function getItems(string $category, int $page)
+    private function getItems(string $category, bool $onSale, int $page)
     {
         return PerformanceCache::remember(
             'browse',
-            json_encode(['category' => $category, 'page' => $page]),
+            json_encode(['category' => $category, 'on_sale' => $onSale, 'page' => $page]),
             now()->addSeconds(config('performance.cache_ttl.browse')),
-            function () use ($category, $page) {
+            function () use ($category, $onSale, $page) {
                 $query = MenuItem::with(['menuCategory.restaurant'])
                     ->where('is_available', true);
 
                 if ($category !== 'all') {
                     $query->whereJsonContains('tags', $category);
+                }
+
+                if ($onSale) {
+                    $query->where('is_on_sale', true);
                 }
 
                 return $query->paginate(20, ['*'], 'page', $page);

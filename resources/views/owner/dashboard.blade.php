@@ -1105,7 +1105,18 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Price (LBP)</label>
-                    <input type="number" step="1" min="0" name="price" x-model="basePrice" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 transition-all" placeholder="e.g. 450000">
+                    <input type="text" inputmode="numeric"
+                           x-model="basePrice"
+                           @input="basePrice = $event.target.value.replace(/[^0-9]/g, '')"
+                           @blur="$el.value = basePrice ? parseInt(basePrice, 10).toLocaleString('en-US') : ''"
+                           @focus="$el.value = basePrice"
+                           required
+                           class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 transition-all"
+                           placeholder="e.g. 450,000">
+                    <input type="hidden" name="price" :value="basePrice">
+                    <div class="mt-1.5 text-right" x-show="basePrice > 0">
+                        <span class="text-xs font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100" x-text="formatMoney(basePrice)"></span>
+                    </div>
                 </div>
 
                 <div>
@@ -1517,7 +1528,18 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Price (LBP)</label>
-                    <input type="number" step="1" min="0" name="price" x-model="editingMenuItem.price" required class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="e.g. 450000">
+                    <input type="text" inputmode="numeric"
+                           x-model="editingMenuItem.price"
+                           @input="editingMenuItem.price = $event.target.value.replace(/[^0-9]/g, '')"
+                           @blur="$el.value = editingMenuItem.price ? parseInt(editingMenuItem.price, 10).toLocaleString('en-US') : ''"
+                           @focus="$el.value = editingMenuItem.price"
+                           required
+                           class="block w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl font-medium placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                           placeholder="e.g. 450,000">
+                    <input type="hidden" name="price" :value="editingMenuItem.price">
+                    <div class="mt-1.5 text-right" x-show="editingMenuItem.price > 0">
+                        <span class="text-xs font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-100" x-text="formatEditMoney(editingMenuItem.price)"></span>
+                    </div>
                 </div>
 
                 <div>

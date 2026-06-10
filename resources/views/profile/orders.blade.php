@@ -23,7 +23,7 @@
 @endsection
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8" x-data="{ showClearModal: false }">
+<div class="max-w-4xl mx-auto px-4 py-4 sm:px-6 lg:px-8" x-data="{ showClearModal: false }">
    
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -95,50 +95,53 @@
                     @endif
                 </div>
 
-                <!-- Simple Merit Metrics -->
-                <div class="p-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl text-white shadow-xl shadow-emerald-500/20">
-                    <p class="text-xs font-black uppercase tracking-widest opacity-80 mb-4">Total Spent</p>
-                    <p class="text-4xl font-extrabold outfit mb-1">{{ number_format($ordersSummary['total'] ?? 0, 0) }} LBP</p>
-                    <p class="text-sm font-bold opacity-80 mb-6">{{ $ordersSummary['count'] ?? 0 }} total orders</p>
-                    
-                    @if(($ordersSummary['count'] ?? 0) > 0)
-                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20"
-                         x-data="{
-                            initChart() {
-                                const ctx = this.$refs.canvas;
-                                const lastOrders = {{ $orders->getCollection()->take(7)->reverse()->values() }};
-                                const labels = lastOrders.map(o => new Date(o.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
-                                const data = lastOrders.map(o => parseFloat(o.total));
+                <!-- Total Spent Metrics Card -->
+                <div class="bg-white rounded-[2rem] border border-gray-100 p-6 group transition-all relative overflow-hidden"
+                     x-data="{
+                        initChart() {
+                            const ctx = this.$refs.canvas;
+                            const lastOrders = {{ ($ordersSummary['count'] ?? 0) > 0 ? $orders->getCollection()->take(7)->reverse()->values() : '[]' }};
+                            const data = lastOrders.map(o => parseFloat(o.total));
 
-                                new Chart(ctx, {
-                                    type: 'line',
-                                    data: {
-                                        labels: labels,
-                                        datasets: [{
-                                            label: 'Spent',
-                                            data: data,
-                                            borderColor: 'rgba(255, 255, 255, 1)',
-                                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                                            borderWidth: 3,
-                                            fill: true,
-                                            tension: 0.4,
-                                            pointRadius: lastOrders.length === 1 ? 4 : 0
-                                        }]
-                                    },
-                                    options: {
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: { legend: { display: false }, tooltip: { enabled: true } },
-                                        scales: { 
-                                            x: { display: false }, 
-                                            y: { display: false, beginAtZero: true } 
-                                        }
-                                    }
-                                });
-                            }
-                         }"
-                         x-init="initChart()">
-                        <canvas x-ref="canvas" height="150"></canvas>
+                            new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: lastOrders.map(() => ''),
+                                    datasets: [{
+                                        label: 'Spent',
+                                        data: data,
+                                        borderColor: '#10b981',
+                                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                                        borderWidth: 2,
+                                        fill: true,
+                                        tension: 0.4,
+                                        pointRadius: 0,
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                                    scales: { x: { display: false }, y: { display: false, beginAtZero: true } },
+                                    elements: { point: { radius: 0 } }
+                                }
+                            });
+                        }
+                     }"
+                     x-init="initChart()">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
+                            <x-heroicon-o-banknotes class="w-6 h-6" />
+                        </div>
+                        <span class="text-xs font-black px-2 py-1 bg-emerald-50 text-emerald-600 rounded-lg">Spent</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-400">Total Spent</p>
+                        <p class="text-2xl lg:text-3xl font-black text-gray-900 outfit">{{ number_format($ordersSummary['total'] ?? 0, 0) }} LBP</p>
+                    </div>
+                    @if(($ordersSummary['count'] ?? 0) > 0)
+                    <div class="absolute bottom-4 right-4 w-24 h-12">
+                        <canvas x-ref="canvas"></canvas>
                     </div>
                     @endif
                 </div>

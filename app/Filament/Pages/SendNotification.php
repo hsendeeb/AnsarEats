@@ -53,11 +53,11 @@ class SendNotification extends Page implements HasForms
                 Radio::make('target')
                     ->label('Send to')
                     ->options([
-                        '' => 'All Users',
+                        'all' => 'All Users',
                         'customer' => 'Customers Only',
                         'owner' => 'Restaurant Owners Only',
                     ])
-                    ->default('')
+                    ->default('all')
                     ->required(),
             ])
             ->statePath('data');
@@ -71,7 +71,7 @@ class SendNotification extends Page implements HasForms
             title: $this->data['title'],
             body: $this->data['body'],
             url: $this->data['url'],
-            targetRole: $this->data['target'] ?: null,
+            targetRole: $this->data['target'] === 'all' ? null : $this->data['target'],
         );
 
         Notification::make()

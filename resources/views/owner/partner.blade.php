@@ -42,17 +42,20 @@
 
 <div class="min-h-screen bg-gray-50 py-10 px-4">
     <div class="max-w-5xl mx-auto">
-        <div class="bg-gradient-to-br from-emerald-600 via-teal-500 to-cyan-500 rounded-[2rem] p-8 md:p-12 mb-8 text-white relative overflow-hidden shadow-2xl shadow-emerald-500/20">
-            <div class="absolute -top-12 -right-10 w-48 h-48 rounded-full bg-white/10"></div>
-            <div class="absolute -bottom-12 -left-10 w-40 h-40 rounded-full bg-white/10"></div>
+        <div class="p-8 md:p-12 mb-8">
+            <div class="flex flex-col items-center text-center mx-auto">
+                <!-- Lottie Animation -->
+                <div class="w-48 h-48 md:w-56 md:h-56 mb-6">
+                    <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script>
+                    <dotlottie-player src="https://lottie.host/89616363-724e-47bb-9502-3c0e3a4a772a/pr1bvtztL8.lottie" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></dotlottie-player>
+                </div>
 
-            <div class="relative z-10 max-w-2xl">
-                <p class="text-xs font-black uppercase tracking-[0.35em] text-black/70 mb-4">Partner With Us</p>
-                <h1 class="text-4xl md:text-5xl font-black outfit leading-tight">
+                <p class="text-[10px] md:text-xs font-black uppercase tracking-[0.35em] text-emerald-600 mb-3">Partner With Us</p>
+                <h1 class="text-2xl md:text-5xl font-black outfit leading-tight max-w-xl text-gray-900">
                     {{ $latestRequest?->restaurant_name ? 'Finish your restaurant request' : 'Launch your restaurant on AnsarEats' }}
                 </h1>
-                <p class="mt-4 text-base md:text-lg font-medium text-white/85">
-                    Submit your restaurant details for review. The super admin will approve or reject the request before your restaurant is created.
+                <p class="mt-3 md:mt-4 text-sm md:text-lg font-medium text-gray-500 max-w-lg">
+                    Join AnsarEats and reach thousands of hungry customers in your area. Grow your business with zero upfront costs — we handle the tech, you handle the kitchen.
                 </p>
             </div>
         </div>

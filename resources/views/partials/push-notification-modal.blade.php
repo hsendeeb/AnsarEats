@@ -25,15 +25,20 @@
             }
         },
         init() {
-            const path = window.location.pathname;
-            const isCheckoutPage = path.includes('checkout');
-            const isOwnerDashboard = path === '/owner/dashboard';
-            const shouldPromptOwner = @js(auth()->user()?->role === 'owner') && isOwnerDashboard;
-            const shouldPromptCustomer = @js(auth()->user()?->role !== 'owner') && isCheckoutPage;
-            
-            if ((shouldPromptOwner || shouldPromptCustomer) && 'Notification' in window && Notification.permission !== 'granted') {
-                setTimeout(() => { this.show = true; }, 2500);
-            }
+            if (!('Notification' in window) || Notification.permission !== 'default') return;
+
+            const trigger = () => { this.show = true; };
+
+            setTimeout(trigger, 30000);
+
+            const onScroll = () => {
+                const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+                if (scrollPercent >= 0.5) {
+                    document.removeEventListener('scroll', onScroll);
+                    trigger();
+                }
+            };
+            document.addEventListener('scroll', onScroll, { passive: true });
 
             window.showPushPrompt = () => { this.show = true; };
         }
@@ -60,9 +65,8 @@
             <div class="flex-1">
                 <template x-if="!isDenied">
                     <div>
-                        <h4 class="font-bold text-sm tracking-tight mb-0.5">Enable Order Alerts</h4>
-                        <p class="text-[11px] text-gray-500 dark:text-gray-400">Get notified about order updates and new
-                            restaurant orders.</p>
+                        <h4 class="font-bold text-sm tracking-tight mb-0.5">Stay in the Loop</h4>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400">Get notified about order updates, exclusive deals, and new restaurants.</p>
                     </div>
                 </template>
                 <template x-if="isDenied">

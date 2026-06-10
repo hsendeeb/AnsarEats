@@ -26,7 +26,7 @@ class SendBulkNotification implements ShouldQueue
 
     public function handle(): void
     {
-        $query = User::query();
+        $query = User::whereHas('pushSubscriptions');
 
         if ($this->targetRole) {
             $query->where('role', $this->targetRole);

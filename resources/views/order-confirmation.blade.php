@@ -90,7 +90,7 @@
                     <p class="text-gray-500 font-medium mt-2 text-lg"
                         x-text="status === 'delivered' ? 'Enjoy your meal!' : 
                               (status === 'out_for_delivery' ? 'Your rider is nearby and will arrive shortly!' : 
-                              (status === 'preparing' ? 'The kitchen is putting the final touches on your food!' : 
+                              (status === 'preparing' ? 'The restaurant is preparing your order!' : 
                               (status === 'accepted' ? 'The restaurant has accepted your order.' :
                               (['rejected', 'cancelled'].includes(status) ? 'We are sorry for the inconvenience.' : 
                               (status === 'pending' || status === 'placed' ? 'Waiting for the restaurant to accpet your order...' : 'Sit back and relax while we handle the rest!')))))">

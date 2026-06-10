@@ -715,7 +715,7 @@
         class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 z-[100] pb-2 pt-1.5 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-black/20">
         <div x-ref="nav" class="relative flex w-full px-2.5">
             <div aria-hidden="true"
-                class="pointer-events-none absolute left-0 top-0 z-0 rounded-full bg-emerald-100 shadow-[0_10px_24px_rgba(16,185,129,0.14)] transition-all duration-200 ease-out dark:bg-emerald-500/18"
+                class="pointer-events-none absolute left-0 top-0 z-0 rounded-full transition-all duration-200 ease-out"
                 :style="indicatorStyle"></div>
             <!-- Home -->
             <a href="{{ url('/') }}"

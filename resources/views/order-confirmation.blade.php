@@ -221,8 +221,10 @@
                                         @endif
                                     </span>
                                 </div>
-                                <span
-                                    class="font-bold text-gray-900">${{ number_format($item->price * $item->quantity, 2) }}</span>
+                                <div class="text-right">
+                                    <span class="block font-bold text-gray-900">LBP {{ number_format($item->price * $item->quantity, 0) }}</span>
+                                    <span class="block text-xs font-medium text-gray-400">${{ number_format(($item->price * $item->quantity) / 89000, 2) }}</span>
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -230,7 +232,7 @@
                     <!-- Total -->
                     @php
                         $lbpRate = 89000;
-                        $totalLbp = (float) $order->total * $lbpRate;
+                        $totalUsd = (float) $order->total / $lbpRate;
                     @endphp
                     <div class="border-t-2 border-dashed border-gray-200 pt-4 mb-6">
                         <div class="flex justify-between items-center">
@@ -241,9 +243,8 @@
                             </div>
                             <div class="text-right">
                                 <span
-                                    class="block text-2xl font-black outfit text-emerald-500">${{ number_format($order->total, 2) }}</span>
-                                <span class="block text-sm font-black text-gray-500">LBP
-                                    {{ number_format($totalLbp, 0) }}</span>
+                                    class="block text-2xl font-black outfit text-emerald-500">LBP {{ number_format($order->total, 0) }}</span>
+                                <span class="block text-sm font-black text-gray-500">${{ number_format($totalUsd, 2) }}</span>
                             </div>
                         </div>
                     </div>

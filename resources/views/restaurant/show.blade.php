@@ -795,7 +795,7 @@
                             $mapsQuery = $restaurant->latitude && $restaurant->longitude
                                 ? "{$restaurant->latitude},{$restaurant->longitude}"
                                 : urlencode($restaurant->address);
-                            $mapsUrl = "https://www.google.com/maps/search/?api=1&query={$mapsQuery}";
+                            $mapsUrl = "https://www.google.com/maps?q={$mapsQuery}";
                         @endphp
                         <a href="{{ $mapsUrl }}" target="_blank" class="inline-flex items-center text-xs gap-1.5 md:gap-2 px-2 md:px-4 md:py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl md:rounded-2xl text-emerald-300 hover:text-white border border-white/10 hover:border-white/20 transition-all duration-300 group shadow-lg shadow-black/20 max-w-full">
                             <div class="w-6 h-6 md:w-8 md:h-8 rounded-lg md:rounded-xl bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">

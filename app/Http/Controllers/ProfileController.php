@@ -153,7 +153,7 @@ class ProfileController extends Controller
 
     public function updateLocation(Request $request, UserLocation $location)
     {
-        if ($location->user_id !== Auth::id()) {
+        if ($location->user_id != Auth::id()) {
             abort(403);
         }
 

@@ -613,7 +613,7 @@
             <button @click="submitSave()" :disabled="!isFormValid"
                 class="w-full py-4 text-base font-extrabold rounded-2xl transition-all flex items-center justify-center gap-2"
                 :class="isFormValid
-                    ? 'bg-teal-500 text-white hover:bg-teal-400 active:scale-[0.98] shadow-lg shadow-teal-500/30'
+                    ? 'bg-teal-500 text-white hover:bg-teal-400 active:scale-[0.98]'
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
                 <span x-text="editingId ? 'Update Location' : 'Save Location'"></span>

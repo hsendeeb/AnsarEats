@@ -7,11 +7,12 @@
         x-transition:leave="transition ease-in duration-200 transform"
         x-transition:leave-start="translate-y-0 opacity-100" x-transition:leave-end="translate-y-20 opacity-0"
         class="fixed bottom-24 inset-x-4 z-[1000] md:hidden" x-cloak>
-        <button @click="triggerBounce(); open = true"
-            :class="{ 'animate-cart-pulse-smooth shadow-[0_20px_50px_rgba(16,185,129,0.4)] bg-emerald-400': isAnimating }"
-            class="w-full bg-emerald-500 text-white px-6 h-14 flex items-center justify-center rounded-xl font-black outfit tracking-widest text-sm cursor-pointer hover:bg-emerald-600 transition-all duration-300 transform active:scale-95">
-            VIEW CART
-        </button>
+            <button @click="triggerBounce(); open = true"
+                :class="{ 'animate-cart-pulse-smooth shadow-[0_20px_50px_rgba(16,185,129,0.4)] bg-emerald-400': isAnimating }"
+                class="relative w-full bg-emerald-500 text-white px-6 h-12 flex items-center justify-center rounded-xl font-black outfit text-sm cursor-pointer hover:bg-emerald-600 transition-all duration-300 transform active:scale-95">
+                View Cart
+                <span class="absolute right-4 text-xs" x-text="formatLbp(cart.total)"></span>
+            </button>
     </div>
 
 

@@ -10,7 +10,7 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Instrument Sans', 'Inter', 'ui-sans-serif', 'system-ui'],
-                outfit: ['Outfit', 'sans-serif'],
+                arabic: ['Tajawal', 'sans-serif'],
             },
         },
     },

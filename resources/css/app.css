@@ -9,11 +9,13 @@
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+        'Segoe UI Symbol', 'Noto Color Emoji', 'Tajawal';
 }
 
-body { font-family: 'Inter', sans-serif; }
-h1, h2, h3, h4, h5, h6, .outfit { font-family: 'Outfit', sans-serif; }
+    --font-arabic: 'Tajawal', sans-serif;
+
+body { font-family: 'Inter', 'Tajawal', sans-serif; }
+h1, h2, h3, h4, h5, h6, .outfit { font-family: 'Outfit', 'Tajawal', sans-serif; }
 
 html { scroll-behavior: smooth; }
 

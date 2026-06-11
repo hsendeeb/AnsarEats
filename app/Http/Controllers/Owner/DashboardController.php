@@ -837,8 +837,8 @@ class DashboardController extends Controller
             'free_delivery' => 'sometimes|boolean',
             'delivery_fee' => 'nullable|required_unless:free_delivery,1|numeric|min:0',
             'is_open' => 'sometimes|boolean',
-            'logo' => 'nullable|image|max:2048',
-            'cover_image' => 'nullable|image|max:4096',
+            'logo' => 'nullable|image|max:5120',
+            'cover_image' => 'nullable|image|max:5120',
             'remove_logo' => 'sometimes|boolean',
             'remove_cover_image' => 'sometimes|boolean',
             'operating_hours' => 'nullable|array'

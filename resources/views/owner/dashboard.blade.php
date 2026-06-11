@@ -483,9 +483,9 @@
                                             <div class="mt-1">
                                                 @if($item->isSaleActive())
                                                     <div class="flex flex-col items-start">
-                                                        <div class="flex items-center gap-2">
-                                                            <span class="font-black text-emerald-500 text-lg">{{ number_format($item->effectivePrice(), 0) }} LBP</span>
-                                                            <span class="text-xs font-bold text-gray-400 line-through">{{ number_format($item->price, 0) }} LBP</span>
+                                                        <div class="flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-2">
+                                                            <span class="text-xs sm:text-base font-bold text-gray-400 line-through order-2 sm:order-1">{{ number_format($item->price, 0) }} LBP</span>
+                                                            <span class="font-black text-emerald-500 text-lg order-1 sm:order-2">{{ number_format($item->effectivePrice(), 0) }} LBP</span>
                                                         </div>
                                                         @if(!empty(data_get($item->variants, 'options', [])))
                                                             <span class="text-[10px] font-bold text-emerald-500">
@@ -1330,7 +1330,7 @@
                             </div>
                             <div>
                                 <p class="text-sm font-bold text-gray-700">Drop an image here or <span class="text-amber-500">browse</span></p>
-                                <p class="text-xs text-gray-400 font-medium mt-1">PNG, JPG, WEBP up to 2MB</p>
+                                <p class="text-xs text-gray-400 font-medium mt-1">PNG, JPG, WEBP up to 5MB</p>
                             </div>
                         </div>
                     </div>

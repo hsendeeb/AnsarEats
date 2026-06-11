@@ -4,7 +4,7 @@
 
 
 <!-- Main Area -->
-<div class="pt-2 pb-12 bg-gray-50 min-h-screen">
+<div class="pt-2 pb-12 bg-white min-h-screen">
     <div class="container mx-auto px-4">
         <div class="w-full h-10 bg-gray-200 rounded-xl mb-8 animate-pulse"></div>
         <!-- Top Filters Bar -->
@@ -74,7 +74,7 @@
         opacity: 0;
     }
 </style>
-<div class="pt-6 pb-12 bg-gray-50 min-h-screen">
+<div class="pt-6 pb-12 bg-white min-h-screen">
     <div class="container mx-auto px-4">
         @php
             $searchBaseParams = array_filter([

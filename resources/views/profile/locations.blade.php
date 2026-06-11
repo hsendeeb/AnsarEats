@@ -11,6 +11,49 @@
     @media (max-width: 640px) {
         #mini-map-container { height: 160px !important; }
     }
+    .loader {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        position: relative;
+        animation: rotate 1s linear infinite;
+    }
+    .loader::before {
+        content: "";
+        box-sizing: border-box;
+        position: absolute;
+        inset: 0px;
+        border-radius: 50%;
+        border: 5px solid #14b8a6;
+        animation: prixClipFix 2s linear infinite;
+    }
+    .loader-sm {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        position: relative;
+        animation: rotate 1s linear infinite;
+        display: inline-block;
+    }
+    .loader-sm::before {
+        content: "";
+        box-sizing: border-box;
+        position: absolute;
+        inset: 0px;
+        border-radius: 50%;
+        border: 3px solid #14b8a6;
+        animation: prixClipFix 2s linear infinite;
+    }
+    @keyframes rotate {
+        100% { transform: rotate(360deg); }
+    }
+    @keyframes prixClipFix {
+        0%   { clip-path: polygon(50% 50%, 0 0, 0 0, 0 0, 0 0, 0 0); }
+        25%  { clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 0, 100% 0, 100% 0); }
+        50%  { clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 100% 100%, 100% 100%); }
+        75%  { clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 100%); }
+        100% { clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 0); }
+    }
 </style>
 @endpush
 
@@ -55,6 +98,10 @@
     is_default: false,
     showCustomAlias: false,
     customAlias: '',
+
+    locating: false,
+
+    submitting: false,
 
     deleteModalOpen: false,
     deleteLocationId: null,
@@ -279,13 +326,15 @@
         }).catch(function() {});
     },
     useCurrentLocation() {
-        if (!navigator.geolocation || !this._map) return;
+        if (!navigator.geolocation || !this._map || this.locating) return;
+        this.locating = true;
         navigator.geolocation.getCurrentPosition(
             (p) => {
                 this._map.setCenter({ lat: p.coords.latitude, lng: p.coords.longitude });
                 this._map.setZoom(16);
+                this.locating = false;
             },
-            () => {},
+            () => { this.locating = false; },
             { enableHighAccuracy: true, timeout: 10000 }
         );
     },
@@ -310,6 +359,8 @@
     },
 
     submitSave() {
+        if (this.submitting) return;
+        this.submitting = true;
         const f = document.createElement('form'); f.method = 'POST';
         f.action = this.editingId ? '/locations/' + this.editingId : '/locations';
         const t = document.querySelector('meta[name=\'csrf-token\']')?.content || '';
@@ -467,38 +518,11 @@
 
         {{-- Tooltip: "Your order will be delivered here" --}}
 
-        {{-- Search bar --}}
-        <div class="absolute top-4 left-4 right-4 z-20" @click.away="searchOpen = false">
-            <div class="relative">
-                <div class="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 px-4 py-3">
-                    <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input type="text" x-model="searchQuery"
-                        @input.debounce.300ms="searchLocation()"
-                        @focus="if(searchResults.length) searchOpen = true"
-                        placeholder="Search area..."
-                        class="w-full bg-transparent outline-none text-sm font-bold text-gray-900 dark:text-white placeholder-gray-400">
-                    <button @click="closeOverlay()" class="flex-shrink-0 w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                </div>
-
-                <div x-show="searchOpen && searchResults.length" x-cloak
-                     x-transition:enter="transition ease-out duration-150"
-                     x-transition:enter-start="opacity-0 -translate-y-2"
-                     x-transition:enter-end="opacity-100 translate-y-0"
-                     class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 max-h-64 overflow-y-auto z-30">
-                    <template x-for="(r, i) in searchResults" :key="i">
-                        <button @click="selectSearchResult(r)"
-                            class="w-full flex items-start gap-3 px-4 py-3.5 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-50 dark:border-gray-700/50 last:border-0">
-                            <svg class="w-4 h-4 mt-0.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                            <div class="min-w-0">
-                                <span class="text-sm font-bold text-gray-900 dark:text-white line-clamp-2" x-text="r.description"></span>
-                                <span class="text-xs text-gray-400 font-medium capitalize" x-text="r.types?.[0] || ''"></span>
-                            </div>
-                        </button>
-                    </template>
-                </div>
-            </div>
+        {{-- Close button --}}
+        <div class="absolute top-4 left-4 right-4 z-20 flex justify-end">
+            <button @click="closeOverlay()" class="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
         </div>
 
         {{-- Bottom sheet (Toters style) --}}
@@ -509,6 +533,12 @@
                 </div>
                 <h3 class="text-lg font-extrabold text-gray-900 dark:text-white mb-1">Confirm delivery location</h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mb-5 line-clamp-2 leading-relaxed" x-text="selectedAddress || 'Drag the map to set your location...'"></p>
+                <button @click="useCurrentLocation()" :disabled="locating"
+                    class="w-full py-3.5 bg-white dark:bg-gray-700 text-teal-600 dark:text-teal-400 font-extrabold text-sm rounded-2xl border-2 border-teal-200 dark:border-teal-700 hover:bg-teal-50 dark:hover:bg-gray-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mb-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                    <svg x-show="!locating" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span x-show="locating" class="loader-sm"></span>
+                    <span x-text="locating ? 'Locating...' : 'Use Current Location'"></span>
+                </button>
                 <button @click="confirmLocation()"
                     class="w-full py-4 bg-teal-500 text-white font-extrabold text-base rounded-2xl hover:bg-teal-400 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
@@ -610,13 +640,14 @@
 
         {{-- Sticky bottom button --}}
         <div class="flex-shrink-0 border-t border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-900 px-4 pt-4 pb-4" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));">
-            <button @click="submitSave()" :disabled="!isFormValid"
+            <button @click="submitSave()" :disabled="!isFormValid || submitting"
                 class="w-full py-4 text-base font-extrabold rounded-2xl transition-all flex items-center justify-center gap-2"
-                :class="isFormValid
+                :class="isFormValid && !submitting
                     ? 'bg-teal-500 text-white hover:bg-teal-400 active:scale-[0.98]'
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                <span x-text="editingId ? 'Update Location' : 'Save Location'"></span>
+                <svg x-show="!submitting" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                <span x-show="submitting" class="loader-sm"></span>
+                <span x-text="submitting ? 'Saving...' : (editingId ? 'Update Location' : 'Save Location')"></span>
             </button>
         </div>
     </div>

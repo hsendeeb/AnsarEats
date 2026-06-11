@@ -54,6 +54,7 @@
         rel="stylesheet">
     <meta name="google-site-verification" content="77XusHMPwtWDon-HY1LN7IRcnC2vNt1e2BIAsabD4aU" />
 
+    @stack('styles')
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

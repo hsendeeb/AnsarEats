@@ -26,6 +26,7 @@
         },
         init() {
             if (!('Notification' in window) || Notification.permission !== 'default') return;
+            if (localStorage.getItem('push_prompt_dismissed')) return;
 
             const trigger = () => { this.show = true; };
 
@@ -83,7 +84,7 @@
                     class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black rounded-lg transition-all shadow-sm active:scale-95 cursor-pointer min-w-[60px]">
                     OK
                 </button>
-                <button @click="show = false" class="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                <button @click="localStorage.setItem('push_prompt_dismissed', '1'); show = false" class="text-gray-400 hover:text-gray-600 transition-colors p-1"
                     aria-label="Dismiss notification">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">

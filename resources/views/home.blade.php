@@ -1118,9 +1118,33 @@
                 </div>
             @endif
 
-            <div class="mt-20">
-                @include('partials.restaurant-globe', ['restaurants' => $globeRestaurants ?? $restaurants ?? collect()])
-            </div>
+            @if(isset($newestRestaurants) && $newestRestaurants->isNotEmpty())
+                <div class="mt-16 mb-6 px-4 scroll-reveal"
+                     x-data="scrollReveal(0, 24)"
+                     x-intersect.once.margin.-80px.0.0.0="reveal()"
+                     :class="{ 'is-visible': shown }">
+                    <h2 class="text-2xl md:text-3xl lg:text-4xl outfit font-black text-gray-900 dark:text-white tracking-tight mb-6">New on AnsarEats</h2>
+                    <div class="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+                        @foreach($newestRestaurants as $restaurant)
+                            <a href="{{ route('restaurant.show', $restaurant) }}"
+                               class="shrink-0 group">
+                                <div class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-2 border-emerald-100 dark:border-emerald-900/40 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:shadow-md bg-gray-100 dark:bg-gray-800">
+                                    @if($restaurant->logo)
+                                        <img src="{{ Storage::url($restaurant->logo) }}"
+                                             alt="{{ $restaurant->name }}"
+                                             loading="lazy"
+                                             class="w-full h-full object-cover">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-400 to-teal-500 text-white font-black text-xl sm:text-2xl">
+                                            {{ substr($restaurant->name, 0, 1) }}
+                                        </div>
+                                    @endif
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
             <div class="mt-28"
                  x-data="allStoresFeed({

@@ -33,18 +33,11 @@ class HomeController extends Controller
             }
         );
 
-        $globeRestaurants = PerformanceCache::remember(
-            'home',
-            'globe-restaurants:user:'.($authUserId ?? 'guest'),
-            now()->addSeconds(config('performance.cache_ttl.home')),
-            function () use ($authUserId) {
-                $query = Restaurant::query()
-                    ->orderByDesc('is_open')
-                    ->latest();
-
-                return $query->get();
-            }
-        );
+        $newestRestaurants = Restaurant::query()
+            ->where('created_at', '>=', now()->subWeek())
+            ->latest()
+            ->take(10)
+            ->get();
 
         $trendingMeals = PerformanceCache::remember(
             'home',
@@ -65,7 +58,7 @@ class HomeController extends Controller
 
         return view('home', compact(
             'restaurants',
-            'globeRestaurants',
+            'newestRestaurants',
             'trendingMeals',
             'initialAllStores',
             'allStoresNextPage',
@@ -89,10 +82,10 @@ class HomeController extends Controller
             ->withCount('menuCategories')
             ->withAvg('ratings', 'rating')
             ->withCount('ratings')
+            ->withCount('orders')
             ->orderByDesc('is_open')
-            ->latest();
-
-        // Owners can now see their own restaurants in the all stores query
+            ->orderByRaw('COALESCE(ratings_avg_rating, 0) DESC')
+            ->orderByDesc('orders_count');
 
         return $query;
     }

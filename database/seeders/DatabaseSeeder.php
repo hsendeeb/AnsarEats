@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             SuperAdminSeeder::class,
             CategoryTagSeeder::class,
             RestaurantSeeder::class,
+            NewRestaurantSeeder::class,
         ]);
     }
 }

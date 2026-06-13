@@ -12,12 +12,6 @@
 >
     <div
         x-show="open"
-        x-transition:enter="transition-opacity ease-out duration-300 motion-reduce:transition-none"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition-opacity ease-in duration-[220ms] motion-reduce:transition-none"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
         @click="close()"
         class="fixed inset-0 z-[10000] bg-black/40"
         x-cloak
@@ -26,12 +20,12 @@
 
     <section
         x-show="open"
-        x-transition:enter="transform-gpu transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
-        x-transition:enter-start="translate-y-16 opacity-0"
-        x-transition:enter-end="translate-y-0 opacity-100"
-        x-transition:leave="transform-gpu transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
-        x-transition:leave-start="translate-y-0 opacity-100"
-        x-transition:leave-end="translate-y-16 opacity-0"
+        x-transition:enter="transform-gpu transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+        x-transition:enter-start="translate-y-full"
+        x-transition:enter-end="translate-y-0"
+        x-transition:leave="transform-gpu transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+        x-transition:leave-start="translate-y-0"
+        x-transition:leave-end="translate-y-full"
         :style="dragStyle"
         class="fixed inset-x-0 bottom-0 z-[10001] max-h-[58vh] overflow-y-auto rounded-t-[32px] border-0 bg-white px-2 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-4 shadow-[0_-24px_60px_rgba(15,23,42,0.18)] dark:bg-white"
         role="dialog"
@@ -53,9 +47,6 @@
             id="delivery-location-drawer-title"
             class="mt-4 text-[26px] font-bold leading-tight tracking-normal text-[#111827]"
             x-show="contentReady"
-            x-transition:enter="transform-gpu transition delay-0 duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
-            x-transition:enter-start="translate-y-3 opacity-0"
-            x-transition:enter-end="translate-y-0 opacity-100"
             x-cloak
         >
             Where should we deliver to?
@@ -64,9 +55,6 @@
         <div
             class="mt-8 py-2 shadow-sm rounded-xl overflow-hidden border border-slate-100 bg-white"
             x-show="contentReady"
-            x-transition:enter="transform-gpu transition delay-[50ms] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
-            x-transition:enter-start="translate-y-3 opacity-0"
-            x-transition:enter-end="translate-y-0 opacity-100"
             x-cloak
         >
                 
@@ -93,9 +81,6 @@
         <h3
             class="mt-8 text-[24px] font-bold leading-tight tracking-normal text-gray-950"
             x-show="contentReady"
-            x-transition:enter="transform-gpu transition delay-[100ms] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
-            x-transition:enter-start="translate-y-3 opacity-0"
-            x-transition:enter-end="translate-y-0 opacity-100"
             x-cloak
         >
             Saved addresses
@@ -104,9 +89,6 @@
         <div
             class="mt-5 mb-5 space-y-3"
             x-show="contentReady"
-            x-transition:enter="transform-gpu transition delay-[150ms] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
-            x-transition:enter-start="translate-y-3 opacity-0"
-            x-transition:enter-end="translate-y-0 opacity-100"
             x-cloak
         >
             @auth

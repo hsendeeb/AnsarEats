@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ansareats-shell-v4';
+const CACHE_NAME = 'ansareats-shell-v5';
 const APP_SHELL = [
   '/manifest.webmanifest',
   '/images/brand/ansareats-app-icon.svg',

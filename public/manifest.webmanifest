@@ -3,7 +3,7 @@
   "short_name": "AnsarEats",
   "description": "Order from your favorite restaurants, bakeries, and markets with fast delivery.",
   "id": "/",
-  "start_url": "/?source=pwa",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

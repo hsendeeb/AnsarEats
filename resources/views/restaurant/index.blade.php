@@ -355,7 +355,7 @@
                                                         x-text="m.restaurant_name"></div>
                                                 </div>
                                                 <div class="font-black text-emerald-500 text-sm"
-                                                    x-text="'$' + m.price"></div>
+                                                    x-text="new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(parseFloat(m.price || 0)) + ' LBP'"></div>
                                             </a>
                                         </template>
                                     </div>

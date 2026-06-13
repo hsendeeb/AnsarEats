@@ -41,76 +41,6 @@
             animation: cartPulseSmooth 0.8s ease-in-out;
         }
 
-        /* ── PWA Splash Screen ────────────────────────────── */
-        #pwa-splash {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-
-        .splash-scene {
-            position: relative;
-            width: 340px;
-            height: 100px;
-        }
-
-        #splash-logo-wrap {
-            position: absolute;
-            left: 0;
-            top: 50%;
-            width: 96px;
-            height: 96px;
-            transform: translate(122px, -50%) scale(0);
-            opacity: 0;
-            animation: splashLogoAnim 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        #splash-logo-wrap img {
-            width: 100%;
-            height: 100%;
-        }
-
-        #splash-name-el {
-            position: absolute;
-            left: 112px;
-            top: 50%;
-            transform: translateY(-50%) translateX(-24px);
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: #059669;
-            white-space: nowrap;
-            opacity: 0;
-            animation: splashNameAnim 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .dark #splash-name-el {
-            color: #34d399;
-        }
-
-        @keyframes splashLogoAnim {
-            0%   { transform: translate(122px, -50%) scale(0);   opacity: 0; }
-            16%  { transform: translate(122px, -50%) scale(1.08); opacity: 1; }
-            28%  { transform: translate(122px, -50%) scale(1);   opacity: 1; }
-            48%  { transform: translate(0, -50%) scale(1);       opacity: 1; }
-            100% { transform: translate(0, -50%) scale(1);       opacity: 1; }
-        }
-
-        @keyframes splashNameAnim {
-            0%, 34%  { transform: translateY(-50%) translateX(-18px); opacity: 0; }
-            56%      { transform: translateY(-50%) translateX(0);    opacity: 1; }
-            100%     { transform: translateY(-50%) translateX(0);    opacity: 1; }
-        }
-
-        @keyframes splashHide {
-            0%, 78% { opacity: 1; }
-            100%    { opacity: 0; }
-        }
-
-        #pwa-splash {
-            animation: splashHide 3s ease-in-out forwards;
-        }
     </style>
 
     <!-- Alpine.js Plugins (MUST be before core) -->
@@ -293,36 +223,6 @@
 
 <body
     class="min-h-screen flex flex-col text-gray-800 bg-white dark:bg-gray-900 overflow-x-hidden relative page-loading transition-theme pb-40 md:pb-0">
-    <!-- PWA Splash Screen (CSS-animated logo on standalone launch) -->
-    <div id="pwa-splash"
-         class="fixed inset-0 z-[9999] bg-[#f8faf8] dark:bg-gray-900 opacity-0 pointer-events-none">
-        <div class="splash-scene">
-            <div id="splash-logo-wrap">
-                <img src="{{ asset('images/brand/ansareats-logo-v2.svg') }}" alt="AnsarEats">
-            </div>
-            <span id="splash-name-el">AnsarEats</span>
-        </div>
-    </div>
-    <script>
-        (function() {
-            'use strict';
-            var searchParams = new URLSearchParams(window.location.search);
-            var isManifestLaunch = searchParams.get('source') === 'pwa';
-
-            var splash = document.getElementById('pwa-splash');
-            if (!splash) return;
-
-            if (!isManifestLaunch || sessionStorage.getItem('ansareats-pwa-splash-shown') === 'true') {
-                splash.remove();
-                return;
-            }
-
-            sessionStorage.setItem('ansareats-pwa-splash-shown', 'true');
-            splash.classList.remove('opacity-0', 'pointer-events-none');
-
-            setTimeout(function () { splash.remove(); }, 3300);
-        })();
-    </script>
     @php
         $hasActiveOrders = auth()->check()
             ? \App\Models\Order::where('user_id', auth()->id())
@@ -580,7 +480,8 @@
                                                     <div class="text-[10px] text-gray-500 font-bold uppercase"
                                                         x-text="m.restaurant_name"></div>
                                                 </div>
-                                                <div class="font-black text-emerald-500 text-xs" x-text="'$' + m.price">
+                                                <div class="font-black text-emerald-500 text-xs"
+                                                    x-text="new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(parseFloat(m.price || 0)) + ' LBP'">
                                                 </div>
                                             </a>
                                         </template>
@@ -1077,28 +978,27 @@
                         }
 
                         const offset = Math.max(this.dragOffsetY, 0);
-                        const scale = Math.max(0.98, 1 - (offset / 2000));
-                        const opacity = Math.max(0.7, 1 - (offset / 500));
-
-                        return `transform: translateY(${offset}px) scale(${scale}); opacity: ${opacity}; transition: ${this.dragging ? 'none' : 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms cubic-bezier(0.22, 1, 0.36, 1)'};`;
+                        return `transform: translateY(${offset}px); transition: ${this.dragging ? 'none' : 'transform 360ms cubic-bezier(0.22, 1, 0.36, 1)'};`;
                     },
 
                     show() {
                         this.open = true;
                         this.dragOffsetY = 0;
                         this.dragging = false;
-                        this.contentReady = false;
+                        this.contentReady = true;
 
                         if (this.contentTimer) {
                             clearTimeout(this.contentTimer);
+                            this.contentTimer = null;
                         }
-
-                        this.contentTimer = setTimeout(() => {
-                            this.contentReady = true;
-                        }, 120);
                     },
 
                     close() {
+                        if (this.contentTimer) {
+                            clearTimeout(this.contentTimer);
+                            this.contentTimer = null;
+                        }
+
                         this.contentReady = false;
                         this.dragging = false;
                         this.dragOffsetY = 0;

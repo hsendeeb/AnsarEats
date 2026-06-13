@@ -1,7 +1,7 @@
 <!-- Modal Bottom Sheet Component -->
-<div x-data="{}" x-show="$store.bottomSheet.open" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0" x-transition:leave="transition ease-in duration-200 transform" x-transition:leave-start="translate-y-0" x-transition:leave-end="translate-y-full" class="fixed inset-0 flex items-end justify-center z-50" style="display: none;">
+<div x-data="{}" x-show="$store.bottomSheet.open" x-transition:enter="transition-transform ease-out duration-700 transform" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0" x-transition:leave="transition-transform ease-in duration-500 transform" x-transition:leave-start="translate-y-0" x-transition:leave-end="translate-y-full" class="fixed inset-0 flex items-end justify-center z-50" style="display: none;">
     <!-- Backdrop -->
-    <div @click="$store.bottomSheet.open = false" class="fixed inset-0 bg-black/40 transition-opacity" aria-hidden="true"></div>
+    <div @click="$store.bottomSheet.open = false" class="fixed inset-0 bg-black/40" aria-hidden="true"></div>
 
     <!-- Bottom Sheet -->
     <div class="relative w-full max-w-lg mx-auto p-4 sm:p-6 md:p-8">

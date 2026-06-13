@@ -222,6 +222,58 @@
 
 <body
     class="min-h-screen flex flex-col text-gray-800 bg-white dark:bg-gray-900 overflow-x-hidden relative page-loading transition-theme pb-40 md:pb-0">
+    <!-- PWA Splash Screen (animated logo on standalone launch) -->
+    <div id="pwa-splash"
+         class="fixed inset-0 z-[9999] flex items-center justify-center bg-[#f8faf8] dark:bg-gray-900 opacity-0 pointer-events-none">
+        <div id="splash-logo-wrap" class="w-32 h-32 md:w-40 md:h-40">
+            <img src="{{ asset('images/brand/ansareats-logo-v2.svg') }}" alt="AnsarEats" class="w-full h-full">
+        </div>
+    </div>
+    <script>
+        (function() {
+            'use strict';
+            var isStandalone = window.navigator.standalone
+                || window.matchMedia('(display-mode: standalone)').matches
+                || new URLSearchParams(window.location.search).get('source') === 'pwa';
+
+            var splash = document.getElementById('pwa-splash');
+            var logoWrap = document.getElementById('splash-logo-wrap');
+
+            if (!splash || !logoWrap) return;
+
+            if (!isStandalone) {
+                splash.remove();
+                return;
+            }
+
+            splash.classList.remove('opacity-0', 'pointer-events-none');
+
+            requestAnimationFrame(function () {
+                gsap.set(logoWrap, { scale: 0, opacity: 0 });
+
+                var tl = gsap.timeline({
+                    onComplete: function () {
+                        gsap.to(splash, {
+                            opacity: 0,
+                            duration: 0.6,
+                            ease: 'power2.inOut',
+                            onComplete: function () { splash.remove(); }
+                        });
+                    }
+                });
+
+                tl.to(logoWrap, {
+                    scale: 1,
+                    opacity: 1,
+                    duration: 1,
+                    ease: 'back.out(1.7)'
+                })
+                .to(logoWrap, { scale: 1.08, duration: 0.35, ease: 'power1.inOut' })
+                .to(logoWrap, { scale: 1, duration: 0.3, ease: 'power1.inOut' })
+                .to({}, { duration: 0.8 });
+            });
+        })();
+    </script>
     @php
         $hasActiveOrders = auth()->check()
             ? \App\Models\Order::where('user_id', auth()->id())

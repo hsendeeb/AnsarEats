@@ -107,6 +107,15 @@
     deleteLocationId: null,
     deleteLocationAlias: '',
     deleting: false,
+    editLocationRequest: @js((int) request('edit_location')),
+    editLocations: @js($locations->map(fn ($loc) => [
+        'id' => $loc->id,
+        'alias' => $loc->alias,
+        'address' => $loc->address,
+        'latitude' => $loc->latitude,
+        'longitude' => $loc->longitude,
+        'is_default' => $loc->is_default,
+    ])->values()),
 
     _darkStyles: [
         { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
@@ -143,6 +152,34 @@
     },
     get isFormValid() {
         return this.finalAlias && this.street;
+    },
+    init() {
+        if (!this.editLocationRequest) return;
+
+        const loc = this.editLocations.find((item) => Number(item.id) === Number(this.editLocationRequest));
+        if (loc) {
+            this.$nextTick(() => this.openEditLocation(loc));
+        }
+    },
+    ensureGoogleMapReady(callback) {
+        if (typeof google === 'undefined' || !google.maps) {
+            setTimeout(callback, 200);
+            return false;
+        }
+
+        if (typeof google.maps.Map === 'function') {
+            return true;
+        }
+
+        if (typeof google.maps.importLibrary === 'function') {
+            google.maps.importLibrary('maps')
+                .then(() => callback())
+                .catch(() => setTimeout(callback, 300));
+            return false;
+        }
+
+        setTimeout(callback, 200);
+        return false;
     },
 
     openAddLocation() {
@@ -190,8 +227,7 @@
     initMap() {
         const el = document.getElementById('map-picker');
         if (!el || this._map) return;
-        if (typeof google === 'undefined' || !google.maps) {
-            setTimeout(() => this.initMap(), 200);
+        if (!this.ensureGoogleMapReady(() => this.initMap())) {
             return;
         }
         const hasCoords = this.selectedLat && this.selectedLng;
@@ -234,8 +270,7 @@
     initMiniMap() {
         const el = document.getElementById('edit-mini-map');
         if (!el) return;
-        if (typeof google === 'undefined' || !google.maps) {
-            setTimeout(() => this.initMiniMap(), 200);
+        if (!this.ensureGoogleMapReady(() => this.initMiniMap())) {
             return;
         }
         if (this._miniMap) { this._miniMap = null; }

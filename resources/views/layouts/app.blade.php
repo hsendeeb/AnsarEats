@@ -381,8 +381,8 @@
                             $userLocations = auth()->user()->locations;
                             $defaultLocation = $userLocations->where('is_default', true)->first() ?? $userLocations->first();
                         @endphp
-                        <div x-data="{ open: false }" class="relative flex md:hidden items-center">
-                            <button @click="open = !open" @click.away="open = false"
+                        <div class="relative flex md:hidden items-center">
+                            <button type="button" @click="$dispatch('toggle-location-drawer')"
                                 class="flex items-center gap-2 group text-left outline-none">
                                 <div class="w-10 h-10 flex items-center justify-center text-emerald-500 transition-colors">
                                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -399,7 +399,7 @@
                                         <span
                                             class="text-sm font-black text-gray-900 dark:text-white leading-none max-w-[120px] truncate">{{ $defaultLocation ? $defaultLocation->alias : 'Select Location' }}</span>
                                         <svg class="w-3.5 h-3.5 text-gray-400 transition-transform duration-200"
-                                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                            fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                                 d="M19 9l-7 7-7-7"></path>
@@ -407,75 +407,34 @@
                                     </div>
                                 </div>
                             </button>
-
-                            {{-- Dropdown --}}
-                            <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 scale-95 translate-y-2"
-                                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                                x-transition:leave="transition ease-in duration-150"
-                                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                                x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-                                class="absolute top-full left-0 mt-3 w-64 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50">
-
-                                <div class="max-h-[50vh] overflow-y-auto overscroll-contain">
-                                    @if($userLocations->isNotEmpty())
-                                        @foreach($userLocations as $loc)
-                                            <form action="{{ route('profile.locations.default', $loc) }}" method="POST"
-                                                class="border-b border-gray-50 dark:border-gray-700/50">
-                                                @csrf
-                                                <button type="submit"
-                                                    class="w-full text-left px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50 {{ $defaultLocation && $defaultLocation->id === $loc->id ? 'bg-emerald-50/50 dark:bg-emerald-500/5' : '' }}">
-                                                    <div class="flex items-start gap-3">
-                                                        <svg class="w-4 h-4 mt-0.5 flex-shrink-0 {{ $defaultLocation && $defaultLocation->id === $loc->id ? 'text-emerald-500' : 'text-gray-400' }}"
-                                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
-                                                            </path>
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                        </svg>
-                                                        <div class="flex-1 min-w-0">
-                                                            <div class="flex items-center gap-2">
-                                                                <p class="text-sm font-bold text-gray-900 dark:text-white truncate">
-                                                                    {{ $loc->alias }}</p>
-                                                                @if($defaultLocation && $defaultLocation->id === $loc->id)
-                                                                    <span
-                                                                        class="inline-flex px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700">Default</span>
-                                                                @endif
-                                                            </div>
-                                                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                                                {{ $loc->address ?: 'Coordinates: ' . $loc->latitude . ', ' . $loc->longitude }}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </form>
-                                        @endforeach
-                                    @else
-                                        <div class="p-4 text-center">
-                                            <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">No locations saved
-                                                yet.</p>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="p-2 bg-gray-50 dark:bg-gray-800/50">
-                                    <a href="{{ route('profile.locations') }}"
-                                        class="block w-full py-1 text-center text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
-                                        Manage Locations
-                                    </a>
-                                </div>
-                            </div>
                         </div>
                     @else
-                        <a href="{{ url('/') }}" class="flex md:hidden items-center group gap-1.5">
-                            <div
-                                class="w-10 h-10 flex items-center justify-center transform group-hover:scale-105 transition-all duration-300">
-                                <img src="{{ asset('images/brand/ansareats-logo-v2.svg') }}" alt="AnsarEats logo"
-                                    class="w-full h-full" width="56" height="56">
-                            </div>
-                            <span
-                                class="font-extrabold text-lg outfit text-gray-900 dark:text-white group-hover:text-emerald-500 tracking-tight transition-colors">AnsarEats</span>
-                        </a>
+                        <div class="relative flex md:hidden items-center">
+                            <button type="button" @click="$dispatch('toggle-location-drawer')"
+                                class="flex items-center gap-2 group text-left outline-none">
+                                <div class="w-10 h-10 flex items-center justify-center text-emerald-500 transition-colors">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd"
+                                            d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="flex flex-col justify-center">
+                                    <span
+                                        class="text-[10px] font-bold text-gray-400 tracking-wider leading-none mb-1">Delivering
+                                        to</span>
+                                    <div class="flex items-center gap-1">
+                                        <span
+                                            class="text-sm font-black text-gray-900 dark:text-white leading-none max-w-[120px] truncate">Select Location</span>
+                                        <svg class="w-3.5 h-3.5 text-gray-400 transition-transform duration-200"
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
                     @endauth
 
                     <div class="hidden lg:flex items-center ml-10 space-x-8">
@@ -961,6 +920,7 @@
     @unless(View::hasSection('hideCart'))
         @include('layouts.partials.cart-drawer')
     @endunless
+    @include('layouts.partials.delivery-location-drawer')
     @include('layouts.partials.toast-notification')
 
 
@@ -1098,6 +1058,12 @@
                             }
                         } catch (e) { }
                     }
+                }));
+            }
+
+            if (!Alpine.data('deliveryLocationDrawer')) {
+                Alpine.data('deliveryLocationDrawer', () => ({
+                    open: false,
                 }));
             }
 

@@ -1064,6 +1064,83 @@
             if (!Alpine.data('deliveryLocationDrawer')) {
                 Alpine.data('deliveryLocationDrawer', () => ({
                     open: false,
+                    contentReady: false,
+                    dragging: false,
+                    dragStartY: 0,
+                    dragOffsetY: 0,
+                    dragStartedAt: 0,
+                    contentTimer: null,
+
+                    get dragStyle() {
+                        if (!this.dragging && this.dragOffsetY <= 0) {
+                            return '';
+                        }
+
+                        const offset = Math.max(this.dragOffsetY, 0);
+                        const scale = Math.max(0.98, 1 - (offset / 2000));
+                        const opacity = Math.max(0.7, 1 - (offset / 500));
+
+                        return `transform: translateY(${offset}px) scale(${scale}); opacity: ${opacity}; transition: ${this.dragging ? 'none' : 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms cubic-bezier(0.22, 1, 0.36, 1)'};`;
+                    },
+
+                    show() {
+                        this.open = true;
+                        this.dragOffsetY = 0;
+                        this.dragging = false;
+                        this.contentReady = false;
+
+                        if (this.contentTimer) {
+                            clearTimeout(this.contentTimer);
+                        }
+
+                        this.contentTimer = setTimeout(() => {
+                            this.contentReady = true;
+                        }, 120);
+                    },
+
+                    close() {
+                        this.contentReady = false;
+                        this.dragging = false;
+                        this.dragOffsetY = 0;
+                        this.open = false;
+                    },
+
+                    pointerY(event) {
+                        return event.touches?.[0]?.clientY ?? event.clientY ?? 0;
+                    },
+
+                    startDrag(event) {
+                        if (!this.open) return;
+
+                        this.dragging = true;
+                        this.dragStartY = this.pointerY(event);
+                        this.dragStartedAt = Date.now();
+                        this.dragOffsetY = 0;
+                    },
+
+                    drag(event) {
+                        if (!this.dragging) return;
+
+                        const delta = this.pointerY(event) - this.dragStartY;
+                        this.dragOffsetY = Math.max(delta, 0);
+                    },
+
+                    endDrag() {
+                        if (!this.dragging) return;
+
+                        const elapsed = Math.max(Date.now() - this.dragStartedAt, 1);
+                        const velocity = this.dragOffsetY / elapsed;
+                        const shouldDismiss = this.dragOffsetY > 96 || velocity > 0.65;
+
+                        this.dragging = false;
+
+                        if (shouldDismiss) {
+                            this.close();
+                            return;
+                        }
+
+                        this.dragOffsetY = 0;
+                    },
                 }));
             }
 

@@ -40,6 +40,77 @@
         .animate-cart-pulse-smooth {
             animation: cartPulseSmooth 0.8s ease-in-out;
         }
+
+        /* ── PWA Splash Screen ────────────────────────────── */
+        #pwa-splash {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .splash-scene {
+            position: relative;
+            width: 340px;
+            height: 100px;
+        }
+
+        #splash-logo-wrap {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 96px;
+            height: 96px;
+            transform: translate(122px, -50%) scale(0);
+            opacity: 0;
+            animation: splashLogoAnim 4s ease-out forwards;
+        }
+
+        #splash-logo-wrap img {
+            width: 100%;
+            height: 100%;
+        }
+
+        #splash-name-el {
+            position: absolute;
+            left: 112px;
+            top: 50%;
+            transform: translateY(-50%) translateX(-24px);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #059669;
+            white-space: nowrap;
+            opacity: 0;
+            animation: splashNameAnim 4s ease-out forwards;
+        }
+
+        .dark #splash-name-el {
+            color: #34d399;
+        }
+
+        @keyframes splashLogoAnim {
+            0%   { transform: translate(122px, -50%) scale(0);   opacity: 0; }
+            18%  { transform: translate(122px, -50%) scale(1.15); opacity: 1; }
+            30%  { transform: translate(122px, -50%) scale(1);   opacity: 1; }
+            50%  { transform: translate(0, -50%) scale(1);       opacity: 1; }
+            100% { transform: translate(0, -50%) scale(1);       opacity: 1; }
+        }
+
+        @keyframes splashNameAnim {
+            0%, 35%  { transform: translateY(-50%) translateX(-24px); opacity: 0; }
+            55%      { transform: translateY(-50%) translateX(0);    opacity: 1; }
+            100%     { transform: translateY(-50%) translateX(0);    opacity: 1; }
+        }
+
+        @keyframes splashHide {
+            0%, 78% { opacity: 1; }
+            100%    { opacity: 0; }
+        }
+
+        #pwa-splash {
+            animation: splashHide 4.2s ease-in-out forwards;
+        }
     </style>
 
     <!-- Alpine.js Plugins (MUST be before core) -->
@@ -222,11 +293,14 @@
 
 <body
     class="min-h-screen flex flex-col text-gray-800 bg-white dark:bg-gray-900 overflow-x-hidden relative page-loading transition-theme pb-40 md:pb-0">
-    <!-- PWA Splash Screen (animated logo on standalone launch) -->
+    <!-- PWA Splash Screen (CSS-animated logo on standalone launch) -->
     <div id="pwa-splash"
-         class="fixed inset-0 z-[9999] flex items-center justify-center bg-[#f8faf8] dark:bg-gray-900 opacity-0 pointer-events-none">
-        <div id="splash-logo-wrap" class="w-32 h-32 md:w-40 md:h-40">
-            <img src="{{ asset('images/brand/ansareats-logo-v2.svg') }}" alt="AnsarEats" class="w-full h-full">
+         class="fixed inset-0 z-[9999] bg-[#f8faf8] dark:bg-gray-900 opacity-0 pointer-events-none">
+        <div class="splash-scene">
+            <div id="splash-logo-wrap">
+                <img src="{{ asset('images/brand/ansareats-logo-v2.svg') }}" alt="AnsarEats">
+            </div>
+            <span id="splash-name-el">AnsarEats</span>
         </div>
     </div>
     <script>
@@ -237,9 +311,7 @@
                 || new URLSearchParams(window.location.search).get('source') === 'pwa';
 
             var splash = document.getElementById('pwa-splash');
-            var logoWrap = document.getElementById('splash-logo-wrap');
-
-            if (!splash || !logoWrap) return;
+            if (!splash) return;
 
             if (!isStandalone) {
                 splash.remove();
@@ -248,30 +320,7 @@
 
             splash.classList.remove('opacity-0', 'pointer-events-none');
 
-            requestAnimationFrame(function () {
-                gsap.set(logoWrap, { scale: 0, opacity: 0 });
-
-                var tl = gsap.timeline({
-                    onComplete: function () {
-                        gsap.to(splash, {
-                            opacity: 0,
-                            duration: 0.6,
-                            ease: 'power2.inOut',
-                            onComplete: function () { splash.remove(); }
-                        });
-                    }
-                });
-
-                tl.to(logoWrap, {
-                    scale: 1,
-                    opacity: 1,
-                    duration: 1,
-                    ease: 'back.out(1.7)'
-                })
-                .to(logoWrap, { scale: 1.08, duration: 0.35, ease: 'power1.inOut' })
-                .to(logoWrap, { scale: 1, duration: 0.3, ease: 'power1.inOut' })
-                .to({}, { duration: 0.8 });
-            });
+            setTimeout(function () { splash.remove(); }, 4600);
         })();
     </script>
     @php

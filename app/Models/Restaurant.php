@@ -144,6 +144,7 @@ class Restaurant extends Model
 
     protected static function generateUniqueSlug($name)
     {
+        $name = static::transliterateArabic($name);
         $baseSlug = \Illuminate\Support\Str::slug($name);
         $baseSlug = $baseSlug ?: 'restaurant';
         $slug = $baseSlug;
@@ -155,6 +156,54 @@ class Restaurant extends Model
         }
 
         return $slug;
+    }
+
+    protected static function transliterateArabic(string $text): string
+    {
+        $map = [
+            // ISO 233 standard transliteration
+            'ا' => 'a', 'أ' => 'a', 'إ' => 'a', 'آ' => 'a',
+            'ب' => 'b',
+            'ت' => 't',
+            'ث' => 'th',
+            'ج' => 'j',
+            'ح' => 'h',
+            'خ' => 'kh',
+            'د' => 'd',
+            'ذ' => 'dh',
+            'ر' => 'r',
+            'ز' => 'z',
+            'س' => 's',
+            'ش' => 'sh',
+            'ص' => 's',
+            'ض' => 'd',
+            'ط' => 't',
+            'ظ' => 'z',
+            'ع' => 'aa',
+            'غ' => 'gh',
+            'ف' => 'f',
+            'ق' => 'q',
+            'ك' => 'k',
+            'ل' => 'l',
+            'م' => 'm',
+            'ن' => 'n',
+            'ه' => 'h',
+            'و' => 'w',
+            'ي' => 'y',
+            'ة' => 'h',
+            'ى' => 'a',
+            'ئ' => 'y',
+            'ؤ' => 'w',
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3',
+            '٤' => '4', '٥' => '5', '٦' => '6', '٧' => '7',
+            '٨' => '8', '٩' => '9',
+            // Remove tatweel and diacritics
+            'ـ' => '', 'َ' => '', 'ُ' => '', 'ِ' => '',
+            'ّ' => '', 'ْ' => '', 'ً' => '', 'ٌ' => '',
+            'ٍ' => '', 'ٰ' => '',
+        ];
+
+        return strtr($text, $map);
     }
 
     public function getRouteKeyName()

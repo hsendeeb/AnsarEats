@@ -45,7 +45,7 @@
 
         <h2
             id="delivery-location-drawer-title"
-            class="mt-4 text-[26px] font-bold leading-tight tracking-normal text-[#111827]"
+            class="mt-4 text-[22px] font-bold leading-tight tracking-normal text-[#111827]"
             x-show="contentReady"
             x-cloak
         >
@@ -53,7 +53,7 @@
         </h2>
 
         <div
-            class="mt-8 py-2 shadow-sm rounded-xl overflow-hidden border border-slate-100 bg-white"
+            class="mt-6 py-1.5 shadow-sm rounded-xl overflow-hidden border border-slate-100 bg-white"
             x-show="contentReady"
             x-cloak
         >
@@ -61,25 +61,25 @@
 
             <a
                 href="{{ auth()->check() ? route('profile.locations') : route('login') }}"
-                class="flex min-h-[76px] w-full cursor-pointer items-center gap-4 px-5  text-left transition-colors duration-200 hover:bg-slate-50 active:bg-slate-100 focus:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                class="flex min-h-[64px] w-full cursor-pointer items-center gap-3 px-4 text-left transition-colors duration-200 hover:bg-slate-50 active:bg-slate-100 focus:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
             >
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center text-gray-950">
-                    <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center text-gray-950">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
                 </span>
                 <span class="min-w-0 flex-1">
-                    <span class="block text-[18px] font-semibold leading-6 text-gray-950">Add new address</span>
-                    <span class="mt-0.5 block text-[15px] font-medium leading-5 text-gray-400">Choose location on map</span>
+                    <span class="block text-[16px] font-semibold leading-5 text-gray-950">Add new address</span>
+                    <span class="mt-0.5 block text-[14px] font-medium leading-4 text-gray-400">Choose location on map</span>
                 </span>
-                <svg class="h-7 w-7 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="2.25" stroke="currentColor" aria-hidden="true">
+                <svg class="h-6 w-6 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="2.25" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                 </svg>
             </a>
         </div>
 
         <h3
-            class="mt-8 text-[24px] font-bold leading-tight tracking-normal text-gray-950"
+            class="mt-6 text-[20px] font-bold leading-tight tracking-normal text-gray-950"
             x-show="contentReady"
             x-cloak
         >
@@ -87,7 +87,7 @@
         </h3>
 
         <div
-            class="mt-5 mb-5 space-y-3"
+            class="mt-4 mb-4 space-y-2.5"
             x-show="contentReady"
             x-cloak
         >
@@ -96,19 +96,19 @@
                     <div
                         x-data="{ menuOpen: false }"
                         @click.outside="menuOpen = false"
-                        class="relative flex min-h-[54px] items-center gap-3 rounded-2xl border {{ $drawerDefaultLocation && $drawerDefaultLocation->id === $loc->id ? 'border-emerald-500' : 'border-slate-100' }} bg-white p-3 shadow-sm transition-colors duration-200 hover:bg-emerald-50/30"
+                        class="relative flex min-h-[44px] items-center gap-2.5 rounded-2xl border {{ $drawerDefaultLocation && $drawerDefaultLocation->id === $loc->id ? 'border-emerald-500' : 'border-slate-100' }} bg-white p-2.5 shadow-sm transition-colors duration-200 hover:bg-emerald-50/30"
                     >
                         <form action="{{ route('profile.locations.default', $loc) }}" method="POST" class="min-w-0 flex-1">
                             @csrf
-                            <button type="submit" class="flex min-h-[44px] w-full cursor-pointer items-center gap-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00B388]/40">
-                                <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl  text-[#00B388]">
-                                    <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                            <button type="submit" class="flex min-h-[38px] w-full cursor-pointer items-center gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00B388]/40">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-[#00B388]">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                                     </svg>
                                 </span>
                                 <span class="min-w-0 flex-1 overflow-hidden">
-                                    <span class="block truncate text-[18px] font-semibold leading-6 text-gray-950">{{ $loc->alias ?: 'Home' }}</span>
-                                    <span class="mt-1 block max-w-full truncate text-[15px] font-medium leading-5 text-gray-400">{{ $loc->address ?: 'Coordinates: ' . $loc->latitude . ', ' . $loc->longitude }}</span>
+                                    <span class="block truncate text-[15px] font-semibold leading-5 text-gray-950">{{ $loc->alias ?: 'Home' }}</span>
+                                    <span class="mt-0.5 block max-w-full truncate text-[13px] font-medium leading-4 text-gray-400">{{ $loc->address ?: 'Coordinates: ' . $loc->latitude . ', ' . $loc->longitude }}</span>
                                 </span>
                             </button>
                         </form>
@@ -116,10 +116,10 @@
                         <button
                             type="button"
                             @click.stop="menuOpen = !menuOpen"
-                            class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-gray-950 transition-colors duration-200 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00B388]/40"
+                            class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-950 transition-colors duration-200 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00B388]/40"
                             aria-label="Address actions"
                         >
-                            <svg class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M4.5 12a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" clip-rule="evenodd" />
                             </svg>
                         </button>
@@ -166,32 +166,32 @@
                 @empty
                     <a
                         href="{{ route('profile.locations') }}"
-                        class="m-3 flex min-h-[82px] w-[calc(100%-1.5rem)] cursor-pointer items-center gap-4 rounded-[20px] border border-[#00B388] bg-white px-4 text-left transition-colors duration-200 hover:bg-emerald-50/40 active:bg-emerald-50"
+                        class="m-3 flex min-h-[64px] w-[calc(100%-1.5rem)] cursor-pointer items-center gap-3 rounded-[20px] border border-[#00B388] bg-white px-4 text-left transition-colors duration-200 hover:bg-emerald-50/40 active:bg-emerald-50"
                     >
-                        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-[#00B388]">
-                            <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-[#00B388]">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
                         </span>
                         <span class="min-w-0 flex-1 overflow-hidden">
-                            <span class="block truncate text-[18px] font-semibold leading-6 text-gray-950">Add Home</span>
-                            <span class="mt-1 block max-w-full truncate text-[15px] font-medium leading-5 text-gray-400">Save your first delivery address</span>
+                            <span class="block truncate text-[16px] font-semibold leading-5 text-gray-950">Add Home</span>
+                            <span class="mt-0.5 block max-w-full truncate text-[14px] font-medium leading-4 text-gray-400">Save your first delivery address</span>
                         </span>
                     </a>
                 @endforelse
             @else
                 <a
                     href="{{ route('login') }}"
-                    class="m-3 flex min-h-[82px] w-[calc(100%-1.5rem)] cursor-pointer items-center gap-4 rounded-[20px] border border-[#00B388] bg-white px-4 text-left transition-colors duration-200 hover:bg-emerald-50/40 active:bg-emerald-50"
+                    class="m-3 flex min-h-[64px] w-[calc(100%-1.5rem)] cursor-pointer items-center gap-3 rounded-[20px] border border-[#00B388] bg-white px-4 text-left transition-colors duration-200 hover:bg-emerald-50/40 active:bg-emerald-50"
                 >
-                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-[#00B388]">
-                        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-[#00B388]">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
                         </svg>
                     </span>
                     <span class="min-w-0 flex-1 overflow-hidden">
-                        <span class="block truncate text-[18px] font-semibold leading-6 text-gray-950">Sign in</span>
-                        <span class="mt-1 block max-w-full truncate text-[15px] font-medium leading-5 text-gray-400">Save and choose delivery addresses</span>
+                        <span class="block truncate text-[16px] font-semibold leading-5 text-gray-950">Sign in</span>
+                        <span class="mt-0.5 block max-w-full truncate text-[14px] font-medium leading-4 text-gray-400">Save and choose delivery addresses</span>
                     </span>
                 </a>
             @endauth

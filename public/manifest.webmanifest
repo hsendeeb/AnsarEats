@@ -1,6 +1,6 @@
 {
-  "name": "AnsarEats",
-  "short_name": "AnsarEats",
+  "name": "Ansar Eats",
+  "short_name": "Ansar Eats",
   "description": "Order from your favorite restaurants, bakeries, and markets with fast delivery.",
   "id": "/",
   "start_url": "/",
@@ -11,13 +11,13 @@
   "theme_color": "#10b981",
   "icons": [
     {
-      "src": "/images/brand/ansareats-logo-v2.svg",
+      "src": "/images/brand/ansareats-manifest-lockup.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/images/brand/ansareats-logo-v2.svg",
+      "src": "/images/brand/ansareats-manifest-lockup.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "maskable"

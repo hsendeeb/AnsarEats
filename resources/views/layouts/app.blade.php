@@ -63,7 +63,7 @@
             height: 96px;
             transform: translate(122px, -50%) scale(0);
             opacity: 0;
-            animation: splashLogoAnim 4s ease-out forwards;
+            animation: splashLogoAnim 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         #splash-logo-wrap img {
@@ -82,7 +82,7 @@
             color: #059669;
             white-space: nowrap;
             opacity: 0;
-            animation: splashNameAnim 4s ease-out forwards;
+            animation: splashNameAnim 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .dark #splash-name-el {
@@ -91,15 +91,15 @@
 
         @keyframes splashLogoAnim {
             0%   { transform: translate(122px, -50%) scale(0);   opacity: 0; }
-            18%  { transform: translate(122px, -50%) scale(1.15); opacity: 1; }
-            30%  { transform: translate(122px, -50%) scale(1);   opacity: 1; }
-            50%  { transform: translate(0, -50%) scale(1);       opacity: 1; }
+            16%  { transform: translate(122px, -50%) scale(1.08); opacity: 1; }
+            28%  { transform: translate(122px, -50%) scale(1);   opacity: 1; }
+            48%  { transform: translate(0, -50%) scale(1);       opacity: 1; }
             100% { transform: translate(0, -50%) scale(1);       opacity: 1; }
         }
 
         @keyframes splashNameAnim {
-            0%, 35%  { transform: translateY(-50%) translateX(-24px); opacity: 0; }
-            55%      { transform: translateY(-50%) translateX(0);    opacity: 1; }
+            0%, 34%  { transform: translateY(-50%) translateX(-18px); opacity: 0; }
+            56%      { transform: translateY(-50%) translateX(0);    opacity: 1; }
             100%     { transform: translateY(-50%) translateX(0);    opacity: 1; }
         }
 
@@ -109,7 +109,7 @@
         }
 
         #pwa-splash {
-            animation: splashHide 4.2s ease-in-out forwards;
+            animation: splashHide 3s ease-in-out forwards;
         }
     </style>
 
@@ -306,21 +306,21 @@
     <script>
         (function() {
             'use strict';
-            var isStandalone = window.navigator.standalone
-                || window.matchMedia('(display-mode: standalone)').matches
-                || new URLSearchParams(window.location.search).get('source') === 'pwa';
+            var searchParams = new URLSearchParams(window.location.search);
+            var isManifestLaunch = searchParams.get('source') === 'pwa';
 
             var splash = document.getElementById('pwa-splash');
             if (!splash) return;
 
-            if (!isStandalone) {
+            if (!isManifestLaunch || sessionStorage.getItem('ansareats-pwa-splash-shown') === 'true') {
                 splash.remove();
                 return;
             }
 
+            sessionStorage.setItem('ansareats-pwa-splash-shown', 'true');
             splash.classList.remove('opacity-0', 'pointer-events-none');
 
-            setTimeout(function () { splash.remove(); }, 4600);
+            setTimeout(function () { splash.remove(); }, 3300);
         })();
     </script>
     @php

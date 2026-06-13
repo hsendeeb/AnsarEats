@@ -1,9 +1,9 @@
-const CACHE_NAME = 'ansareats-shell-v5';
+const CACHE_NAME = 'ansareats-shell-v6';
 const APP_SHELL = [
   '/manifest.webmanifest',
   '/images/brand/ansareats-app-icon.svg',
   '/images/brand/ansareats-app-icon-maskable.svg',
-  '/images/brand/ansareats-logo-v2.svg',
+  '/images/brand/ansareats-manifest-lockup.svg',
 ];
 
 self.addEventListener('install', (event) => {
